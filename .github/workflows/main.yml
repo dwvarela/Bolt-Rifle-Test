@@ -4,6 +4,10 @@ on:
   push:
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: bolt-rifle-neoforge
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,4 +30,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: boltrifle-jar
-          path: build/libs/*.jar
+          path: bolt-rifle-neoforge/build/libs/*.jar
