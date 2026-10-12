@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "boltrifle:item/bolt_rifle"
+  }
+}

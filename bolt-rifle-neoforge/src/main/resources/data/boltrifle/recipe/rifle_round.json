@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    { "item": "minecraft:iron_nugget" },
+    { "item": "minecraft:gunpowder" },
+    { "item": "minecraft:copper_ingot" }
+  ],
+  "result": {
+    "id": "boltrifle:rifle_round",
+    "count": 4
+  }
+}

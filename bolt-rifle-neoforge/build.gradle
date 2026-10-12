@@ -1,0 +1,40 @@
+plugins {
+	id 'java-library'
+	id 'net.neoforged.moddev' version '2.0.78'
+}
+
+version = project.mod_version
+group = project.mod_group_id
+
+base {
+	archivesName = project.mod_id
+}
+
+repositories {
+	mavenLocal()
+}
+
+neoForge {
+	version = project.neo_version
+
+	runs {
+		client {
+			client()
+		}
+		server {
+			server()
+			programArgument '--nogui'
+		}
+	}
+
+	mods {
+		"${project.mod_id}" {
+			sourceSet sourceSets.main
+		}
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+	options.release = 21
+}
