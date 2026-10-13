@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 defaults:
   run:
     working-directory: bolt-rifle-neoforge
@@ -41,3 +44,11 @@ jobs:
         with:
           name: boltrifle-jar
           path: bolt-rifle-neoforge/build/libs/*.jar
+
+      - name: Publish download link
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v2.0.0 --yes --cleanup-tag || true
+          gh release create v2.0.0 build/libs/*.jar --target "${{ github.sha }}" \
+            --title "M700 Rifle v2.0.0" --notes "Download boltrifle-2.0.0.jar below. Also needs GeckoLib 4.9.3."
