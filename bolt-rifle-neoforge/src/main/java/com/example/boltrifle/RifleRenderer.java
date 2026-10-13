@@ -9,6 +9,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import software.bernie.geckolib.model.DefaultedItemGeoModel;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
+import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 
 /**
  * Draws the animated rifle. Position/rotation per view comes from the live client config, and the
@@ -17,6 +18,8 @@ import software.bernie.geckolib.renderer.GeoItemRenderer;
 public class RifleRenderer extends GeoItemRenderer<RifleItem> {
 	public RifleRenderer() {
 		super(new DefaultedItemGeoModel<>(ResourceLocation.fromNamespaceAndPath(BoltRifleMod.MOD_ID, "bolt_rifle")));
+		// full-bright layer: the muzzle flash glows regardless of lighting (uses bolt_rifle_glowmask.png)
+		addRenderLayer(new AutoGlowingGeoLayer<>(this));
 	}
 
 	@Override

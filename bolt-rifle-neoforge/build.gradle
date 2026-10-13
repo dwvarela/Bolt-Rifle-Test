@@ -10,6 +10,11 @@ base {
 	archivesName = project.mod_id
 }
 
+// fixed file name so the download link never changes
+tasks.named('jar') {
+	archiveVersion = ''
+}
+
 repositories {
 	mavenLocal()
 	maven {

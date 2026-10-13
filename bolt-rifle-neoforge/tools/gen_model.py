@@ -11,7 +11,7 @@ RES = sys.argv[1]
 TEX_W = TEX_H = 64
 CELLS = {"wood": (0, 0), "wood_v": (1, 0), "steel": (2, 0), "black": (3, 0),
          "brass": (0, 1), "lens": (1, 1), "glove": (2, 1), "rubber": (3, 1),
-         "scope": (0, 2), "stainless": (1, 2)}
+         "scope": (0, 2), "stainless": (1, 2), "flash": (2, 2)}
 
 
 # ------------------------------------------------------------------ texture
@@ -45,7 +45,13 @@ def paint_texture(path):
     put("rubber", np.array([20, 20, 21]) + noise(2) + ((xx % 3) == 0)[..., None] * 5)
     put("scope", np.array([32, 33, 37]) + noise(2) + (yy[..., None] < 2) * 26)
     put("stainless", np.array([150, 154, 160]) - shade * 40 + noise(4))
+    fd = np.sqrt((xx - 7.5) ** 2 + (yy - 7.5) ** 2)[..., None] / 10.6
+    put("flash", np.array([255, 245, 190]) * (1 - fd) + np.array([255, 130, 30]) * fd)
     Image.fromarray(img, "RGBA").save(path)
+    glow = np.zeros_like(img)                       # only the flash cell glows (full-bright layer)
+    fx, fy = CELLS["flash"]
+    glow[fy * 16:fy * 16 + 16, fx * 16:fx * 16 + 16] = img[fy * 16:fy * 16 + 16, fx * 16:fx * 16 + 16]
+    Image.fromarray(glow, "RGBA").save(path.replace(".png", "_glowmask.png"))
 
 
 # ------------------------------------------------------------------ geometry
@@ -178,6 +184,13 @@ cube("magazine", "stainless", -1.4, -10.9, -2.5, 1.4, -10.4, 3.5)   # floorplate
 cube("magazine", "brass", -0.7, -1.8, -0.4, 0.7, -1.2, 1.2)         # top round peeking
 cube("magazine", "steel", -1.4, -8.0, -2.5, 1.4, -7.8, 3.5)         # mag seam
 
+# ---- muzzle flash: crossed blades + core, hidden until the fire animation shows it ----
+bone("muzzle_flash", "rifle", (0, 0, -33.6))
+for ang in (0, 45, 90, 135):
+    cube("muzzle_flash", "flash", -3.4, -0.12, -38.6, 3.4, 0.12, -33.5, rot=[0, 0, ang], pivot=[0, 0, -33.6])
+cube("muzzle_flash", "flash", -1.2, -1.2, -36.4, 1.2, 1.2, -33.5)
+cube("muzzle_flash", "flash", -0.5, -0.5, -41.0, 0.5, 0.5, -36.4)
+
 # ---- casing + chambering round ----
 bone("casing", "rifle", (-1.5, 0.4, 0.5))
 round_bar("casing", "brass", -1.6, 0.5, -1.5, 1.8, 0.55)
@@ -198,7 +211,7 @@ cube("right_hand", "glove", -3.0, -6.8, 4.2, -2.1, -3.4, 8.0)      # trigger fin
 cube("right_hand", "glove", -1.9, -12.5, 11.0, 1.9, -6.0, 22.0)    # forearm
 
 order = ["rifle", "stock", "barrel", "receiver", "scope", "bolt", "bolt_handle", "bolt_hand",
-         "magazine", "casing", "chamber_round", "left_hand", "right_hand"]
+         "magazine", "casing", "chamber_round", "muzzle_flash", "left_hand", "right_hand"]
 geo = {
     "format_version": "1.12.0",
     "minecraft:geometry": [{

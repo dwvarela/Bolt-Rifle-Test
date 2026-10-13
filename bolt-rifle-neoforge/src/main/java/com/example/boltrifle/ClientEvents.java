@@ -40,6 +40,8 @@ public final class ClientEvents {
 	private static boolean wantAim;
 	private static double zoom = -1;
 	private static Double savedSensitivity;
+	private static int reloadBuffer;            // ticks a pressed R key stays queued (e.g. during bolt cycling)
+	private static float kickRise, kickRecover, kickYaw;   // camera recoil, spread over several ticks
 
 	public static float aimProgress(float partialTick) {
 		return Mth.lerp(partialTick, aimOld, aim);
@@ -63,7 +65,7 @@ public final class ClientEvents {
 
 		@SubscribeEvent
 		public static void registerLayers(RegisterGuiLayersEvent event) {
-			event.registerAboveAll(id("scope"), ClientEvents::renderScope);
+			event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, id("scope"), ClientEvents::renderScope);
 			event.registerAboveAll(id("ammo_hud"), ClientEvents::renderHud);
 		}
 	}
@@ -82,21 +84,36 @@ public final class ClientEvents {
 			}
 
 			boolean holding = holdingRifle(player) && mc.screen == null;
+
+			while (RELOAD_KEY.consumeClick()) {
+				if (holding) {
+					reloadBuffer = 40;        // remember the press for 2 s so it fires once the gun is free
+				}
+			}
+			if (!holding) {
+				reloadBuffer = 0;
+			}
+
 			if (holding) {
-				int action = RifleItem.getAction(player.getMainHandItem());
+				ItemStack stack = player.getMainHandItem();
+				int action = RifleItem.getAction(stack);
 				boolean reloading = action == RifleItem.ACTION_RELOAD || action == RifleItem.ACTION_RELOAD_CHAMBER;
-				wantAim = mc.options.keyUse.isDown() && !reloading;
+				if (reloadBuffer > 0) {
+					reloadBuffer--;
+					if (!RifleItem.isBusy(stack)) {
+						PacketDistributor.sendToServer(new Net.ReloadPayload());
+						reloadBuffer = 0;
+					}
+				}
+				// raising the rifle to reload always lowers the scope first, even with right click held
+				wantAim = mc.options.keyUse.isDown() && !reloading && reloadBuffer == 0;
 			} else {
 				wantAim = false;
 			}
 			float target = wantAim ? 1.0f : 0.0f;
-			aim += Mth.clamp(target - aim, -0.22f, 0.22f);
+			aim += Mth.clamp(target - aim, -0.16f, 0.16f);
+			applyRecoil(player);
 
-			while (RELOAD_KEY.consumeClick()) {
-				if (holding) {
-					PacketDistributor.sendToServer(new Net.ReloadPayload());
-				}
-			}
 			applySensitivity(mc);
 		}
 
@@ -157,10 +174,33 @@ public final class ClientEvents {
 		}
 		boolean aiming = aim > 0.85f;
 		PacketDistributor.sendToServer(new Net.FirePayload(aiming));
-		if (RifleItem.isChambered(stack)) {   // predicted recoil kick
+		if (RifleItem.isChambered(stack)) {   // predicted recoil kick, applied smoothly in applyRecoil()
 			float kick = (float) (double) ClientConfig.RECOIL_PITCH.get() * (aiming ? 0.5f : 1.0f);
-			player.setXRot(Mth.clamp(player.getXRot() - kick, -90.0f, 90.0f));
-			player.setYRot(player.getYRot() + (player.getRandom().nextFloat() - 0.5f) * kick * 0.5f);
+			kickRise += kick;
+			kickRecover += kick * 0.35f;
+			kickYaw += (player.getRandom().nextFloat() - 0.5f) * kick * 0.6f;
+		}
+	}
+
+	/** Camera climbs fast then settles, and a third of the climb comes back down (like real muzzle recovery). */
+	private static void applyRecoil(LocalPlayer player) {
+		if (player == null) {
+			kickRise = kickRecover = kickYaw = 0;
+			return;
+		}
+		if (kickRise > 0.01f) {
+			float step = kickRise * 0.45f;
+			kickRise -= step;
+			player.setXRot(Mth.clamp(player.getXRot() - step, -90.0f, 90.0f));
+		} else if (kickRecover > 0.01f) {
+			float step = kickRecover * 0.12f;
+			kickRecover -= step;
+			player.setXRot(Mth.clamp(player.getXRot() + step, -90.0f, 90.0f));
+		}
+		if (Math.abs(kickYaw) > 0.01f) {
+			float step = kickYaw * 0.4f;
+			kickYaw -= step;
+			player.setYRot(player.getYRot() + step);
 		}
 	}
 

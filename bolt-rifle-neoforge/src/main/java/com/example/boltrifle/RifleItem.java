@@ -62,7 +62,7 @@ public class RifleItem extends Item implements GeoItem {
 	public static final int ACTION_RELOAD_CHAMBER = 3;    // magazine swap + chambering
 	public static final int ACTION_DRY = 4;               // click
 	/** Length of each action in ticks. Matches the animation lengths (x20), rounded up. */
-	private static final int[] DURATION = {0, 31, 56, 76, 6};
+	private static final int[] DURATION = {0, 32, 58, 80, 6};
 
 	private static final String CONTROLLER = "main";
 	private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("animation.bolt_rifle.idle");
@@ -77,24 +77,24 @@ public class RifleItem extends Item implements GeoItem {
 	private static final Cue[][] CUES = {
 			{},
 			{ // fire: handle up, bolt back, bolt forward, handle down
-					new Cue(11, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
-					new Cue(18, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
+					new Cue(10, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
+					new Cue(19, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
 					new Cue(22, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
-					new Cue(27, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
+					new Cue(28, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
 			{ // reload: release, mag out, mag in, seat
 					new Cue(9, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-					new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
-					new Cue(40, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
-					new Cue(43, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f)},
+					new Cue(19, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+					new Cue(44, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
+					new Cue(46, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f)},
 			{ // reload + chamber
 					new Cue(9, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-					new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
-					new Cue(40, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
-					new Cue(43, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f),
-					new Cue(58, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
-					new Cue(62, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
-					new Cue(68, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
-					new Cue(74, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
+					new Cue(19, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+					new Cue(44, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
+					new Cue(46, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f),
+					new Cue(60, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
+					new Cue(64, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
+					new Cue(70, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
+					new Cue(76, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
 			{new Cue(0, SoundEvents.LEVER_CLICK, 0.9f, 0.7f)}
 	};
 
@@ -232,7 +232,9 @@ public class RifleItem extends Item implements GeoItem {
 			level.sendParticles(ParticleTypes.CRIT, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
 			pos = pos.add(step);
 		}
-		Vec3 muzzle = start.add(dir.scale(1.6));
+		Vec3 muzzle = start.add(dir.scale(1.7));
+		level.sendParticles(ParticleTypes.FLAME, muzzle.x, muzzle.y - 0.15, muzzle.z, 5, 0.02, 0.02, 0.02, 0.06);
+		level.sendParticles(ParticleTypes.LARGE_SMOKE, muzzle.x, muzzle.y - 0.15, muzzle.z, 3, 0.04, 0.04, 0.04, 0.02);
 		level.sendParticles(ParticleTypes.SMOKE, muzzle.x, muzzle.y - 0.15, muzzle.z, 6, 0.05, 0.05, 0.05, 0.02);
 		level.sendParticles(ParticleTypes.SMOKE, impact.x, impact.y, impact.z, 3, 0.05, 0.05, 0.05, 0.01);
 	}

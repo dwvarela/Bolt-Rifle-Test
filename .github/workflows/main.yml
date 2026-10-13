@@ -49,6 +49,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete v2.0.0 --yes --cleanup-tag || true
-          gh release create v2.0.0 build/libs/*.jar --target "${{ github.sha }}" \
-            --title "M700 Rifle v2.0.0" --notes "Download boltrifle-2.0.0.jar below. Also needs GeckoLib 4.9.3."
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest build/libs/boltrifle.jar --target "${{ github.sha }}" \
+            --title "Latest build" --notes "Always the newest build. Needs GeckoLib 4.9.3 (NeoForge 1.21.1)."
