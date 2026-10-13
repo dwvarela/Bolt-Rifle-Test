@@ -1,4 +1,6 @@
 {
-  "item.boltrifle.bolt_rifle": "Bolt-Action Rifle",
-  "item.boltrifle.rifle_round": "Rifle Round"
+  "item.boltrifle.bolt_rifle": "M700 Bolt-Action Rifle",
+  "item.boltrifle.rifle_round": "Rifle Round",
+  "key.boltrifle.reload": "Reload Rifle",
+  "key.categories.boltrifle": "Bolt-Action Rifle"
 }

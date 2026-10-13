@@ -12,6 +12,17 @@ base {
 
 repositories {
 	mavenLocal()
+	maven {
+		name = 'GeckoLib'
+		url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+		content {
+			includeGroup 'software.bernie.geckolib'
+		}
+	}
+}
+
+dependencies {
+	implementation "software.bernie.geckolib:geckolib-neoforge-${project.minecraft_version}:${project.geckolib_version}"
 }
 
 neoForge {
