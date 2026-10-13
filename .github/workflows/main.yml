@@ -24,7 +24,17 @@ jobs:
           gradle-version: '8.10'
 
       - name: Build
-        run: gradle build
+        run: |
+          set +e
+          gradle build --console=plain > build.log 2>&1
+          STATUS=$?
+          if [ $STATUS -ne 0 ]; then
+            ERR=$(grep -n -E "error:|What went wrong|Could not|Caused by|Execution failed|FAILURE" -A4 build.log | head -45 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+            echo "::error title=Gradle error::$ERR"
+            TAIL=$(tail -25 build.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+            echo "::notice title=Gradle tail::$TAIL"
+          fi
+          exit $STATUS
 
       - name: Save the jar
         uses: actions/upload-artifact@v4
