@@ -78,22 +78,22 @@ public class RifleItem extends Item implements GeoItem {
 			{},
 			{ // fire: handle up, bolt back, bolt forward, handle down
 					new Cue(11, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
-					new Cue(18, SoundEvents.CROSSBOW_LOADING_MIDDLE, 0.9f, 0.9f),
-					new Cue(22, SoundEvents.CROSSBOW_LOADING_END, 0.9f, 0.8f),
+					new Cue(18, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
+					new Cue(22, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
 					new Cue(27, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
 			{ // reload: release, mag out, mag in, seat
 					new Cue(9, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-					new Cue(13, SoundEvents.CROSSBOW_LOADING_START, 0.8f, 1.2f),
-					new Cue(40, SoundEvents.CROSSBOW_LOADING_MIDDLE, 0.9f, 1.1f),
+					new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+					new Cue(40, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
 					new Cue(43, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f)},
 			{ // reload + chamber
 					new Cue(9, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-					new Cue(13, SoundEvents.CROSSBOW_LOADING_START, 0.8f, 1.2f),
-					new Cue(40, SoundEvents.CROSSBOW_LOADING_MIDDLE, 0.9f, 1.1f),
+					new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+					new Cue(40, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
 					new Cue(43, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f),
 					new Cue(58, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
-					new Cue(62, SoundEvents.CROSSBOW_LOADING_MIDDLE, 0.9f, 0.9f),
-					new Cue(68, SoundEvents.CROSSBOW_LOADING_END, 0.9f, 0.8f),
+					new Cue(62, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
+					new Cue(68, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
 					new Cue(74, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
 			{new Cue(0, SoundEvents.LEVER_CLICK, 0.9f, 0.7f)}
 	};
