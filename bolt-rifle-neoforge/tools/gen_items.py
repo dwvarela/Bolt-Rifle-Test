@@ -120,14 +120,14 @@ SPECS = {
     "ammo_762x39":     dict(len=56.0, case_len=38.7, case_d=11.35, neck_d=8.6, bullet_d=7.9, case=STEEL_CASE, jacket=COPPER, tip=(60, 60, 60), tip_len=0, shoulder=4.5, ogive_start=0.4),
     "ammo_556x45_nato": dict(len=57.4, case_len=44.7, case_d=9.5, neck_d=6.4, bullet_d=5.7, case=BRASS, jacket=(180, 118, 70), tip=(46, 128, 60), tip_len=4.5, shoulder=4.5, ogive_start=0.3),
     "ammo_223_rem":    dict(len=57.4, case_len=44.7, case_d=9.5, neck_d=6.4, bullet_d=5.7, case=BRASS, jacket=COPPER, tip=COPPER, tip_len=0, shoulder=4.5, ogive_start=0.35),
-    "ammo_57x28":      dict(len=40.5, case_len=28.9, case_d=7.9, neck_d=6.5, bullet_d=5.7, case=NICKEL, jacket=(150, 154, 160), tip=(40, 70, 150), tip_len=4.0, shoulder=3.5, ogive_start=0.3),
+    "ammo_57x28":      dict(len=40.5, case_len=28.9, case_d=7.9, neck_d=6.5, bullet_d=5.7, case=(104, 108, 116), jacket=(150, 154, 160), tip=(40, 70, 150), tip_len=4.0, shoulder=3.5, ogive_start=0.3),
     "ammo_46x30":      dict(len=38.0, case_len=30.0, case_d=8.0, neck_d=5.6, bullet_d=4.65, case=BRASS, jacket=(160, 164, 170), tip=(140, 40, 40), tip_len=4.0, shoulder=3.5, ogive_start=0.3),
-    "ammo_9x19":       dict(len=29.7, case_len=19.15, case_d=9.9, neck_d=9.65, bullet_d=9.02, case=BRASS, jacket=COPPER, tip=COPPER, tip_len=0, shoulder=0.8, ogive_start=0.15),
+    "ammo_9x19":       dict(len=29.7, case_len=19.15, case_d=9.9, neck_d=9.65, bullet_d=9.02, case=(214, 168, 80), jacket=(150, 86, 52), tip=COPPER, tip_len=0, shoulder=0.8, ogive_start=0.15),
 }
 LAYOUT = {   # (scale px/mm in 32 space, count)
     "ammo_308_win": (0.34, 2), "ammo_762x51_nato": (0.34, 2), "ammo_762x39": (0.40, 2),
     "ammo_556x45_nato": (0.40, 2), "ammo_223_rem": (0.40, 2),
-    "ammo_57x28": (0.54, 3), "ammo_46x30": (0.56, 3), "ammo_9x19": (0.66, 3),
+    "ammo_57x28": (0.50, 2), "ammo_46x30": (0.56, 3), "ammo_9x19": (0.64, 2),
 }
 for name, spec in SPECS.items():
     scale, count = LAYOUT[name]
