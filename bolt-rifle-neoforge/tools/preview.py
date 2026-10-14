@@ -1,5 +1,5 @@
-"""Quick software preview of the geo model (not used by the mod). Usage: preview.py <resources_dir> <out.png> [hidden,bones]"""
-import json, sys, math
+"""Software preview of a gun geo model. Usage: GUN=<id> preview.py <resources_dir> <out.png> [hidden,bones]"""
+import json, sys, math, os
 import numpy as np
 from PIL import Image
 import matplotlib
@@ -9,19 +9,23 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 res, out = sys.argv[1], sys.argv[2]
 hidden = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else {"bolt_hand", "casing", "chamber_round", "muzzle_flash"}
-import os
 GUN = os.environ.get("GUN", "bolt_rifle")
 geo = json.load(open(f"{res}/assets/boltrifle/geo/item/{GUN}.geo.json"))["minecraft:geometry"][0]
 tex = np.array(Image.open(f"{res}/assets/boltrifle/textures/item/{GUN}.png").convert("RGB"))
 
 
-def rotz(p, pivot, deg):
-    a = math.radians(deg)
-    x, y = p[0] - pivot[0], p[1] - pivot[1]
-    return (pivot[0] + x * math.cos(a) - y * math.sin(a), pivot[1] + x * math.sin(a) + y * math.cos(a), p[2])
+def rot_cube(p, pivot, rot):
+    """GeckoLib order: rotate about X (angle -rx), then Y (-ry), then Z (rz)."""
+    x, y, z = p[0] - pivot[0], p[1] - pivot[1], p[2] - pivot[2]
+    ax, ay, az = math.radians(-rot[0]), math.radians(-rot[1]), math.radians(rot[2])
+    y, z = y * math.cos(ax) - z * math.sin(ax), y * math.sin(ax) + z * math.cos(ax)
+    x, z = x * math.cos(ay) + z * math.sin(ay), -x * math.sin(ay) + z * math.cos(ay)
+    x, y = x * math.cos(az) - y * math.sin(az), x * math.sin(az) + y * math.cos(az)
+    return (x + pivot[0], y + pivot[1], z + pivot[2])
 
 
 polys, cols = [], []
+shade = {"up": 1.0, "down": 0.6, "north": 0.82, "south": 0.82, "east": 0.72, "west": 0.72}
 for b in geo["bones"]:
     if b["name"] in hidden:
         continue
@@ -30,7 +34,7 @@ for b in geo["bones"]:
         sx, sy, sz = c["size"]
         P = [(ox + dx * sx, oy + dy * sy, oz + dz * sz) for dx in (0, 1) for dy in (0, 1) for dz in (0, 1)]
         if "rotation" in c:
-            P = [rotz(p, c["pivot"], c["rotation"][2]) for p in P]
+            P = [rot_cube(p, c["pivot"], c["rotation"]) for p in P]
         idx = lambda dx, dy, dz: dx * 4 + dy * 2 + dz
         faces = {"west": [idx(0, 0, 0), idx(0, 1, 0), idx(0, 1, 1), idx(0, 0, 1)],
                  "east": [idx(1, 0, 0), idx(1, 1, 0), idx(1, 1, 1), idx(1, 0, 1)],
@@ -38,7 +42,6 @@ for b in geo["bones"]:
                  "up": [idx(0, 1, 0), idx(1, 1, 0), idx(1, 1, 1), idx(0, 1, 1)],
                  "north": [idx(0, 0, 0), idx(1, 0, 0), idx(1, 1, 0), idx(0, 1, 0)],
                  "south": [idx(0, 0, 1), idx(1, 0, 1), idx(1, 1, 1), idx(0, 1, 1)]}
-        shade = {"up": 1.0, "down": 0.55, "north": 0.8, "south": 0.8, "east": 0.7, "west": 0.7}
         for f, vs in faces.items():
             u = c["uv"][f]
             px = tex[u["uv"][1] + u["uv_size"][1] // 2, u["uv"][0] + u["uv_size"][0] // 2] / 255.0
@@ -46,12 +49,11 @@ for b in geo["bones"]:
             cols.append(tuple(np.clip(px * shade[f] * 1.25, 0, 1)) + (1,))
 
 fig = plt.figure(figsize=(18, 6), dpi=110)
-views = [("shooter's right side (muzzle to the left)", 0, 180), ("3/4 from behind-right", 22, 215), ("top", 90, -90)]
+views = [("side (muzzle right)", 0, 180), ("3/4 from behind-right", 22, 215), ("top", 90, -90)]
 for i, (name, elev, azim) in enumerate(views):
     ax = fig.add_subplot(1, 3, i + 1, projection="3d")
-    ax.add_collection3d(Poly3DCollection(polys, facecolors=cols, edgecolors=(0, 0, 0, 0.25), linewidths=0.2))
+    ax.add_collection3d(Poly3DCollection(polys, facecolors=cols, edgecolors=(0, 0, 0, 0.18), linewidths=0.15))
     ax.set_xlim(-22, 22); ax.set_ylim(-34, 24); ax.set_zlim(-12, 12); ax.set_box_aspect((44, 58, 24), zoom=1.35)
-    # axes: plot x=geo x, y=geo z (length), z=geo y (up)
     ax.view_init(elev=elev, azim=azim)
     ax.set_title(name, fontsize=9); ax.set_axis_off()
 fig.tight_layout()

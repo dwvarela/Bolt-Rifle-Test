@@ -6,9 +6,11 @@ import gunanim
 res = sys.argv[1]
 names = sys.argv[2:] or ["ak47"]
 for n in names:
-    mod = importlib.import_module("gun_" + {"ak47": "ak", "m4a1": "m4", "m14ebr": "m14"}.get(n, n))
+    mod = importlib.import_module("gun_" + {"ak47": "ak", "m4a1": "m4", "m14ebr": "m14", "m700": "m700"}.get(n, n))
     m, cfg = mod.build()
     m.write(res)
+    if cfg is None:
+        continue
     gunanim.build(cfg, res, m.ident)
     u = 0.30 / 16
     if "sight" in cfg:

@@ -1,131 +1,251 @@
-"""Generates 16x16 item icons: ammo, magazines. Usage: gen_items.py <resources_dir>"""
-import sys, os, json
-from PIL import Image, ImageDraw
+"""Item icons (32x32, drawn at 8x and shaded): cartridges and magazines. Usage: gen_items.py <resources_dir>"""
+import sys, os, json, math
+import numpy as np
+from PIL import Image, ImageDraw, ImageFilter
 
 RES = sys.argv[1]
 TEX = os.path.join(RES, "assets/boltrifle/textures/item")
 MOD = os.path.join(RES, "assets/boltrifle/models/item")
 os.makedirs(TEX, exist_ok=True); os.makedirs(MOD, exist_ok=True)
-
-BRASS = [(122, 88, 28), (190, 142, 48), (232, 190, 84)]
-STEEL = [(52, 56, 60), (96, 102, 108), (140, 148, 156)]
-NICKEL = [(110, 112, 116), (170, 174, 180), (214, 218, 224)]
-
-
-def cartridge(d, x0, y0, length, width, case, tip, neck=0, rim=True):
-    """Vertical cartridge (tip up) with base at (x0, y0)."""
-    top = y0 - length
-    for dx in range(width):
-        shade = case[2] if dx == 0 else case[0] if dx == width - 1 else case[1]
-        for y in range(top + 3, y0 + 1):
-            d.point((x0 + dx, y), fill=shade)
-    # bullet
-    bw = width - 1 if neck else width
-    off = 1 if neck else 0
-    for dx in range(bw):
-        shade = tip[2] if dx == 0 else tip[0] if dx == bw - 1 else tip[1]
-        for y in range(top, top + 4):
-            if y == top and bw > 2 and (dx == 0 or dx == bw - 1):
-                continue
-            d.point((x0 + off + dx, y), fill=shade)
-    if rim:
-        d.line((x0 - 0, y0, x0 + width - 1, y0), fill=case[0])
-        d.point((x0, y0), fill=case[2])
+N, SS = 32, 8
+S = N * SS
+LIGHT = np.array([-0.55, 0.83])           # light from upper-left (x, y-up)
 
 
-def rot(img):
-    return img.rotate(-40, resample=Image.NEAREST, expand=False)
+def rgb(c): return np.array(c, dtype=float)
 
 
-# id: (case, tip, length, width, count)
-AMMO = {
-    "ammo_308_win": (BRASS, [(120, 60, 30), (190, 100, 50), (225, 140, 80)], 12, 3),
-    "ammo_762x51_nato": (BRASS, [(30, 30, 34), (60, 62, 66), (90, 92, 98)], 12, 3),
-    "ammo_762x39": (STEEL, [(120, 60, 30), (190, 100, 50), (225, 140, 80)], 10, 3),
-    "ammo_556x45_nato": (BRASS, [(30, 90, 40), (60, 150, 70), (110, 200, 120)], 11, 2),
-    "ammo_223_rem": (BRASS, [(120, 60, 30), (190, 100, 50), (225, 140, 80)], 11, 2),
-    "ammo_57x28": (NICKEL, [(30, 60, 120), (60, 100, 190), (110, 150, 230)], 9, 2),
-    "ammo_46x30": (NICKEL, [(120, 30, 30), (190, 50, 50), (230, 100, 100)], 9, 2),
-    "ammo_9x19": (BRASS, [(110, 70, 30), (170, 110, 50), (210, 150, 90)], 7, 3),
+def finish(canvas, name, outline=(18, 18, 22)):
+    """canvas: float RGBA (S,S,4) -> downsample, add a thin dark outline, save."""
+    a = canvas[..., 3]
+    img = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8), "RGBA").resize((N, N), Image.BOX)
+    arr = np.array(img).astype(float)
+    alpha = arr[..., 3] > 90
+    pad = np.pad(alpha, 1)
+    nb = pad[:-2, 1:-1] | pad[2:, 1:-1] | pad[1:-1, :-2] | pad[1:-1, 2:]
+    edge = nb & ~alpha
+    arr[edge] = [*outline, 255]
+    arr[~alpha & ~edge, 3] = 0
+    arr[alpha, 3] = 255
+    Image.fromarray(arr.astype(np.uint8), "RGBA").save(os.path.join(TEX, name + ".png"))
+
+
+def blank():
+    return np.zeros((S, S, 4))
+
+
+def put(canvas, mask, color_fn):
+    ys, xs = np.nonzero(mask)
+    col = color_fn(xs, ys)
+    canvas[ys, xs, :3] = col
+    canvas[ys, xs, 3] = 255
+
+
+YY, XX = np.mgrid[0:S, 0:S]
+
+
+def rotated_coords(cx, cy, ang):
+    """local (s along axis, t across) for every pixel of a shape rotated by ang (deg, 0 = pointing up)."""
+    a = math.radians(ang)
+    dx, dy = XX - cx, -(YY - cy)
+    s = dx * math.sin(a) + dy * math.cos(a)
+    t = dx * math.cos(a) - dy * math.sin(a)
+    return s, t
+
+
+# ------------------------------------------------------------------ cartridges
+def cartridge(canvas, cx, cy, ang, mm_scale, spec):
+    """Draw one cartridge. spec: dict(len, case_len, case_d, neck_d, bullet_d, case, jacket, tip, rim_d)"""
+    k = mm_scale * SS
+    s, t = rotated_coords(cx, cy, ang)
+    s = s / k; t = t / k                          # now in millimetres, base at s=0 (shifted below)
+    L = spec["len"]
+    s = s + L / 2                                 # centre the cartridge on (cx, cy)
+    cl, cd, nd, bd = spec["case_len"], spec["case_d"], spec["neck_d"], spec["bullet_d"]
+    # radius profile along the axis
+    shoulder = spec.get("shoulder", 4.0)
+    r = np.zeros_like(s)
+    inside = (s >= 0) & (s <= L)
+    body = (s >= 0) & (s <= cl - shoulder)
+    r = np.where(body, cd / 2, r)
+    sh = (s > cl - shoulder) & (s <= cl)
+    f = np.clip((s - (cl - shoulder)) / shoulder, 0, 1)
+    r = np.where(sh, cd / 2 + (nd / 2 - cd / 2) * f, r)
+    bl = (s > cl) & (s <= L)
+    # bullet ogive: radius tapers to the tip
+    g = np.clip((s - cl) / max(L - cl, 1e-6), 0, 1)
+    bullet_r = bd / 2 * np.sqrt(np.clip(1 - np.where(g > spec.get("ogive_start", 0.45), ((g - spec.get("ogive_start", 0.45)) / (1 - spec.get("ogive_start", 0.45))) ** 1.6, 0), 0, 1)) * (1 - 0.0 * g)
+    bullet_r = np.where(g >= 1, 0, np.maximum(bullet_r, 0.25 * (1 - g) * 0 + 0.0))
+    r = np.where(bl, np.maximum(bullet_r, bd * 0.12), r)
+    rim = spec.get("rim_d", cd + 0.7)
+    r = np.where((s >= 0) & (s <= 1.1), rim / 2, r)
+    r = np.where((s > 1.1) & (s <= 1.9), cd / 2 - 0.45, r)        # extractor groove
+    mask = inside & (np.abs(t) <= r) & (r > 0)
+    if not mask.any():
+        return
+    u = np.clip(t / np.maximum(r, 1e-6), -1, 1)
+    nz = np.sqrt(1 - u * u)
+    # rotate the light into the cartridge frame
+    a = math.radians(ang)
+    lx = LIGHT[0] * math.cos(a) + LIGHT[1] * math.sin(a) * -1
+    lam = np.clip(u * lx * -1 * 0 + (u * (-LIGHT[0] * math.cos(a) + LIGHT[1] * math.sin(a))) * -1 + nz * 0.55, 0, 1)
+    spec_hi = np.exp(-((u + 0.45) ** 2) / 0.012) * 0.55
+    shade = 0.42 + 0.78 * lam + spec_hi
+
+    def colour(xs, ys):
+        ss = s[ys, xs]
+        out = np.zeros((len(xs), 3))
+        case = rgb(spec["case"]); jac = rgb(spec["jacket"]); tip = rgb(spec["tip"])
+        c = np.where((ss <= cl)[:, None], case, jac)
+        if spec.get("tip_len"):
+            c = np.where((ss > L - spec["tip_len"])[:, None], tip, c)
+        if spec.get("seal"):                                      # red/black primer annulus + crimp ring at the neck
+            c = np.where(((ss > cl - 0.6) & (ss <= cl + 0.5))[:, None], rgb(spec["seal"]), c)
+        base = (ss <= 1.1)[:, None]
+        c = np.where(base, case * 0.85, c)
+        # primer at the very base
+        return c * shade[ys, xs][:, None]
+    put(canvas, mask, colour)
+    # primer disc: a lighter circle seen end-on is not visible from the side; add a small highlight band instead
+    return
+
+
+BRASS = (205, 152, 62)
+COPPER = (186, 104, 56)
+STEEL_CASE = (96, 102, 96)
+NICKEL = (190, 192, 196)
+SPECS = {
+    "ammo_308_win":    dict(len=71.1, case_len=51.2, case_d=11.9, neck_d=8.6, bullet_d=7.82, case=BRASS, jacket=COPPER, tip=(90, 50, 30), tip_len=7, shoulder=5.5, ogive_start=0.35),
+    "ammo_762x51_nato": dict(len=69.9, case_len=51.2, case_d=11.9, neck_d=8.6, bullet_d=7.82, case=BRASS, jacket=(168, 112, 60), tip=(30, 30, 34), tip_len=2.5, shoulder=5.5, ogive_start=0.4, seal=(150, 40, 36)),
+    "ammo_762x39":     dict(len=56.0, case_len=38.7, case_d=11.35, neck_d=8.6, bullet_d=7.9, case=STEEL_CASE, jacket=COPPER, tip=(60, 60, 60), tip_len=0, shoulder=4.5, ogive_start=0.4),
+    "ammo_556x45_nato": dict(len=57.4, case_len=44.7, case_d=9.5, neck_d=6.4, bullet_d=5.7, case=BRASS, jacket=(180, 118, 70), tip=(46, 128, 60), tip_len=4.5, shoulder=4.5, ogive_start=0.3),
+    "ammo_223_rem":    dict(len=57.4, case_len=44.7, case_d=9.5, neck_d=6.4, bullet_d=5.7, case=BRASS, jacket=COPPER, tip=COPPER, tip_len=0, shoulder=4.5, ogive_start=0.35),
+    "ammo_57x28":      dict(len=40.5, case_len=28.9, case_d=7.9, neck_d=6.5, bullet_d=5.7, case=NICKEL, jacket=(150, 154, 160), tip=(40, 70, 150), tip_len=4.0, shoulder=3.5, ogive_start=0.3),
+    "ammo_46x30":      dict(len=38.0, case_len=30.0, case_d=8.0, neck_d=5.6, bullet_d=4.65, case=BRASS, jacket=(160, 164, 170), tip=(140, 40, 40), tip_len=4.0, shoulder=3.5, ogive_start=0.3),
+    "ammo_9x19":       dict(len=29.7, case_len=19.15, case_d=9.9, neck_d=9.65, bullet_d=9.02, case=BRASS, jacket=COPPER, tip=COPPER, tip_len=0, shoulder=0.8, ogive_start=0.15),
 }
-for name, (case, tip, length, width) in AMMO.items():
-    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    cartridge(d, 5, 13, length, width, case, tip, neck=(1 if width == 2 or name.endswith("x28") else 0))
-    cartridge(d, 9, 13, length, width, case, tip, neck=(1 if width == 2 or name.endswith("x28") else 0))
-    out = rot(img)
-    # darken outline for contrast
-    px = out.load()
-    edge = []
-    for y in range(16):
-        for x in range(16):
-            if px[x, y][3] == 0:
-                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                    nx, ny = x + dx, y + dy
-                    if 0 <= nx < 16 and 0 <= ny < 16 and px[nx, ny][3] > 0:
-                        edge.append((x, y)); break
-    for e in edge:
-        px[e] = (20, 20, 22, 255)
-    out.save(os.path.join(TEX, name + ".png"))
-
-BODY = [(40, 42, 46), (70, 74, 80), (104, 110, 118)]
-POLY = [(58, 52, 44), (92, 84, 72), (124, 114, 98)]
-WOOD = [(86, 56, 30), (124, 82, 44), (160, 112, 66)]
+LAYOUT = {   # (scale px/mm in 32 space, count)
+    "ammo_308_win": (0.34, 2), "ammo_762x51_nato": (0.34, 2), "ammo_762x39": (0.40, 2),
+    "ammo_556x45_nato": (0.40, 2), "ammo_223_rem": (0.40, 2),
+    "ammo_57x28": (0.54, 3), "ammo_46x30": (0.56, 3), "ammo_9x19": (0.66, 3),
+}
+for name, spec in SPECS.items():
+    scale, count = LAYOUT[name]
+    cv = blank()
+    fan = {2: [(-6.0, 3.0, 28), (4.0, -1.0, 24)], 3: [(-7.0, 3.5, 22), (0.0, 0.0, 28), (7.0, -3.0, 34)]}[count]
+    order = fan if count == 2 else fan
+    for dx, dy, ang in order:
+        cartridge(cv, S / 2 + dx * SS, S / 2 + dy * SS, ang, scale, spec)
+    finish(cv, name)
 
 
-def box(d, x0, y0, x1, y1, c):
-    d.rectangle((x0, y0, x1, y1), fill=c[1])
-    d.line((x0, y0, x0, y1), fill=c[2]); d.line((x1, y0, x1, y1), fill=c[0])
-    d.line((x0, y1, x1, y1), fill=c[0])
+# ------------------------------------------------------------------ magazines
+def poly_mask(pts):
+    im = Image.new("L", (S, S), 0)
+    ImageDraw.Draw(im).polygon([(x * SS, y * SS) for x, y in pts], fill=255)
+    return np.array(im) > 127
 
 
-def mag(name, style):
-    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    lips = (30, 30, 34)
-    if style == 0:   # M700 short box
-        box(d, 5, 5, 10, 14, BODY); d.rectangle((5, 3, 10, 5), fill=lips); d.line((6, 4, 9, 4), fill=BRASS[1])
-    elif style == 1:  # SKS: small box with wood-tone base
-        box(d, 5, 3, 10, 13, BODY); box(d, 5, 12, 10, 14, WOOD)
-    elif style == 2:  # AK banana
-        for i, y in enumerate(range(2, 15)):
-            x = 4 + int(i * i / 22)
-            box(d, x, y, x + 5, y, STEEL if i % 2 else BODY)
-        d.rectangle((4, 1, 9, 2), fill=lips)
-    elif style == 3:  # M14 long straight
-        box(d, 4, 1, 11, 14, BODY)
-        for y in (4, 7, 10): d.line((5, y, 10, y), fill=BODY[0])
-    elif style == 4:  # STANAG, slight curve
-        for i, y in enumerate(range(2, 15)):
-            x = 5 + int(i / 5)
-            box(d, x, y, x + 5, y, POLY if i % 2 else BODY)
-        d.rectangle((5, 1, 10, 2), fill=lips)
-    elif style == 5:  # P90: translucent flat
-        box(d, 2, 5, 13, 10, (( 60, 70, 60), (110, 130, 105), (170, 190, 160)))
-        d.line((3, 7, 12, 7), fill=BRASS[1]); d.line((3, 8, 12, 8), fill=BRASS[0])
-    elif style == 6:  # MP7 long thin
-        box(d, 6, 1, 9, 14, BODY); d.line((7, 3, 8, 3), fill=BRASS[1])
-    else:            # Glock
-        box(d, 5, 3, 10, 14, BODY); d.rectangle((5, 3, 10, 4), fill=lips); d.line((6, 12, 9, 12), fill=BODY[2])
-    px = img.load()
-    edge = []
-    for y in range(16):
-        for x in range(16):
-            if px[x, y][3] == 0:
-                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                    nx, ny = x + dx, y + dy
-                    if 0 <= nx < 16 and 0 <= ny < 16 and px[nx, ny][3] > 0:
-                        edge.append((x, y)); break
-    for e in edge:
-        px[e] = (16, 16, 18, 255)
-    img.save(os.path.join(TEX, name + ".png"))
+def shaded(canvas, pts, base, ang=0.0, hi=1.25, lo=0.62, band=None, grain=0.0):
+    """Fill a polygon with a left-lit gradient across its width (cylindrical-ish look)."""
+    m = poly_mask(pts)
+    ys, xs = np.nonzero(m)
+    x0, x1 = xs.min(), xs.max() + 1
+    u = (xs - x0) / max(1, (x1 - x0 - 1))
+    shade = lo + (hi - lo) * np.exp(-((u - 0.25) ** 2) / 0.18)
+    if band:
+        shade = shade * band(u)
+    col = rgb(base)[None, :] * shade[:, None]
+    if grain:
+        col = col * (1 + grain * np.sin(ys * 0.9 + xs * 0.2)[:, None])
+    canvas[ys, xs, :3] = col
+    canvas[ys, xs, 3] = 255
 
 
-MAGS = {"mag_m700": 0, "mag_sks": 1, "mag_ak": 2, "mag_m14": 3, "mag_stanag": 4, "mag_p90": 5, "mag_mp7": 6, "mag_g45": 7}
-for n, s in MAGS.items():
-    mag(n, s)
+def rib_lines(canvas, x0, x1, ys_, color, th=0.5):
+    for y in ys_:
+        im = Image.new("L", (S, S), 0)
+        ImageDraw.Draw(im).rectangle([x0 * SS, y * SS, x1 * SS, (y + th) * SS], fill=255)
+        m = np.array(im) > 127
+        m &= canvas[..., 3] > 0
+        canvas[m, :3] = rgb(color)
 
-for n in list(AMMO) + list(MAGS):
+
+def curve(x_top, y_top, y_bot, bend, width, steps=24):
+    """Left/right edges of a column that curves toward -x as it goes down (like banana mags)."""
+    left, right = [], []
+    for i in range(steps + 1):
+        f = i / steps
+        y = y_top + (y_bot - y_top) * f
+        x = x_top - bend * f * f
+        left.append((x - width / 2, y)); right.append((x + width / 2, y))
+    return left + right[::-1]
+
+
+def mag(name):
+    cv = blank()
+    if name == "mag_m700":                      # short steel/polymer box
+        shaded(cv, [(11, 8), (21, 8), (21, 27), (11, 27)], (46, 48, 54), grain=0.02)
+        shaded(cv, [(11, 5), (21, 5), (21, 8.5), (11, 8.5)], (150, 154, 160))
+        shaded(cv, [(10.5, 27), (21.5, 27), (21.5, 29), (10.5, 29)], (120, 124, 130))
+        rib_lines(cv, 11, 21, (12, 17, 22), (20, 20, 24))
+        rib_lines(cv, 12, 20, (6.2,), (200, 150, 60), 0.9)
+    elif name == "mag_sks":                     # steel box with a wood-brown floorplate
+        shaded(cv, [(10, 6), (22, 6), (22, 26), (10, 26)], (66, 70, 76), grain=0.02)
+        shaded(cv, [(10, 4), (22, 4), (22, 6.5), (10, 6.5)], (150, 154, 160))
+        shaded(cv, [(9.5, 26), (22.5, 26), (22.5, 29), (9.5, 29)], (112, 70, 40), grain=0.15)
+        rib_lines(cv, 10, 22, (10, 14, 18, 22), (30, 32, 36))
+        rib_lines(cv, 11, 21, (5,), (200, 150, 60), 0.9)
+    elif name == "mag_ak":                      # orange bakelite banana
+        pts = curve(18, 3, 29, 8, 9)
+        shaded(cv, pts, (150, 70, 30), hi=1.3, lo=0.55, grain=0.03)
+        for f in (0.15, 0.28, 0.41, 0.54, 0.67, 0.80):
+            y = 3 + 26 * f; x = 18 - 8 * f * f
+            rib_lines(cv, x - 4.5, x + 4.5, (y,), (92, 40, 18), 0.5)
+        shaded(cv, [(18 - 8 - 5.2, 28.5), (18 - 8 + 4.2, 28.5), (18 - 8 + 4.2, 30.5), (18 - 8 - 5.2, 30.5)], (60, 60, 64))
+        shaded(cv, [(13.5, 1.5), (22.5, 1.5), (22.5, 3.6), (13.5, 3.6)], (80, 84, 90))
+    elif name == "mag_m14":                     # long straight blued steel
+        shaded(cv, [(10, 3), (22, 3), (22, 28), (10, 28)], (58, 66, 84), grain=0.02)
+        shaded(cv, [(10, 1.5), (22, 1.5), (22, 3.4), (10, 3.4)], (150, 154, 160))
+        shaded(cv, [(9.5, 28), (22.5, 28), (22.5, 30), (9.5, 30)], (110, 114, 120))
+        rib_lines(cv, 10, 22, (6, 9, 12, 15, 18, 21, 24), (30, 36, 50), 0.4)
+        rib_lines(cv, 11, 21, (2.6,), (200, 150, 60), 0.8)
+    elif name == "mag_stanag":                  # black polymer with ribbed face
+        pts = curve(18, 3, 29, 3.5, 9)
+        shaded(cv, pts, (52, 54, 58), hi=1.3, lo=0.6, grain=0.04)
+        for f in (0.12, 0.2, 0.28, 0.36, 0.44, 0.52, 0.60, 0.68, 0.76, 0.84):
+            y = 3 + 26 * f; x = 18 - 3.5 * f * f
+            rib_lines(cv, x - 3.4, x + 3.4, (y,), (24, 25, 28), 0.35)
+        shaded(cv, [(18 - 3.5 - 5.2, 28.6), (18 - 3.5 + 4.4, 28.6), (18 - 3.5 + 4.4, 30.4), (18 - 3.5 - 5.2, 30.4)], (86, 88, 92))
+        shaded(cv, [(13.5, 1.6), (22.5, 1.6), (22.5, 3.4), (13.5, 3.4)], (140, 144, 150))
+    elif name == "mag_p90":                     # flat translucent smoke polymer, rounds visible
+        shaded(cv, [(3, 11), (29, 11), (29, 21), (3, 21)], (70, 82, 74), hi=1.2, lo=0.8)
+        for i in range(8):
+            x = 5 + i * 3.1
+            shaded(cv, [(x, 13), (x + 2.2, 13), (x + 2.2, 19), (x, 19)], (180, 134, 56), hi=1.2, lo=0.7)
+        shaded(cv, [(2, 10), (30, 10), (30, 11.4), (2, 11.4)], (30, 32, 34))
+        shaded(cv, [(2, 20.6), (30, 20.6), (30, 22), (2, 22)], (30, 32, 34))
+    elif name == "mag_mp7":                     # long thin black stick with extended floorplate
+        shaded(cv, [(12, 2), (20, 2), (20, 27), (12, 27)], (36, 38, 42), hi=1.35, grain=0.03)
+        shaded(cv, [(11, 27), (21, 27), (21, 30), (11, 30)], (70, 72, 78))
+        rib_lines(cv, 12, 20, (6, 10, 14, 18, 22), (18, 18, 20), 0.35)
+        shaded(cv, [(12, 1), (20, 1), (20, 2.6), (12, 2.6)], (150, 154, 160))
+        rib_lines(cv, 13, 19, (4,), (200, 150, 60), 0.9)
+    elif name == "mag_g45":                     # pistol mag: steel body, polymer floorplate, round witness holes
+        shaded(cv, [(11, 5), (21, 5), (21, 25), (11, 25)], (78, 82, 90), grain=0.02)
+        shaded(cv, [(11, 3), (21, 3), (21, 5.4), (11, 5.4)], (30, 32, 36))
+        shaded(cv, [(10, 25), (22.5, 25), (22.5, 28.5), (10, 28.5)], (40, 42, 46), hi=1.3)
+        for i, y in enumerate((8, 11, 14, 17, 20, 23)):
+            sz = 1.0
+            rib_lines(cv, 15.2, 16.8, (y,), (14, 14, 16), 0.9)
+        rib_lines(cv, 12, 20, (6.0,), (200, 150, 60), 0.8)
+    finish(cv, name)
+
+
+MAGS = ["mag_m700", "mag_sks", "mag_ak", "mag_m14", "mag_stanag", "mag_p90", "mag_mp7", "mag_g45"]
+for n in MAGS:
+    mag(n)
+for n in list(SPECS) + MAGS:
     with open(os.path.join(MOD, n + ".json"), "w") as f:
         json.dump({"parent": "minecraft:item/generated", "textures": {"layer0": "boltrifle:item/" + n}}, f, indent=1)
-print("items:", len(AMMO) + len(MAGS))
+print("items:", len(SPECS) + len(MAGS))

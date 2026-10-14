@@ -721,7 +721,7 @@
        "vector": [
         0,
         -4.800000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -729,7 +729,7 @@
        "vector": [
         0,
         -3.8000000000000007,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -737,7 +737,7 @@
        "vector": [
         0,
         -11.8,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -745,7 +745,7 @@
        "vector": [
         0.6,
         -15.3,
-        10.2
+        10.0
        ],
        "easing": "easeInQuad"
       },
@@ -753,7 +753,7 @@
        "vector": [
         3.0,
         -18.8,
-        12.2
+        12.0
        ],
        "easing": "easeInOutSine"
       },
@@ -761,7 +761,7 @@
        "vector": [
         0.0,
         -14.3,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -769,7 +769,7 @@
        "vector": [
         0,
         -5.000000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -777,7 +777,7 @@
        "vector": [
         0,
         -3.500000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeOutCubic"
       },
@@ -785,7 +785,7 @@
        "vector": [
         0,
         -4.300000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1136,7 +1136,7 @@
        "vector": [
         0,
         -4.800000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1144,7 +1144,7 @@
        "vector": [
         0,
         -3.8000000000000007,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1152,7 +1152,7 @@
        "vector": [
         0,
         -11.8,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1160,7 +1160,7 @@
        "vector": [
         0.6,
         -15.3,
-        10.2
+        10.0
        ],
        "easing": "easeInQuad"
       },
@@ -1168,7 +1168,7 @@
        "vector": [
         3.0,
         -18.8,
-        12.2
+        12.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1176,7 +1176,7 @@
        "vector": [
         0.0,
         -14.3,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1184,7 +1184,7 @@
        "vector": [
         0,
         -5.000000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1192,7 +1192,7 @@
        "vector": [
         0,
         -3.500000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeOutCubic"
       },
@@ -1200,7 +1200,7 @@
        "vector": [
         0,
         -4.300000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1671,7 +1671,7 @@
        "vector": [
         0,
         -4.800000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1679,7 +1679,7 @@
        "vector": [
         0,
         -3.8000000000000007,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1687,7 +1687,7 @@
        "vector": [
         0,
         -11.8,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1695,7 +1695,7 @@
        "vector": [
         0.6,
         -15.3,
-        10.2
+        10.0
        ],
        "easing": "easeInQuad"
       },
@@ -1703,7 +1703,7 @@
        "vector": [
         3.0,
         -18.8,
-        12.2
+        12.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1711,7 +1711,7 @@
        "vector": [
         0.0,
         -14.3,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1719,7 +1719,7 @@
        "vector": [
         0,
         -5.000000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
@@ -1727,7 +1727,7 @@
        "vector": [
         0,
         -3.500000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeOutCubic"
       },
@@ -1735,7 +1735,7 @@
        "vector": [
         0,
         -4.300000000000001,
-        9.2
+        9.0
        ],
        "easing": "easeInOutSine"
       },
