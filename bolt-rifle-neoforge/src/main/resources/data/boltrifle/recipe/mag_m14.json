@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "equipment",
+ "pattern": [
+  "IEI",
+  "I I",
+  "III"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "E": {
+   "item": "minecraft:copper_ingot"
+  }
+ },
+ "result": {
+  "id": "boltrifle:mag_m14",
+  "count": 1
+ }
+}

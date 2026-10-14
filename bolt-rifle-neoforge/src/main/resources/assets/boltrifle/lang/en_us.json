@@ -1,6 +1,22 @@
 {
-  "item.boltrifle.bolt_rifle": "M700 Bolt-Action Rifle",
-  "item.boltrifle.rifle_round": "Rifle Round",
-  "key.boltrifle.reload": "Reload Rifle",
-  "key.categories.boltrifle": "Bolt-Action Rifle"
+  "item.boltrifle.bolt_rifle": "Remington 700",
+  "itemGroup.boltrifle": "Firearms",
+  "key.boltrifle.reload": "Reload / swap magazine",
+  "key.categories.boltrifle": "Firearms",
+  "item.boltrifle.ammo_308_win": ".308 Winchester Round",
+  "item.boltrifle.ammo_762x51_nato": "7.62x51mm NATO Round",
+  "item.boltrifle.ammo_762x39": "7.62x39mm Round",
+  "item.boltrifle.ammo_556x45_nato": "5.56x45mm NATO Round",
+  "item.boltrifle.ammo_223_rem": ".223 Remington Round",
+  "item.boltrifle.ammo_57x28": "5.7x28mm Round",
+  "item.boltrifle.ammo_46x30": "HK 4.6x30mm Round",
+  "item.boltrifle.ammo_9x19": "9x19mm Parabellum Round",
+  "item.boltrifle.mag_m700": "M700 5-Round Magazine",
+  "item.boltrifle.mag_sks": "SKS 10-Round Magazine",
+  "item.boltrifle.mag_ak": "AK 30-Round Magazine",
+  "item.boltrifle.mag_m14": "M14 20-Round Magazine",
+  "item.boltrifle.mag_stanag": "STANAG 30-Round Magazine",
+  "item.boltrifle.mag_p90": "P90 50-Round Magazine",
+  "item.boltrifle.mag_mp7": "MP7 40-Round Magazine",
+  "item.boltrifle.mag_g45": "Glock 17-Round Magazine"
 }

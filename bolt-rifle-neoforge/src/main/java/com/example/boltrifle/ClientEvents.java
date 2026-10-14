@@ -38,8 +38,10 @@ public final class ClientEvents {
 
 	private static float aim, aimOld;          // 0 = hip, 1 = fully scoped
 	private static boolean wantAim;
-	private static double zoom = -1;
+	private static double zoom = 1;
 	private static Double savedSensitivity;
+	private static GunDef lastDef;
+	private static double fireCooldown;            // client-side shot timer (ticks), mirrors the server's
 	private static int reloadBuffer;            // ticks a pressed R key stays queued (e.g. during bolt cycling)
 	private static float kickRise, kickRecover, kickYaw;   // camera recoil, spread over several ticks
 
@@ -47,8 +49,12 @@ public final class ClientEvents {
 		return Mth.lerp(partialTick, aimOld, aim);
 	}
 
-	private static boolean holdingRifle(Player p) {
-		return p != null && p.getMainHandItem().getItem() instanceof RifleItem;
+	private static GunDef heldDef(Player p) {
+		return p != null && p.getMainHandItem().getItem() instanceof GunItem g ? g.def : null;
+	}
+
+	private static boolean holdingGun(Player p) {
+		return heldDef(p) != null;
 	}
 
 	private static ResourceLocation id(String path) {
@@ -79,11 +85,17 @@ public final class ClientEvents {
 			Minecraft mc = Minecraft.getInstance();
 			LocalPlayer player = mc.player;
 			aimOld = aim;
-			if (zoom < 0) {
-				zoom = ClientConfig.ZOOM_DEFAULT.get();
-			}
 
-			boolean holding = holdingRifle(player) && mc.screen == null;
+			GunDef def = mc.screen == null ? heldDef(player) : null;
+			boolean holding = def != null;
+			if (def != lastDef) {                   // switched guns: reset zoom and timers
+				lastDef = def;
+				if (def != null) {
+					zoom = def.zoomDefault;
+				}
+				fireCooldown = 0;
+			}
+			fireCooldown = Math.max(fireCooldown - 1.0, -1.0);
 
 			while (RELOAD_KEY.consumeClick()) {
 				if (holding) {
@@ -96,22 +108,26 @@ public final class ClientEvents {
 
 			if (holding) {
 				ItemStack stack = player.getMainHandItem();
-				int action = RifleItem.getAction(stack);
-				boolean reloading = action == RifleItem.ACTION_RELOAD || action == RifleItem.ACTION_RELOAD_CHAMBER;
+				int action = GunItem.getAction(stack);
+				boolean reloading = action == GunItem.ACTION_RELOAD || action == GunItem.ACTION_RELOAD_CHAMBER;
 				if (reloadBuffer > 0) {
 					reloadBuffer--;
-					if (!RifleItem.isBusy(stack)) {
+					if (!GunItem.isBusy(stack) || action == GunItem.ACTION_FIRE && def.interval < 4) {
 						PacketDistributor.sendToServer(new Net.ReloadPayload());
 						reloadBuffer = 0;
 					}
 				}
-				// raising the rifle to reload always lowers the scope first, even with right click held
+				// raising the gun to reload always lowers the sights first, even with right click held
 				wantAim = mc.options.keyUse.isDown() && !reloading && reloadBuffer == 0;
+				if (def.auto && mc.options.keyAttack.isDown()) {
+					tryFire(player, def);
+				}
 			} else {
 				wantAim = false;
 			}
 			float target = wantAim ? 1.0f : 0.0f;
-			aim += Mth.clamp(target - aim, -0.16f, 0.16f);
+			float speed = lastDef != null ? lastDef.aimSpeed : 0.16f;
+			aim += Mth.clamp(target - aim, -speed, speed);
 			applyRecoil(player);
 
 			applySensitivity(mc);
@@ -120,13 +136,16 @@ public final class ClientEvents {
 		@SubscribeEvent
 		public static void onInteract(InputEvent.InteractionKeyMappingTriggered event) {
 			LocalPlayer player = Minecraft.getInstance().player;
-			if (!holdingRifle(player)) {
+			GunDef def = heldDef(player);
+			if (def == null) {
 				return;
 			}
-			if (event.isAttack()) {            // left click = fire
+			if (event.isAttack()) {            // left click = fire (automatics fire from the tick handler)
 				event.setCanceled(true);
 				event.setSwingHand(false);
-				tryFire(player);
+				if (!def.auto) {
+					tryFire(player, def);
+				}
 			} else if (event.isUseItem()) {    // right click = scope (handled in tick)
 				event.setCanceled(true);
 				event.setSwingHand(false);
@@ -135,10 +154,11 @@ public final class ClientEvents {
 
 		@SubscribeEvent
 		public static void onScroll(InputEvent.MouseScrollingEvent event) {
-			if (wantAim && aim > 0.5f) {
-				double step = Math.signum(event.getScrollDeltaY());
-				zoom = Mth.clamp(zoom + step, ClientConfig.ZOOM_MIN.get(), ClientConfig.ZOOM_MAX.get());
-				event.setCanceled(true);       // don't change hotbar slot while scoped
+			if (wantAim && aim > 0.5f && lastDef != null) {
+				if (lastDef.zoomMax > lastDef.zoomMin) {
+					zoom = lastDef.zoomClamp(zoom + Math.signum(event.getScrollDeltaY()));
+				}
+				event.setCanceled(true);       // don't change hotbar slot while aiming
 			}
 		}
 
@@ -153,7 +173,7 @@ public final class ClientEvents {
 
 		@SubscribeEvent
 		public static void onRenderHand(RenderHandEvent event) {
-			if (event.getHand() == InteractionHand.MAIN_HAND && aimProgress(event.getPartialTick()) > 0.94f) {
+			if (lastDef != null && lastDef.scoped && event.getHand() == InteractionHand.MAIN_HAND && aimProgress(event.getPartialTick()) > 0.94f) {
 				event.setCanceled(true);
 			}
 		}
@@ -167,18 +187,23 @@ public final class ClientEvents {
 	}
 
 	// ======================================================================= helpers
-	private static void tryFire(LocalPlayer player) {
+	private static void tryFire(LocalPlayer player, GunDef def) {
 		ItemStack stack = player.getMainHandItem();
-		if (RifleItem.isBusy(stack)) {
+		int action = GunItem.getAction(stack);
+		if ((action != GunItem.ACTION_NONE && action != GunItem.ACTION_FIRE) || fireCooldown > 0) {
 			return;
 		}
 		boolean aiming = aim > 0.85f;
 		PacketDistributor.sendToServer(new Net.FirePayload(aiming));
-		if (RifleItem.isChambered(stack)) {   // predicted recoil kick, applied smoothly in applyRecoil()
-			float kick = (float) (double) ClientConfig.RECOIL_PITCH.get() * (aiming ? 0.5f : 1.0f);
+		if (GunItem.isChambered(stack)) {   // predicted recoil kick, applied smoothly in applyRecoil()
+			fireCooldown += def.interval;
+			float kick = def.recoilPitch * (float) (double) ClientConfig.RECOIL_SCALE.get() * (aiming ? 0.6f : 1.0f);
 			kickRise += kick;
 			kickRecover += kick * 0.35f;
-			kickYaw += (player.getRandom().nextFloat() - 0.5f) * kick * 0.6f;
+			kickYaw += (player.getRandom().nextFloat() - 0.5f) * 2.0f * def.recoilYaw
+					* (float) (double) ClientConfig.RECOIL_SCALE.get();
+		} else {
+			fireCooldown = def.dryTicks;
 		}
 	}
 
@@ -224,7 +249,7 @@ public final class ClientEvents {
 	private static void renderScope(GuiGraphics g, DeltaTracker delta) {
 		Minecraft mc = Minecraft.getInstance();
 		float p = aimProgress(delta.getGameTimeDeltaPartialTick(false));
-		if (p <= 0.6f || !holdingRifle(mc.player)) {
+		if (p <= 0.6f || lastDef == null || !lastDef.scoped || !holdingGun(mc.player)) {
 			return;
 		}
 		float fade = Mth.clamp((p - 0.6f) / 0.4f, 0.0f, 1.0f);
@@ -277,29 +302,35 @@ public final class ClientEvents {
 	private static void renderHud(GuiGraphics g, DeltaTracker delta) {
 		Minecraft mc = Minecraft.getInstance();
 		Player player = mc.player;
-		if (!holdingRifle(player) || mc.options.hideGui) {
+		GunDef def = heldDef(player);
+		if (def == null || mc.options.hideGui) {
 			return;
 		}
 		ItemStack stack = player.getMainHandItem();
-		int reserve = 0;
+		GunItem gun = (GunItem) stack.getItem();
+		int mags = 0, reserve = 0;
 		Inventory inv = player.getInventory();
 		for (int i = 0; i < inv.getContainerSize(); i++) {
 			ItemStack s = inv.getItem(i);
-			if (s.is(BoltRifleMod.RIFLE_ROUND.get())) {
-				reserve += s.getCount();
+			if (s.getItem() instanceof MagItem m && m.type == def.mag && MagItem.rounds(s) > 0) {
+				mags += s.getCount();
+				reserve += MagItem.rounds(s) * s.getCount();
 			}
 		}
-		int action = RifleItem.getAction(stack);
+		int action = GunItem.getAction(stack);
 		String status = switch (action) {
-			case RifleItem.ACTION_RELOAD, RifleItem.ACTION_RELOAD_CHAMBER -> "RELOADING";
-			case RifleItem.ACTION_FIRE -> "CYCLING";
-			default -> RifleItem.isChambered(stack) ? "READY" : "CHAMBER EMPTY";
+			case GunItem.ACTION_RELOAD, GunItem.ACTION_RELOAD_CHAMBER -> "RELOADING";
+			case GunItem.ACTION_FIRE -> def.interval >= 8 ? "CYCLING" : "READY";
+			default -> !GunItem.hasMag(stack) ? "NO MAGAZINE" : GunItem.isChambered(stack) ? "READY" : "CHAMBER EMPTY";
 		};
-		String ammo = RifleItem.getLoaded(stack) + "/" + RifleItem.MAGAZINE_SIZE
-				+ (RifleItem.isChambered(stack) ? " +1" : " +0") + "  |  " + (player.isCreative() ? "inf" : reserve);
+		String ammo = GunItem.getLoaded(stack) + (GunItem.isChambered(stack) ? " +1" : " +0") + " / " + def.mag.capacity;
+		String type = (GunItem.isChambered(stack) ? gun.chamberRound(stack) : gun.magRound(stack)).display;
+		String spare = player.isCreative() ? "mags: inf" : mags + " mags (" + reserve + ")";
 		int x = g.guiWidth() - 8;
-		int y = g.guiHeight() - 40;
+		int y = g.guiHeight() - 52;
 		g.drawString(mc.font, ammo, x - mc.font.width(ammo), y, 0xFFFFFFFF, true);
-		g.drawString(mc.font, status, x - mc.font.width(status), y + 10, 0xFFE0A030, true);
+		g.drawString(mc.font, type, x - mc.font.width(type), y + 10, 0xFFB0B0B0, true);
+		g.drawString(mc.font, spare, x - mc.font.width(spare), y + 20, 0xFFB0B0B0, true);
+		g.drawString(mc.font, status, x - mc.font.width(status), y + 30, 0xFFE0A030, true);
 	}
 }

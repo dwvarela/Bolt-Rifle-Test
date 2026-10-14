@@ -1,0 +1,21 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "equipment",
+ "pattern": [
+  "IEI",
+  "I I",
+  "III"
+ ],
+ "key": {
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "E": {
+   "item": "minecraft:lever"
+  }
+ },
+ "result": {
+  "id": "boltrifle:mag_g45",
+  "count": 1
+ }
+}

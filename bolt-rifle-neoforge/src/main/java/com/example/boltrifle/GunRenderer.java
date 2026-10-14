@@ -12,25 +12,28 @@ import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.renderer.layer.AutoGlowingGeoLayer;
 
 /**
- * Draws the animated rifle. Position/rotation per view comes from the live client config, and the
- * first-person view blends toward the "aiming" transform as the scope is raised.
+ * Draws an animated gun. Position/rotation per view comes from the live client config, and the
+ * first-person view blends toward the "aiming" transform as the sights are raised.
  */
-public class RifleRenderer extends GeoItemRenderer<RifleItem> {
-	public RifleRenderer() {
-		super(new DefaultedItemGeoModel<>(ResourceLocation.fromNamespaceAndPath(BoltRifleMod.MOD_ID, "bolt_rifle")));
-		// full-bright layer: the muzzle flash glows regardless of lighting (uses bolt_rifle_glowmask.png)
+public class GunRenderer extends GeoItemRenderer<GunItem> {
+	private final GunDef def;
+
+	public GunRenderer(GunDef def) {
+		super(new DefaultedItemGeoModel<>(ResourceLocation.fromNamespaceAndPath(BoltRifleMod.MOD_ID, def.id)));
+		this.def = def;
+		// full-bright layer: the muzzle flash glows regardless of lighting (uses <id>_glowmask.png)
 		addRenderLayer(new AutoGlowingGeoLayer<>(this));
 	}
 
 	@Override
 	public void renderByItem(ItemStack stack, ItemDisplayContext context, PoseStack poseStack,
 							 MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-		ClientConfig.Values v = ClientConfig.forContext(context);
+		ClientConfig.Values v = ClientConfig.forContext(def, context);
 		if (context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND || context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
 			float aim = ClientEvents.aimProgress(net.minecraft.client.Minecraft.getInstance().getTimer()
 					.getGameTimeDeltaPartialTick(false));
 			float eased = Mth.clamp(aim * aim * (3.0f - 2.0f * aim), 0.0f, 1.0f); // smoothstep
-			v = ClientConfig.Values.lerp(v, ClientConfig.aiming(), eased);
+			v = ClientConfig.Values.lerp(v, ClientConfig.aiming(def), eased);
 		}
 
 		poseStack.pushPose();

@@ -4,18 +4,23 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Mod(BoltRifleMod.MOD_ID)
 public class BoltRifleMod {
@@ -24,6 +29,8 @@ public class BoltRifleMod {
 	public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MOD_ID);
 	public static final DeferredRegister<DataComponentType<?>> COMPONENTS =
 			DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MOD_ID);
+	public static final DeferredRegister<CreativeModeTab> TABS =
+			DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
 
 	private static <T> DeferredHolder<DataComponentType<?>, DataComponentType<T>> component(
 			String name, Codec<T> codec, StreamCodec<? super RegistryFriendlyByteBuf, T> stream) {
@@ -31,40 +38,71 @@ public class BoltRifleMod {
 				.persistent(codec).networkSynchronized(stream).build());
 	}
 
-	/** Rounds in the magazine (0-5). */
+	// ---- state kept on gun and magazine stacks (guns use all of them, magazines use LOADED + AMMO)
+	/** Rounds in the magazine. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> LOADED =
-			component("loaded", Codec.intRange(0, RifleItem.MAGAZINE_SIZE), ByteBufCodecs.VAR_INT);
+			component("loaded", Codec.intRange(0, 200), ByteBufCodecs.VAR_INT);
+	/** Round type in the magazine (cartridge item id). */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> AMMO =
+			component("ammo", Codec.STRING, ByteBufCodecs.STRING_UTF8);
 	/** True when a round is in the chamber. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> CHAMBERED =
 			component("chambered", Codec.BOOL, ByteBufCodecs.BOOL);
-	/** Current timed action (see RifleItem.ACTION_*), 0 = idle. */
+	/** Round type in the chamber. */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> CHAMBER_AMMO =
+			component("chamber_ammo", Codec.STRING, ByteBufCodecs.STRING_UTF8);
+	/** True when a magazine is inserted. */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> HAS_MAG =
+			component("has_mag", Codec.BOOL, ByteBufCodecs.BOOL);
+	/** Current timed action (see GunItem.ACTION_*), 0 = idle. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ACTION =
 			component("action", Codec.INT, ByteBufCodecs.VAR_INT);
-	/** Game time (ticks) the current action started. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Long>> ACTION_START =
 			component("action_start", Codec.LONG, ByteBufCodecs.VAR_LONG);
-	/** Rounds taken from the inventory for an in-progress reload. */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ACTION_LEN =
+			component("action_len", Codec.INT, ByteBufCodecs.VAR_INT);
+	/** Averages fractional shot intervals (e.g. 900 rpm = 1.33 ticks). */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Float>> FIRE_ACC =
+			component("fire_acc", Codec.FLOAT, ByteBufCodecs.FLOAT);
+	/** The fresh magazine taken from the inventory during a reload. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> PENDING =
 			component("pending", Codec.INT, ByteBufCodecs.VAR_INT);
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> PENDING_AMMO =
+			component("pending_ammo", Codec.STRING, ByteBufCodecs.STRING_UTF8);
 
-	public static final DeferredItem<Item> RIFLE_ROUND =
-			ITEMS.register("rifle_round", () -> new Item(new Item.Properties()));
+	// ---- items
+	public static final Map<Cartridge, DeferredItem<AmmoItem>> AMMO_ITEMS = new EnumMap<>(Cartridge.class);
+	public static final Map<MagType, DeferredItem<MagItem>> MAGS = new EnumMap<>(MagType.class);
+	public static final Map<String, DeferredItem<GunItem>> GUNS = new LinkedHashMap<>();
 
-	public static final DeferredItem<Item> BOLT_RIFLE =
-			ITEMS.register("bolt_rifle", () -> new RifleItem(new Item.Properties().stacksTo(1)));
+	static {
+		for (Cartridge c : Cartridge.values()) {
+			AMMO_ITEMS.put(c, ITEMS.register(c.itemId, () -> new AmmoItem(new Item.Properties(), c)));
+		}
+		for (MagType m : MagType.values()) {
+			MAGS.put(m, ITEMS.register(m.itemId, () -> new MagItem(new Item.Properties().stacksTo(16), m)));
+		}
+		for (GunDef d : Guns.ALL) {
+			GUNS.put(d.id, ITEMS.register(d.id, () -> new GunItem(new Item.Properties().durability(d.durability), d)));
+		}
+	}
+
+	public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("guns", () ->
+			CreativeModeTab.builder()
+					.title(Component.literal("Firearms"))
+					.icon(() -> new ItemStack(GUNS.get(Guns.M700.id).get()))
+					.displayItems((params, out) -> {
+						GUNS.values().forEach(g -> out.accept(g.get()));
+						MAGS.values().forEach(m -> out.accept(m.get()));
+						AMMO_ITEMS.values().forEach(a -> out.accept(a.get()));
+					}).build());
 
 	public BoltRifleMod(IEventBus modEventBus, ModContainer container) {
 		ITEMS.register(modEventBus);
 		COMPONENTS.register(modEventBus);
-		modEventBus.addListener(this::addToCreativeTab);
+		TABS.register(modEventBus);
 		modEventBus.addListener(Net::register);
 		container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
-	}
-
-	private void addToCreativeTab(BuildCreativeModeTabContentsEvent event) {
-		if (event.getTabKey() == CreativeModeTabs.COMBAT) {
-			event.accept(BOLT_RIFLE.get());
-			event.accept(RIFLE_ROUND.get());
-		}
+		container.registerConfig(ModConfig.Type.SERVER, GunConfig.SPEC);
 	}
 }

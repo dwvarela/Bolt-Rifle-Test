@@ -41,13 +41,13 @@ public final class Net {
 		registrar.playToServer(FirePayload.TYPE, FirePayload.CODEC, (payload, ctx) ->
 				ctx.enqueueWork(() -> {
 					if (ctx.player() instanceof ServerPlayer sp) {
-						RifleItem.handleFire(sp, payload.aiming());
+						GunItem.handleFire(sp, payload.aiming());
 					}
 				}));
 		registrar.playToServer(ReloadPayload.TYPE, ReloadPayload.CODEC, (payload, ctx) ->
 				ctx.enqueueWork(() -> {
 					if (ctx.player() instanceof ServerPlayer sp) {
-						RifleItem.handleReload(sp);
+						GunItem.handleReload(sp);
 					}
 				}));
 	}
