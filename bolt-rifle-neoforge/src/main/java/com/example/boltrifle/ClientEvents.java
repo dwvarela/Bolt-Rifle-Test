@@ -74,6 +74,12 @@ public final class ClientEvents {
 		}
 
 		@SubscribeEvent
+		public static void registerEntityRenderers(net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
+			event.registerEntityRenderer(BoltRifleMod.GRENADE_ENTITY.get(),
+					ctx -> new net.minecraft.client.renderer.entity.ThrownItemRenderer<>(ctx));
+		}
+
+		@SubscribeEvent
 		public static void registerLayers(RegisterGuiLayersEvent event) {
 			event.registerAbove(VanillaGuiLayers.CAMERA_OVERLAYS, id("scope"), ClientEvents::renderScope);
 			event.registerAboveAll(id("ammo_hud"), ClientEvents::renderHud);

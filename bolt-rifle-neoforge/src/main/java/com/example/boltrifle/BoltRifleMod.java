@@ -29,6 +29,8 @@ public class BoltRifleMod {
 	public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MOD_ID);
 	public static final DeferredRegister<DataComponentType<?>> COMPONENTS =
 			DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MOD_ID);
+	public static final DeferredRegister<net.minecraft.world.entity.EntityType<?>> ENTITIES =
+			DeferredRegister.create(Registries.ENTITY_TYPE, MOD_ID);
 	public static final DeferredRegister<CreativeModeTab> TABS =
 			DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
 
@@ -81,6 +83,14 @@ public class BoltRifleMod {
 	public static final Map<MagType, DeferredItem<MagItem>> MAGS = new EnumMap<>(MagType.class);
 	public static final Map<String, DeferredItem<GunItem>> GUNS = new LinkedHashMap<>();
 
+	public static final DeferredItem<GrenadeItem> GRENADE =
+			ITEMS.register("grenade", () -> new GrenadeItem(new Item.Properties().stacksTo(16)));
+	public static final DeferredHolder<net.minecraft.world.entity.EntityType<?>,
+			net.minecraft.world.entity.EntityType<GrenadeEntity>> GRENADE_ENTITY = ENTITIES.register("grenade",
+			() -> net.minecraft.world.entity.EntityType.Builder.<GrenadeEntity>of(GrenadeEntity::new,
+					net.minecraft.world.entity.MobCategory.MISC).sized(0.25f, 0.25f).clientTrackingRange(4)
+					.updateInterval(10).build("grenade"));
+
 	static {
 		for (Cartridge c : Cartridge.values()) {
 			AMMO_ITEMS.put(c, ITEMS.register(c.itemId, () -> new AmmoItem(new Item.Properties(), c)));
@@ -101,10 +111,12 @@ public class BoltRifleMod {
 						GUNS.values().forEach(g -> out.accept(g.get()));
 						MAGS.values().forEach(m -> out.accept(m.get()));
 						AMMO_ITEMS.values().forEach(a -> out.accept(a.get()));
+							out.accept(GRENADE.get());
 					}).build());
 
 	public BoltRifleMod(IEventBus modEventBus, ModContainer container) {
 		ITEMS.register(modEventBus);
+		ENTITIES.register(modEventBus);
 		COMPONENTS.register(modEventBus);
 		TABS.register(modEventBus);
 		modEventBus.addListener(Net::register);

@@ -9,6 +9,9 @@ public final class GunConfig {
 	public static final ModConfigSpec.IntValue UNSAFE_WEAR;
 	public static final ModConfigSpec.DoubleValue UNSAFE_FAILURE_CHANCE;
 	public static final ModConfigSpec.DoubleValue FAILURE_DAMAGE;
+	public static final ModConfigSpec.IntValue GRENADE_FUSE;
+	public static final ModConfigSpec.DoubleValue GRENADE_POWER;
+	public static final ModConfigSpec.BooleanValue GRENADE_BLOCK_DAMAGE;
 
 	static {
 		ModConfigSpec.Builder b = new ModConfigSpec.Builder();
@@ -20,6 +23,13 @@ public final class GunConfig {
 				.defineInRange("failureChance", 0.004, 0.0, 1.0);
 		FAILURE_DAMAGE = b.comment("Damage to the shooter when a gun ruptures (2 = one heart).")
 				.defineInRange("failureDamage", 6.0, 0.0, 40.0);
+		b.pop();
+		b.comment("Fragmentation grenade").push("grenade");
+		GRENADE_FUSE = b.comment("Fuse length in ticks (20 = 1 second), counted from the moment it is thrown.")
+				.defineInRange("fuseTicks", 70, 10, 400);
+		GRENADE_POWER = b.comment("Explosion power (TNT = 4).").defineInRange("power", 3.2, 0.5, 12.0);
+		GRENADE_BLOCK_DAMAGE = b.comment("Whether the blast breaks blocks. Off = damages only entities.")
+				.define("breakBlocks", false);
 		b.pop();
 		SPEC = b.build();
 	}
