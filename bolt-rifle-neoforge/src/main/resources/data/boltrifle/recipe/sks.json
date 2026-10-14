@@ -1,0 +1,27 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "equipment",
+ "pattern": [
+  "III",
+  "WTC",
+  "W  "
+ ],
+ "key": {
+  "C": {
+   "item": "minecraft:copper_ingot"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "W": {
+   "tag": "minecraft:planks"
+  },
+  "T": {
+   "item": "minecraft:tripwire_hook"
+  }
+ },
+ "result": {
+  "id": "boltrifle:sks",
+  "count": 1
+ }
+}

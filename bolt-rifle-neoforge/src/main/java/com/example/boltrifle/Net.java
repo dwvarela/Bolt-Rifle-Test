@@ -36,6 +36,17 @@ public final class Net {
 		}
 	}
 
+	public record TogglePayload() implements CustomPacketPayload {
+		public static final Type<TogglePayload> TYPE =
+				new Type<>(ResourceLocation.fromNamespaceAndPath(BoltRifleMod.MOD_ID, "toggle_mode"));
+		public static final StreamCodec<ByteBuf, TogglePayload> CODEC = StreamCodec.unit(new TogglePayload());
+
+		@Override
+		public Type<? extends CustomPacketPayload> type() {
+			return TYPE;
+		}
+	}
+
 	public static void register(RegisterPayloadHandlersEvent event) {
 		PayloadRegistrar registrar = event.registrar("1");
 		registrar.playToServer(FirePayload.TYPE, FirePayload.CODEC, (payload, ctx) ->
@@ -48,6 +59,12 @@ public final class Net {
 				ctx.enqueueWork(() -> {
 					if (ctx.player() instanceof ServerPlayer sp) {
 						GunItem.handleReload(sp);
+					}
+				}));
+		registrar.playToServer(TogglePayload.TYPE, TogglePayload.CODEC, (payload, ctx) ->
+				ctx.enqueueWork(() -> {
+					if (ctx.player() instanceof ServerPlayer sp) {
+						GunItem.handleToggle(sp);
 					}
 				}));
 	}

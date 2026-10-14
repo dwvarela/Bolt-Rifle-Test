@@ -8,9 +8,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 res, out = sys.argv[1], sys.argv[2]
-hidden = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else {"bolt_hand", "casing", "chamber_round"}
-geo = json.load(open(f"{res}/assets/boltrifle/geo/item/bolt_rifle.geo.json"))["minecraft:geometry"][0]
-tex = np.array(Image.open(f"{res}/assets/boltrifle/textures/item/bolt_rifle.png").convert("RGB"))
+hidden = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else {"bolt_hand", "casing", "chamber_round", "muzzle_flash"}
+import os
+GUN = os.environ.get("GUN", "bolt_rifle")
+geo = json.load(open(f"{res}/assets/boltrifle/geo/item/{GUN}.geo.json"))["minecraft:geometry"][0]
+tex = np.array(Image.open(f"{res}/assets/boltrifle/textures/item/{GUN}.png").convert("RGB"))
 
 
 def rotz(p, pivot, deg):

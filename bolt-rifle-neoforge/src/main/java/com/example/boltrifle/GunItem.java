@@ -52,11 +52,12 @@ public class GunItem extends Item implements GeoItem {
 	public static final int ACTION_RELOAD = 2;            // magazine swap only
 	public static final int ACTION_RELOAD_CHAMBER = 3;    // magazine swap + charging the gun
 	public static final int ACTION_DRY = 4;               // click
+	public static final int ACTION_RELOAD_RELEASE = 5;    // magazine swap with the bolt locked open, then release it
 
 	private static final String CONTROLLER = "main";
 
 	public final GunDef def;
-	private final RawAnimation idle, fireAnim, dryAnim, reloadAnim, reloadChamberAnim;
+	private final RawAnimation idle, fireAnim, fireLastAnim, dryAnim, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
 	public GunItem(Properties properties, GunDef def) {
@@ -65,6 +66,8 @@ public class GunItem extends Item implements GeoItem {
 		String p = "animation." + def.id + ".";
 		this.idle = RawAnimation.begin().thenLoop(p + "idle");
 		this.fireAnim = RawAnimation.begin().thenPlay(p + "fire");
+		this.fireLastAnim = RawAnimation.begin().thenPlayAndHold(p + "fire_last");
+		this.reloadReleaseAnim = RawAnimation.begin().thenPlay(p + "reload_release");
 		this.dryAnim = RawAnimation.begin().thenPlay(p + "dryfire");
 		this.reloadAnim = RawAnimation.begin().thenPlay(p + "reload");
 		this.reloadChamberAnim = RawAnimation.begin().thenPlay(p + "reload_chamber");
@@ -87,6 +90,19 @@ public class GunItem extends Item implements GeoItem {
 
 	public static int getAction(ItemStack stack) {
 		return stack.getOrDefault(BoltRifleMod.ACTION.get(), ACTION_NONE);
+	}
+
+	public static boolean isReloading(int action) {
+		return action == ACTION_RELOAD || action == ACTION_RELOAD_CHAMBER || action == ACTION_RELOAD_RELEASE;
+	}
+
+	public static boolean isBoltOpen(ItemStack stack) {
+		return stack.getOrDefault(BoltRifleMod.BOLT_OPEN.get(), false);
+	}
+
+	/** True when the selector is on full auto (and the gun can do it). */
+	public boolean autoMode(ItemStack stack) {
+		return def.auto && stack.getOrDefault(BoltRifleMod.AUTO_MODE.get(), true);
 	}
 
 	public static boolean isBusy(ItemStack stack) {
@@ -133,6 +149,16 @@ public class GunItem extends Item implements GeoItem {
 		ItemStack stack = player.getMainHandItem();
 		if (stack.getItem() instanceof GunItem gun) {
 			gun.fire(player, stack, aiming);
+		}
+	}
+
+	public static void handleToggle(ServerPlayer player) {
+		ItemStack stack = player.getMainHandItem();
+		if (stack.getItem() instanceof GunItem gun && gun.def.auto && gun.def.selector) {
+			boolean auto = !gun.autoMode(stack);
+			stack.set(BoltRifleMod.AUTO_MODE.get(), auto);
+			play(player.level(), player, SoundEvents.LEVER_CLICK, 0.8f, auto ? 1.5f : 1.2f);
+			hint(player, Component.literal("Fire mode: " + (auto ? "AUTO" : "SEMI")).withStyle(ChatFormatting.YELLOW));
 		}
 	}
 
@@ -187,7 +213,11 @@ public class GunItem extends Item implements GeoItem {
 		float acc = stack.getOrDefault(BoltRifleMod.FIRE_ACC.get(), 0.0f) + (float) def.interval;
 		int length = Math.max(1, (int) acc);
 		stack.set(BoltRifleMod.FIRE_ACC.get(), acc - length);
-		startAction(player, stack, ACTION_FIRE, "fire", length);
+		boolean last = def.holdOpen && mag == 0;
+		if (last) {
+			stack.set(BoltRifleMod.BOLT_OPEN.get(), true);
+		}
+		startAction(player, stack, ACTION_FIRE, last ? "fire_last" : "fire", length);
 
 		play(level, player, SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 3.0f * def.boom, 0.55f * def.boomPitch);
 		play(level, player, SoundEvents.FIREWORK_ROCKET_BLAST, 2.0f * def.boom, 0.5f * def.boomPitch);
@@ -233,23 +263,29 @@ public class GunItem extends Item implements GeoItem {
 		} else if (blockHit.getType() == HitResult.Type.BLOCK) {
 			BlockState state = level.getBlockState(blockHit.getBlockPos());
 			level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state),
-					impact.x, impact.y, impact.z, 10, 0.1, 0.1, 0.1, 0.05);
+					impact.x, impact.y, impact.z, 6, 0.08, 0.08, 0.08, 0.04);
 		}
 
-		// tracer + muzzle smoke
+		// Effects for everyone EXCEPT the shooter, who sees the model's own muzzle flash at the barrel.
+		Vec3 look = player.getLookAngle();
+		Vec3 right = look.cross(new Vec3(0, 1, 0)).normalize();
+		Vec3 muzzle = start.add(look.scale(1.3)).add(right.scale(0.3)).add(0, -0.3, 0);
 		Vec3 path = impact.subtract(start);
 		double length = path.length();
-		Vec3 step = path.normalize().scale(2.0);
-		Vec3 pos = start.add(dir.scale(1.5));
-		for (double d = 1.5; d < length; d += 2.0) {
-			level.sendParticles(ParticleTypes.CRIT, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
-			pos = pos.add(step);
+		Vec3 step = path.normalize().scale(4.0);
+		for (ServerPlayer viewer : level.players()) {
+			if (viewer == player || viewer.distanceToSqr(muzzle) > 96.0 * 96.0) {
+				continue;
+			}
+			level.sendParticles(viewer, ParticleTypes.SMOKE, false, muzzle.x, muzzle.y, muzzle.z, 2, 0.03, 0.03, 0.03, 0.01);
+			level.sendParticles(viewer, ParticleTypes.FLAME, false, muzzle.x, muzzle.y, muzzle.z, 1, 0.01, 0.01, 0.01, 0.02);
+			Vec3 pos = muzzle.add(step);
+			for (double d = 4.0; d < length; d += 4.0) {
+				level.sendParticles(viewer, ParticleTypes.CRIT, false, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
+				pos = pos.add(step);
+			}
 		}
-		Vec3 muzzle = start.add(dir.scale(1.7));
-		level.sendParticles(ParticleTypes.FLAME, muzzle.x, muzzle.y - 0.15, muzzle.z, 5, 0.02, 0.02, 0.02, 0.06);
-		level.sendParticles(ParticleTypes.LARGE_SMOKE, muzzle.x, muzzle.y - 0.15, muzzle.z, 3, 0.04, 0.04, 0.04, 0.02);
-		level.sendParticles(ParticleTypes.SMOKE, muzzle.x, muzzle.y - 0.15, muzzle.z, 6, 0.05, 0.05, 0.05, 0.02);
-		level.sendParticles(ParticleTypes.SMOKE, impact.x, impact.y, impact.z, 3, 0.05, 0.05, 0.05, 0.01);
+		level.sendParticles(ParticleTypes.SMOKE, impact.x, impact.y, impact.z, 1, 0.03, 0.03, 0.03, 0.005);
 	}
 
 	/** Durability loss for a shot; the gun is destroyed when it hits zero. */
@@ -326,7 +362,11 @@ public class GunItem extends Item implements GeoItem {
 		stack.set(BoltRifleMod.PENDING.get(), best);
 		stack.set(BoltRifleMod.PENDING_AMMO.get(), ammoId);
 		if (!isChambered(stack)) {
-			startAction(player, stack, ACTION_RELOAD_CHAMBER, "reload_chamber", def.reloadChamberTicks);
+			if (def.holdOpen && isBoltOpen(stack)) {
+				startAction(player, stack, ACTION_RELOAD_RELEASE, "reload_release", def.reloadReleaseTicks);
+			} else {
+				startAction(player, stack, ACTION_RELOAD_CHAMBER, "reload_chamber", def.reloadChamberTicks);
+			}
 		} else {
 			startAction(player, stack, ACTION_RELOAD, "reload", def.reloadTicks);
 		}
@@ -346,7 +386,7 @@ public class GunItem extends Item implements GeoItem {
 		long elapsed = level.getGameTime() - stack.getOrDefault(BoltRifleMod.ACTION_START.get(), 0L);
 
 		if (!selected) { // put away mid-action
-			if (action == ACTION_RELOAD || action == ACTION_RELOAD_CHAMBER) {
+			if (isReloading(action)) {
 				refundPending(player, stack);
 			}
 			clearAction(stack);
@@ -364,13 +404,14 @@ public class GunItem extends Item implements GeoItem {
 	}
 
 	private void finish(ServerPlayer player, ItemStack stack, int action) {
-		if (action == ACTION_RELOAD || action == ACTION_RELOAD_CHAMBER) {
+		if (isReloading(action)) {
 			returnMagazine(player, stack);                   // the old magazine comes out...
 			int rounds = stack.getOrDefault(BoltRifleMod.PENDING.get(), 0);
 			stack.set(BoltRifleMod.LOADED.get(), rounds);    // ...and the fresh one goes in
 			stack.set(BoltRifleMod.AMMO.get(), stack.getOrDefault(BoltRifleMod.PENDING_AMMO.get(), def.defaultAmmo.itemId));
 			stack.set(BoltRifleMod.HAS_MAG.get(), true);
-			if (action == ACTION_RELOAD_CHAMBER && rounds > 0 && !isChambered(stack)) {
+			if (action != ACTION_RELOAD && rounds > 0 && !isChambered(stack)) {
+				stack.set(BoltRifleMod.BOLT_OPEN.get(), false);
 				stack.set(BoltRifleMod.LOADED.get(), rounds - 1);
 				stack.set(BoltRifleMod.CHAMBERED.get(), true);
 				stack.set(BoltRifleMod.CHAMBER_AMMO.get(), magRound(stack).itemId);
@@ -434,6 +475,10 @@ public class GunItem extends Item implements GeoItem {
 		if (def.scoped) {
 			tooltip.add(Component.literal("Scroll while scoped: zoom").withStyle(ChatFormatting.DARK_GRAY));
 		}
+		if (def.auto && def.selector) {
+			tooltip.add(Component.literal("V: switch semi / auto   (now " + (autoMode(stack) ? "AUTO" : "SEMI") + ")")
+					.withStyle(ChatFormatting.DARK_GRAY));
+		}
 		tooltip.add(Component.literal("Repair: iron ingot on an anvil").withStyle(ChatFormatting.DARK_GRAY));
 	}
 
@@ -460,6 +505,8 @@ public class GunItem extends Item implements GeoItem {
 		controllers.add(new AnimationController<GunItem>(this, CONTROLLER, 0, state -> state.setAndContinue(idle))
 				.triggerableAnim("fire", fireAnim)
 				.triggerableAnim("dry", dryAnim)
+				.triggerableAnim("fire_last", fireLastAnim)
+				.triggerableAnim("reload_release", reloadReleaseAnim)
 				.triggerableAnim("reload", reloadAnim)
 				.triggerableAnim("reload_chamber", reloadChamberAnim));
 	}

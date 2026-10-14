@@ -1,0 +1,27 @@
+{
+ "type": "minecraft:crafting_shaped",
+ "category": "equipment",
+ "pattern": [
+  "IRI",
+  "ITI",
+  "ICC"
+ ],
+ "key": {
+  "C": {
+   "item": "minecraft:copper_ingot"
+  },
+  "I": {
+   "item": "minecraft:iron_ingot"
+  },
+  "R": {
+   "item": "minecraft:redstone"
+  },
+  "T": {
+   "item": "minecraft:tripwire_hook"
+  }
+ },
+ "result": {
+  "id": "boltrifle:m4a1",
+  "count": 1
+ }
+}

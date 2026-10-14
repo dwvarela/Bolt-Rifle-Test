@@ -23,7 +23,13 @@ public final class GunDef {
 	public boolean auto = false;
 	/** Ticks between shots (bolt guns: the whole bolt cycle). Fractions are averaged out. */
 	public double interval = 4.0;
-	public int reloadTicks = 50, reloadChamberTicks = 70, dryTicks = 6;
+	public int reloadTicks = 50, reloadChamberTicks = 70, reloadReleaseTicks = 40, dryTicks = 6;
+	/** The bolt/slide locks open on the last round (animations fire_last + reload_release are used). */
+	public boolean holdOpen = false;
+	/** Has a semi/auto selector (key V). Only meaningful with {@link #auto}. */
+	public boolean selector = false;
+	/** Red-dot sight: draws a dot while aiming. */
+	public boolean dot = false;
 	public float spreadHip = 3.0f, spreadAds = 0.3f;
 	/** Camera kick upward (degrees) and sideways wobble per shot. */
 	public float recoilPitch = 2.0f, recoilYaw = 0.6f;
@@ -35,15 +41,15 @@ public final class GunDef {
 	/** How quickly the sights come up, per tick (0-1). */
 	public float aimSpeed = 0.16f;
 
-	public Xf hip = new Xf(0.30, -0.20, 0.14, -0.05, 0, 0, 0);
+	public Xf hip = new Xf(0.36, -0.20, 0.14, -0.134, 0, 0, 0);
 	public Xf ads = new Xf(0.30, -0.56, 0.43, 0.37, 0, 0, 0);
-	public Xf third = new Xf(0.30, 0, 0, 0, 90, 0, 0);
+	public Xf third = new Xf(0.36, 0, 0, 0, 90, 0, 0);
 	public Xf gui = new Xf(0.27, 0, 0, 0, 0, -90, 28);
 	public Xf ground = new Xf(0.22, 0, 0, 0, 0, 0, 0);
 	public Xf fixed = new Xf(0.25, 0, 0, 0, 0, -90, 0);
 
 	/** Sound cues, indexed by GunItem.ACTION_*. */
-	public Cue[][] cues = {{}, {}, {}, {}, {}};
+	public Cue[][] cues = {{}, {}, {}, {}, {}, {}};
 
 	public GunDef(String id, String display, Chamber chamber, MagType mag, Cartridge defaultAmmo) {
 		this.id = id;

@@ -40,6 +40,9 @@ public final class ClientEvents {
 	private static boolean wantAim;
 	private static double zoom = 1;
 	private static Double savedSensitivity;
+	public static final KeyMapping MODE_KEY =
+			new KeyMapping("key.boltrifle.mode", InputConstants.KEY_V, "key.categories.boltrifle");
+
 	private static GunDef lastDef;
 	private static double fireCooldown;            // client-side shot timer (ticks), mirrors the server's
 	private static int reloadBuffer;            // ticks a pressed R key stays queued (e.g. during bolt cycling)
@@ -67,6 +70,7 @@ public final class ClientEvents {
 		@SubscribeEvent
 		public static void registerKeys(RegisterKeyMappingsEvent event) {
 			event.register(RELOAD_KEY);
+			event.register(MODE_KEY);
 		}
 
 		@SubscribeEvent
@@ -97,6 +101,11 @@ public final class ClientEvents {
 			}
 			fireCooldown = Math.max(fireCooldown - 1.0, -1.0);
 
+			while (MODE_KEY.consumeClick()) {
+				if (holding) {
+					PacketDistributor.sendToServer(new Net.TogglePayload());
+				}
+			}
 			while (RELOAD_KEY.consumeClick()) {
 				if (holding) {
 					reloadBuffer = 40;        // remember the press for 2 s so it fires once the gun is free
@@ -109,7 +118,7 @@ public final class ClientEvents {
 			if (holding) {
 				ItemStack stack = player.getMainHandItem();
 				int action = GunItem.getAction(stack);
-				boolean reloading = action == GunItem.ACTION_RELOAD || action == GunItem.ACTION_RELOAD_CHAMBER;
+				boolean reloading = GunItem.isReloading(action);
 				if (reloadBuffer > 0) {
 					reloadBuffer--;
 					if (!GunItem.isBusy(stack) || action == GunItem.ACTION_FIRE && def.interval < 4) {
@@ -119,7 +128,7 @@ public final class ClientEvents {
 				}
 				// raising the gun to reload always lowers the sights first, even with right click held
 				wantAim = mc.options.keyUse.isDown() && !reloading && reloadBuffer == 0;
-				if (def.auto && mc.options.keyAttack.isDown()) {
+				if (((GunItem) stack.getItem()).autoMode(stack) && mc.options.keyAttack.isDown()) {
 					tryFire(player, def);
 				}
 			} else {
@@ -143,7 +152,7 @@ public final class ClientEvents {
 			if (event.isAttack()) {            // left click = fire (automatics fire from the tick handler)
 				event.setCanceled(true);
 				event.setSwingHand(false);
-				if (!def.auto) {
+				if (!((GunItem) player.getMainHandItem().getItem()).autoMode(player.getMainHandItem())) {
 					tryFire(player, def);
 				}
 			} else if (event.isUseItem()) {    // right click = scope (handled in tick)
@@ -249,6 +258,16 @@ public final class ClientEvents {
 	private static void renderScope(GuiGraphics g, DeltaTracker delta) {
 		Minecraft mc = Minecraft.getInstance();
 		float p = aimProgress(delta.getGameTimeDeltaPartialTick(false));
+		if (p > 0.7f && lastDef != null && lastDef.dot && holdingGun(mc.player)) {
+			int a = ((int) (255 * Mth.clamp((p - 0.7f) / 0.3f, 0.0f, 1.0f))) << 24;
+			int half = (a >>> 1) & 0xFF000000;
+			int cx = g.guiWidth() / 2, cy = g.guiHeight() / 2;
+			g.fill(cx - 1, cy - 1, cx + 1, cy + 1, a | 0xFF2020);
+			g.fill(cx - 2, cy, cx - 1, cy + 1, half | 0xFF2020);
+			g.fill(cx + 1, cy, cx + 2, cy + 1, half | 0xFF2020);
+			g.fill(cx, cy - 2, cx + 1, cy - 1, half | 0xFF2020);
+			g.fill(cx, cy + 1, cx + 1, cy + 2, half | 0xFF2020);
+		}
 		if (p <= 0.6f || lastDef == null || !lastDef.scoped || !holdingGun(mc.player)) {
 			return;
 		}
@@ -319,13 +338,16 @@ public final class ClientEvents {
 		}
 		int action = GunItem.getAction(stack);
 		String status = switch (action) {
-			case GunItem.ACTION_RELOAD, GunItem.ACTION_RELOAD_CHAMBER -> "RELOADING";
+			case GunItem.ACTION_RELOAD, GunItem.ACTION_RELOAD_CHAMBER, GunItem.ACTION_RELOAD_RELEASE -> "RELOADING";
 			case GunItem.ACTION_FIRE -> def.interval >= 8 ? "CYCLING" : "READY";
 			default -> !GunItem.hasMag(stack) ? "NO MAGAZINE" : GunItem.isChambered(stack) ? "READY" : "CHAMBER EMPTY";
 		};
 		String ammo = GunItem.getLoaded(stack) + (GunItem.isChambered(stack) ? " +1" : " +0") + " / " + def.mag.capacity;
 		String type = (GunItem.isChambered(stack) ? gun.chamberRound(stack) : gun.magRound(stack)).display;
 		String spare = player.isCreative() ? "mags: inf" : mags + " mags (" + reserve + ")";
+		if (def.auto && def.selector) {
+			status = (gun.autoMode(stack) ? "AUTO  " : "SEMI  ") + status;
+		}
 		int x = g.guiWidth() - 8;
 		int y = g.guiHeight() - 52;
 		g.drawString(mc.font, ammo, x - mc.font.width(ammo), y, 0xFFFFFFFF, true);

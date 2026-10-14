@@ -54,6 +54,12 @@ public class BoltRifleMod {
 	/** True when a magazine is inserted. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> HAS_MAG =
 			component("has_mag", Codec.BOOL, ByteBufCodecs.BOOL);
+	/** Bolt/slide is locked open (after the last round). */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BOLT_OPEN =
+			component("bolt_open", Codec.BOOL, ByteBufCodecs.BOOL);
+	/** Selector: true = full auto (default), false = semi. */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> AUTO_MODE =
+			component("auto_mode", Codec.BOOL, ByteBufCodecs.BOOL);
 	/** Current timed action (see GunItem.ACTION_*), 0 = idle. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ACTION =
 			component("action", Codec.INT, ByteBufCodecs.VAR_INT);

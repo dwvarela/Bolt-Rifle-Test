@@ -1,6 +1,7 @@
 package com.example.boltrifle;
 
 import com.example.boltrifle.GunDef.Cue;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 
 import java.util.ArrayList;
@@ -18,6 +19,51 @@ public final class Guns {
 	}
 
 	public static final GunDef M700 = add(m700());
+	public static final GunDef SKS = add(sks());
+	public static final GunDef AK47 = add(ak47());
+	public static final GunDef M14 = add(m14());
+	public static final GunDef M4A1 = add(m4a1());
+	public static final GunDef AR15 = add(ar15());
+
+	private static Cue c(double ticks, SoundEvent s, float vol, float pitch) {
+		return new Cue((int) Math.round(ticks), s, vol, pitch);
+	}
+
+	/**
+	 * Sound cues for a semi/auto rifle, timed from the animation generator (tools/gunanim.py):
+	 * magazine swap fractions of d (seconds), then charging or bolt release.
+	 *
+	 * @param kind "right" = right-hand handle, "left" = left-hand charging handle
+	 */
+	private static Cue[][] rifleCues(double d, String kind, boolean handleRelease) {
+		double t = d * 20;
+		java.util.List<Cue> mag = new java.util.ArrayList<>(java.util.List.of(
+				c(t * 0.27, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
+				c(t * 0.40, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+				c(t * 0.80, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
+				c(t * 0.86, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f)));
+		java.util.List<Cue> chamber = new java.util.ArrayList<>(mag);
+		double back = kind.equals("left") ? 0.34 : 0.29, fwd = kind.equals("left") ? 0.46 : 0.50;
+		chamber.add(c(t + back * 20, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f));
+		chamber.add(c(t + fwd * 20, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f));
+		chamber.add(c(t + fwd * 20 + 2, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f));
+		java.util.List<Cue> release = new java.util.ArrayList<>(mag);
+		double rel = handleRelease ? 0.37 : 0.24;
+		release.add(c(t + rel * 20, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f));
+		release.add(c(t + rel * 20 + 2, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f));
+		return new Cue[][]{
+				{},
+				{new Cue(6, SoundEvents.AMETHYST_BLOCK_HIT, 0.35f, 2.0f)},      // spent case hits the ground
+				mag.toArray(new Cue[0]),
+				chamber.toArray(new Cue[0]),
+				{new Cue(0, SoundEvents.LEVER_CLICK, 0.9f, 0.7f)},
+				release.toArray(new Cue[0])
+		};
+	}
+
+	private static void setHip(GunDef d, double butt) {
+		d.hip = new GunDef.Xf(0.36, -0.20, 0.14, 0.37 - butt * 0.0225, 0, 0, 0);
+	}
 
 	private static GunDef m700() {
 		GunDef d = new GunDef("bolt_rifle", "Remington 700", Chamber.C308, MagType.M700_5, Cartridge.WIN_308);
@@ -29,6 +75,7 @@ public final class Guns {
 		d.spreadAds = 0.10f;
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
+		setHip(d, 22.4);
 		d.scoped = true;
 		d.zoomDefault = 6;
 		d.zoomMin = 3;
@@ -54,8 +101,91 @@ public final class Guns {
 						new Cue(64, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
 						new Cue(70, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
 						new Cue(76, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
-				{new Cue(0, SoundEvents.LEVER_CLICK, 0.9f, 0.7f)}
+				{new Cue(0, SoundEvents.LEVER_CLICK, 0.9f, 0.7f)},
+				{}
 		};
+		return d;
+	}
+
+	private static GunDef sks() {
+		GunDef d = new GunDef("sks", "SKS", Chamber.C762X39, MagType.SKS_10, Cartridge.R762X39);
+		d.durability = 1500;
+		d.interval = 3.0;
+		d.reloadTicks = 44; d.reloadChamberTicks = 63; d.reloadReleaseTicks = 58;
+		d.holdOpen = true;
+		d.spreadHip = 3.2f; d.spreadAds = 0.22f;
+		d.recoilPitch = 1.9f; d.recoilYaw = 0.55f;
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.25;
+		d.boom = 0.95f; d.boomPitch = 1.05f;
+		setHip(d, 20.2);
+		d.ads = new GunDef.Xf(0.30, -0.56, 0.430, 0.577, 0, 0, 0);
+		d.cues = rifleCues(2.2, "right", true);
+		return d;
+	}
+
+	private static GunDef ak47() {
+		GunDef d = new GunDef("ak47", "AK-47", Chamber.C762X39, MagType.AK_30, Cartridge.R762X39);
+		d.durability = 1700;
+		d.auto = true; d.selector = true;
+		d.interval = 2.0;                      // 600 rpm
+		d.reloadTicks = 46; d.reloadChamberTicks = 65;
+		d.spreadHip = 3.6f; d.spreadAds = 0.35f;
+		d.recoilPitch = 1.15f; d.recoilYaw = 0.45f;
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.2;
+		d.boom = 0.95f; d.boomPitch = 1.05f;
+		setHip(d, 19.0);
+		d.ads = new GunDef.Xf(0.30, -0.56, 0.428, 0.567, 0, 0, 0);
+		d.cues = rifleCues(2.3, "right", true);
+		return d;
+	}
+
+	private static GunDef m14() {
+		GunDef d = new GunDef("m14ebr", "M14 EBR", Chamber.C762_NATO, MagType.M14_20, Cartridge.NATO_762);
+		d.durability = 1600;
+		d.interval = 3.0;
+		d.reloadTicks = 46; d.reloadChamberTicks = 65; d.reloadReleaseTicks = 60;
+		d.holdOpen = true;
+		d.spreadHip = 3.0f; d.spreadAds = 0.12f;
+		d.recoilPitch = 2.1f; d.recoilYaw = 0.5f;
+		d.scoped = true;
+		d.zoomDefault = 4; d.zoomMin = 2.5; d.zoomMax = 8;
+		setHip(d, 22.4);
+		d.ads = new GunDef.Xf(0.30, -0.56, 0.430, 0.370, 0, 0, 0);
+		d.cues = rifleCues(2.3, "right", true);
+		return d;
+	}
+
+	private static GunDef m4a1() {
+		GunDef d = new GunDef("m4a1", "M4A1", Chamber.C556_NATO, MagType.STANAG_30, Cartridge.NATO_556);
+		d.durability = 1800;
+		d.auto = true; d.selector = true;
+		d.interval = 1.5;                      // ~800 rpm
+		d.reloadTicks = 40; d.reloadChamberTicks = 59; d.reloadReleaseTicks = 52;
+		d.holdOpen = true;
+		d.spreadHip = 3.0f; d.spreadAds = 0.25f;
+		d.recoilPitch = 0.85f; d.recoilYaw = 0.3f;
+		d.dot = true;
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
+		d.boom = 0.85f; d.boomPitch = 1.1f;
+		setHip(d, 19.9);
+		d.ads = new GunDef.Xf(0.30, -0.56, 0.441, 0.384, 0, 0, 0);
+		d.cues = rifleCues(2.0, "left", false);
+		return d;
+	}
+
+	private static GunDef ar15() {
+		GunDef d = new GunDef("ar15", "AR-15", Chamber.C223, MagType.STANAG_30, Cartridge.REM_223);
+		d.durability = 1500;
+		d.interval = 2.5;
+		d.reloadTicks = 40; d.reloadChamberTicks = 59; d.reloadReleaseTicks = 52;
+		d.holdOpen = true;
+		d.spreadHip = 2.8f; d.spreadAds = 0.18f;
+		d.recoilPitch = 0.9f; d.recoilYaw = 0.3f;
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.2;
+		d.boom = 0.85f; d.boomPitch = 1.1f;
+		setHip(d, 24.0);
+		d.ads = new GunDef.Xf(0.30, -0.56, 0.441, 0.359, 0, 0, 0);
+		d.cues = rifleCues(2.0, "left", false);
 		return d;
 	}
 }

@@ -10,8 +10,8 @@ anims = []
 
 
 def flash(a):
-    a.key("muzzle_flash", "scale", 0.0, ZERO, STEP).key("muzzle_flash", "scale", 0.01, [1.1, 1.1, 1.1], STEP)
-    a.key("muzzle_flash", "scale", 0.045, [1.5, 1.5, 1.5], STEP).key("muzzle_flash", "scale", 0.075, ZERO, STEP)
+    a.key("muzzle_flash", "scale", 0.0, ZERO, STEP).key("muzzle_flash", "scale", 0.01, [0.5, 0.5, 0.5], STEP)
+    a.key("muzzle_flash", "scale", 0.045, [0.65, 0.65, 0.65], STEP).key("muzzle_flash", "scale", 0.06, ZERO, STEP)
 
 
 def bolt_cycle(a, lift0, lift1, back1, hold1, fwd1, down1):
