@@ -51,7 +51,7 @@ def fire(c, last):
     a.pos("casing", 0.02, ZERO, SNAP)
     a.pos("casing", 0.06, v(ex[0] * 3.0, ex[1] * 2.4, ex[2] * 2.6), SNAP)
     a.pos("casing", 0.13, v(ex[0] * 6.0, ex[1] * 3.2, ex[2] * 6.0))
-    a.pos("casing", T, v(ex[0] * 8.5, -ex[1] * 3.5, ex[2] * 9.0), FALL)
+    a.pos("casing", T, v(ex[0] * 8.5, ex[1] * c.get("eject_fall", -3.5), ex[2] * 9.0), FALL)
     a.rot("casing", 0.02, ZERO).rot("casing", T, v(0, 0, 420 * ex[0]))
     return a
 
@@ -77,6 +77,8 @@ def mag_swap(a, c, D, end_hand):
     d = v(0, gy - hy, gz - hz)                      # support hand on the magazine
     drop = c["mag_drop"]
     pouch = v(c.get("pouch_x", 3.0), d[1] - drop - 7, d[2] + 3)
+    if "pouch_off" in c:
+        pouch = [d[i] + c["pouch_off"][i] for i in range(3)]
     app = v(0.0, d[1] - drop - 2.5, d[2])
     add = lambda p, q: [p[i] + q[i] for i in range(3)]
     H = [(0.0, ZERO, SMOOTH), (F_REACH, add(d, v(0, -1.0, 0)), SMOOTH), (F_RELEASE - 0.04, d, SMOOTH),

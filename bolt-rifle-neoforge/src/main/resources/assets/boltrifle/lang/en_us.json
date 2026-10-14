@@ -24,5 +24,8 @@
   "item.boltrifle.ak47": "AK-47",
   "item.boltrifle.m14ebr": "M14 EBR",
   "item.boltrifle.m4a1": "M4A1",
-  "item.boltrifle.ar15": "AR-15 (.223)"
+  "item.boltrifle.ar15": "AR-15 (.223)",
+  "item.boltrifle.g45": "Glock G45 Gen 7",
+  "item.boltrifle.mp7": "HK MP7A1",
+  "item.boltrifle.p90": "FN P90"
 }

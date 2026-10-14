@@ -24,6 +24,9 @@ public final class Guns {
 	public static final GunDef M14 = add(m14());
 	public static final GunDef M4A1 = add(m4a1());
 	public static final GunDef AR15 = add(ar15());
+	public static final GunDef MP7 = add(mp7());
+	public static final GunDef P90 = add(p90());
+	public static final GunDef G45 = add(g45());
 
 	private static Cue c(double ticks, SoundEvent s, float vol, float pitch) {
 		return new Cue((int) Math.round(ticks), s, vol, pitch);
@@ -186,6 +189,61 @@ public final class Guns {
 		setHip(d, 24.6);
 		d.ads = new GunDef.Xf(0.30, -0.56, 0.445, 0.363, 0, 0, 0);
 		d.cues = rifleCues(2.0, "left", false);
+		return d;
+	}
+
+	private static GunDef mp7() {
+		GunDef d = new GunDef("mp7", "HK MP7A1", Chamber.C46, MagType.MP7_40, Cartridge.HK_46);
+		d.durability = 1400;
+		d.auto = true; d.selector = true;
+		d.interval = 1.33;                     // ~950 rpm
+		d.reloadTicks = 38; d.reloadChamberTicks = 57; d.reloadReleaseTicks = 49;
+		d.holdOpen = true;
+		d.spreadHip = 3.4f; d.spreadAds = 0.4f;
+		d.recoilPitch = 0.55f; d.recoilYaw = 0.25f;
+		d.dot = true;
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.25;
+		d.boom = 0.7f; d.boomPitch = 1.35f;
+		d.aimSpeed = 0.2f;
+		setHip(d, 14.8);
+		d.ads = new GunDef.Xf(0.30, -0.56, 0.438, 0.438, 0, 0, 0);
+		d.cues = rifleCues(1.9, "left", false);
+		return d;
+	}
+
+	private static GunDef p90() {
+		GunDef d = new GunDef("p90", "FN P90", Chamber.C57, MagType.P90_50, Cartridge.FN_57);
+		d.durability = 1600;
+		d.auto = true; d.selector = true;
+		d.interval = 1.33;                     // ~900 rpm
+		d.reloadTicks = 44; d.reloadChamberTicks = 63; d.reloadReleaseTicks = 55;
+		d.holdOpen = true;
+		d.spreadHip = 3.2f; d.spreadAds = 0.35f;
+		d.recoilPitch = 0.45f; d.recoilYaw = 0.2f;
+		d.dot = true;
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
+		d.boom = 0.7f; d.boomPitch = 1.3f;
+		d.aimSpeed = 0.2f;
+		setHip(d, 14.9);
+		d.ads = new GunDef.Xf(0.30, -0.56, 0.445, 0.489, 0, 0, 0);
+		d.cues = rifleCues(2.2, "left", false);
+		return d;
+	}
+
+	private static GunDef g45() {
+		GunDef d = new GunDef("g45", "Glock G45 Gen 7", Chamber.C9, MagType.G45_17, Cartridge.P_9X19);
+		d.durability = 1200;
+		d.interval = 2.0;                      // as fast as you can pull the trigger
+		d.reloadTicks = 34; d.reloadChamberTicks = 52; d.reloadReleaseTicks = 44;
+		d.holdOpen = true;
+		d.spreadHip = 2.6f; d.spreadAds = 0.3f;
+		d.recoilPitch = 1.1f; d.recoilYaw = 0.35f;
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.1;
+		d.boom = 0.65f; d.boomPitch = 1.45f;
+		d.aimSpeed = 0.24f;
+		d.hip = new GunDef.Xf(0.36, -0.17, 0.14, 0.09, 0, 0, 0);
+		d.ads = new GunDef.Xf(0.30, -0.56, 0.483, 0.399, 0, 0, 0);
+		d.cues = rifleCues(1.7, "left", false);
 		return d;
 	}
 }

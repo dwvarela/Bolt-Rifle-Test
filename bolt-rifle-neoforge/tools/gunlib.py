@@ -19,7 +19,7 @@ MATS = {
     "rubber": ((22, 22, 23), "rubber"), "brass": ((204, 152, 62), "brass"), "wood": ((112, 70, 40), "wood"),
     "plum": ((128, 60, 32), "wood"), "glove": ((54, 58, 50), "cloth"), "lens": ((40, 58, 112), "lens"),
     "flash": ((255, 235, 170), "glow"), "dot": ((255, 40, 40), "glow"), "olive": ((84, 88, 62), "poly"),
-    "tan": ((150, 128, 92), "poly"),
+    "tan": ((150, 128, 92), "poly"), "smoke": ((92, 88, 84), "poly"),
 }
 GLOW = {"flash", "dot"}
 # baked light direction: top faces catch light, bottoms are dark
