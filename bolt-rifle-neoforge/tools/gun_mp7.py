@@ -20,7 +20,8 @@ def build():
         m.cube("barrel", "steel", -0.9, -0.1, mz + 0.3 + i * 0.6, 0.9, 0.1, mz + 0.5 + i * 0.6)
     m.cube("barrel", "black", -0.3, -0.3, mz - 0.03, 0.3, 0.3, mz + 0.05)
     # ---------------------------------------------------------------- receiver (polymer housing, steel nose)
-    m.rbox("body", "poly", -1.2, -1.7, -12.4, 1.2, 2.5, 3.6, c=0.4)
+    m.rbox("body", "poly", -1.2, -1.7, -12.4, 1.2, 2.5, 3.6, c=0.7)
+    m.rbox("body", "poly", -0.9, 2.3, -12.0, 0.9, 2.9, -10.0, c=0.2)
     m.rbox("body", "steel", -0.95, -1.0, -13.4, 0.95, 1.5, -12.3, c=0.3)                  # front cap around the barrel
     m.cube("body", "black", -1.22, 0.3, -2.4, -1.12, 1.9, 1.8)                             # ejection port (right)
     m.cube("body", "gunmetal", 1.12, -0.6, -4.0, 1.25, 0.2, -0.8)                          # left side plate
@@ -31,7 +32,7 @@ def build():
     for z in [-9.6 + 0.9 * i for i in range(14)]:
         m.cube("body", "black", -1.05, 2.95, z, 1.05, 3.15, z + 0.4)
     # folded fore-grip
-    m.slope("body", "poly", -0.8, 0.8, -5.2, -1.7, -9.2, -7.4, 8)
+    m.cube("body", "poly", -0.8, -5.2, -9.2, 0.8, -1.6, -7.4)
     m.cube("body", "rubber", -0.85, -5.4, -9.2, 0.85, -4.6, -7.4)
     # pistol grip + trigger guard
     g(m, "body", "poly", -1.0, -8.4, 0.2, 1.0, -2.0, 4.0)
