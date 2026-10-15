@@ -188,16 +188,24 @@ public class GunItem extends Item implements GeoItem {
 	/** Alternates between twin animations so a new shot always restarts the animation. */
 	private boolean flip;
 
-	/** A shot is allowed when the gun is idle, or when the previous shot is within one tick of done (network jitter). */
+	/**
+	 * A shot is allowed when the gun is free or still in its own recoil cycle, and the shot schedule allows it.
+	 * The schedule (NEXT_SHOT, in 1/100 tick) advances by exactly one interval per shot, so the long-run rate is
+	 * always the gun's rate of fire no matter how the click packets are spaced; two ticks of slack absorb network jitter.
+	 */
 	private boolean readyToFire(ServerPlayer player, ItemStack stack) {
-		if (settle(player, stack)) {
-			return true;
-		}
-		if (getAction(stack) != ACTION_FIRE) {
+		int action = getAction(stack);
+		if (action != ACTION_NONE && action != ACTION_FIRE && !settle(player, stack)) {
 			return false;
 		}
-		long elapsed = player.level().getGameTime() - stack.getOrDefault(BoltRifleMod.ACTION_START.get(), 0L);
-		return elapsed >= Math.max(1, actionLength(stack, ACTION_FIRE) - 1);
+		long now = player.level().getGameTime() * 100L;
+		return now >= stack.getOrDefault(BoltRifleMod.NEXT_SHOT.get(), 0L) - 200L;
+	}
+
+	private void scheduleNextShot(ServerPlayer player, ItemStack stack) {
+		long now = player.level().getGameTime() * 100L;
+		long base = Math.max(stack.getOrDefault(BoltRifleMod.NEXT_SHOT.get(), 0L), now - 50L);
+		stack.set(BoltRifleMod.NEXT_SHOT.get(), base + Math.round(def.interval * 100.0));
 	}
 
 	private void fire(ServerPlayer player, ItemStack stack, boolean aiming) {
@@ -220,6 +228,7 @@ public class GunItem extends Item implements GeoItem {
 			return;
 		}
 
+		scheduleNextShot(player, stack);
 		stack.set(BoltRifleMod.CHAMBERED.get(), false);
 		int mag = getLoaded(stack);
 		if (mag > 0) {                     // cycling chambers the next round

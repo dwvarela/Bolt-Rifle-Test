@@ -44,6 +44,7 @@ public final class ClientEvents {
 			new KeyMapping("key.boltrifle.mode", InputConstants.KEY_V, "key.categories.boltrifle");
 
 	private static GunDef lastDef;
+	private static int fireQueued;                  // a click that came in a moment too early, fired as soon as the gun is ready
 	private static double fireCooldown;            // client-side shot timer (ticks), mirrors the server's
 	private static int reloadBuffer;            // ticks a pressed R key stays queued (e.g. during bolt cycling)
 	private static float kickRise, kickRecover, kickYaw;   // camera recoil, spread over several ticks
@@ -119,6 +120,13 @@ public final class ClientEvents {
 			}
 			if (!holding) {
 				reloadBuffer = 0;
+				fireQueued = 0;
+			}
+			if (holding && fireQueued > 0) {
+				fireQueued--;
+				if (tryFire(player, def)) {
+					fireQueued = 0;
+				}
 			}
 
 			if (holding) {
@@ -159,7 +167,9 @@ public final class ClientEvents {
 				event.setCanceled(true);
 				event.setSwingHand(false);
 				if (!((GunItem) player.getMainHandItem().getItem()).autoMode(player.getMainHandItem())) {
-					tryFire(player, def);
+					if (!tryFire(player, def)) {
+						fireQueued = 6;
+					}
 				}
 			} else if (event.isUseItem()) {    // right click = scope (handled in tick)
 				event.setCanceled(true);
@@ -202,11 +212,15 @@ public final class ClientEvents {
 	}
 
 	// ======================================================================= helpers
-	private static void tryFire(LocalPlayer player, GunDef def) {
+	/** Sends one shot if the gun is ready. Returns false when it was only blocked by the shot timer (so a click can be queued). */
+	private static boolean tryFire(LocalPlayer player, GunDef def) {
 		ItemStack stack = player.getMainHandItem();
 		int action = GunItem.getAction(stack);
-		if ((action != GunItem.ACTION_NONE && action != GunItem.ACTION_FIRE) || fireCooldown > 0) {
-			return;
+		if (action != GunItem.ACTION_NONE && action != GunItem.ACTION_FIRE) {
+			return true;                        // reloading etc: nothing to queue
+		}
+		if (fireCooldown > 0) {
+			return false;
 		}
 		boolean aiming = aim > 0.85f;
 		PacketDistributor.sendToServer(new Net.FirePayload(aiming));
@@ -220,6 +234,7 @@ public final class ClientEvents {
 		} else {
 			fireCooldown = def.dryTicks;
 		}
+		return true;
 	}
 
 	/** Camera climbs fast then settles, and a third of the climb comes back down (like real muzzle recovery). */

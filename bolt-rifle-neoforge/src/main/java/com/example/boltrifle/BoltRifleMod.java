@@ -78,6 +78,10 @@ public class BoltRifleMod {
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> PENDING_AMMO =
 			component("pending_ammo", Codec.STRING, ByteBufCodecs.STRING_UTF8);
 
+	/** Time (1/100 tick) at which the next shot is allowed. */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Long>> NEXT_SHOT =
+			component("next_shot", Codec.LONG, ByteBufCodecs.VAR_LONG);
+
 	// ---- items
 	public static final Map<Cartridge, DeferredItem<AmmoItem>> AMMO_ITEMS = new EnumMap<>(Cartridge.class);
 	public static final Map<MagType, DeferredItem<MagItem>> MAGS = new EnumMap<>(MagType.class);

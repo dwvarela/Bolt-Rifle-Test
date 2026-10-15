@@ -72,11 +72,12 @@ public final class Guns {
 
 	/**
 	 * Aiming: puts the sight point (sy = height of the sight line, sz = rear sight position, both in model px)
-	 * exactly on the centre of the screen, whatever the model scale s.
+	 * exactly on the centre of the screen, whatever the model scale s. relief = how far the rear sight sits in front of
+	 * the eye (blocks): scopes sit right at the eye (0), iron sights are held out at arm\u0027s length like in real life.
 	 */
-	private static void aim(GunDef d, double sy, double sz, double s) {
+	private static void aim(GunDef d, double sy, double sz, double s, double relief) {
 		d.ads = new GunDef.Xf(s, -0.71 + 0.5 * s, 0.86625 - 0.5 - s * (sy / 16 - 0.5),
-				0.87 - 0.5 - s * (sz / 16 - 0.5), 0, 0, 0);
+				0.87 - relief - 0.5 - s * (sz / 16 - 0.5), 0, 0, 0);
 	}
 
 	private static GunDef m700() {
@@ -90,7 +91,7 @@ public final class Guns {
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
 		hold(d, 22.4, 0.5);
-		aim(d, 4.6, 8.0, 0.36);
+		aim(d, 4.6, 8.0, 0.30, 0.0);
 		d.scoped = true;
 		d.zoomDefault = 6;
 		d.zoomMin = 3;
@@ -133,7 +134,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.25;
 		d.boom = 0.95f; d.boomPitch = 1.05f;
 		hold(d, 20.6, 0.4);
-		aim(d, 3.35, -6.9, 0.34);
+		aim(d, 3.0, -6.9, 0.30, 0.12);
 		d.cues = rifleCues(2.2, "right", true);
 		return d;
 	}
@@ -149,7 +150,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.2;
 		d.boom = 0.95f; d.boomPitch = 1.05f;
 		hold(d, 19.9, 0.4);
-		aim(d, 3.35, -5.7, 0.34);
+		aim(d, 3.0, -5.7, 0.30, 0.12);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;
 	}
@@ -165,7 +166,7 @@ public final class Guns {
 		d.scoped = true;
 		d.zoomDefault = 4; d.zoomMin = 2.5; d.zoomMax = 8;
 		hold(d, 22.9, 0.5);
-		aim(d, 4.6, 8.0, 0.36);
+		aim(d, 4.6, 8.0, 0.30, 0.0);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;
 	}
@@ -182,7 +183,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.boom = 0.85f; d.boomPitch = 1.1f;
 		hold(d, 20.0, 0.46);
-		aim(d, 4.12, 4.7, 0.34);
+		aim(d, 4.12, 4.7, 0.30, 0.12);
 		d.cues = rifleCues(2.0, "left", false);
 		return d;
 	}
@@ -198,7 +199,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.2;
 		d.boom = 0.85f; d.boomPitch = 1.1f;
 		hold(d, 24.6, 0.46);
-		aim(d, 3.95, 5.7, 0.34);
+		aim(d, 3.95, 5.7, 0.30, 0.12);
 		d.cues = rifleCues(2.0, "left", false);
 		return d;
 	}
@@ -216,7 +217,7 @@ public final class Guns {
 		d.boom = 0.7f; d.boomPitch = 1.35f;
 		d.aimSpeed = 0.2f;
 		hold(d, 14.8, 0.5);
-		aim(d, 4.5, -0.5, 0.34);
+		aim(d, 4.5, -0.5, 0.30, 0.12);
 		d.cues = rifleCues(1.9, "left", false);
 		return d;
 	}
@@ -234,7 +235,7 @@ public final class Guns {
 		d.boom = 0.7f; d.boomPitch = 1.3f;
 		d.aimSpeed = 0.2f;
 		hold(d, 14.9, 0.5);
-		aim(d, 5.0, -4.65, 0.34);
+		aim(d, 5.0, -4.65, 0.30, 0.12);
 		d.cues = rifleCues(2.2, "left", false);
 		return d;
 	}
@@ -250,9 +251,9 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.1;
 		d.boom = 0.65f; d.boomPitch = 1.45f;
 		d.aimSpeed = 0.24f;
-		d.hip = new GunDef.Xf(0.62, -0.19, 0.47, 0.136, 0, 0, 0);
-		d.third = new GunDef.Xf(0.62, 0, 0, 0, 90, 0, 0);
-		aim(d, 1.62, 3.8, 0.42);
+		d.hip = new GunDef.Xf(0.43, -0.285, 0.375, 0.031, 0, 0, 0);
+		d.third = new GunDef.Xf(0.43, 0, 0, 0, 90, 0, 0);
+		aim(d, 1.62, 3.8, 0.30, 0.10);
 		d.cues = rifleCues(1.7, "left", false);
 		return d;
 	}
