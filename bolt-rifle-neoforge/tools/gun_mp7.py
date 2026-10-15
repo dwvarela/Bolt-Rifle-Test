@@ -32,8 +32,10 @@ def build():
     for z in [-9.6 + 0.9 * i for i in range(14)]:
         m.cube("body", "black", -1.05, 2.95, z, 1.05, 3.15, z + 0.4)
     # folded fore-grip
-    m.cube("body", "poly", -0.8, -5.2, -9.2, 0.8, -1.6, -7.4)
-    m.cube("body", "rubber", -0.85, -5.4, -9.2, 0.85, -4.6, -7.4)
+    m.rbox("body", "poly", -0.85, -8.4, -9.5, 0.85, -1.6, -7.3, c=0.35)                    # vertical fore-grip (deployed)
+    m.cube("body", "rubber", -0.88, -8.5, -9.55, 0.88, -3.6, -7.25)
+    for i in range(5):
+        m.cube("body", "black", -0.9, -8.0 + i * 0.9, -9.6, 0.9, -7.85 + i * 0.9, -7.2)
     # pistol grip + trigger guard
     g(m, "body", "poly", -1.05, -9.6, 0.1, 1.05, -2.0, 4.1)
     g(m, "body", "black", -0.9, -9.7, 0.5, 0.9, -9.4, 3.7)                                   # magwell mouth
@@ -42,7 +44,8 @@ def build():
     g(m, "body", "rubber", -1.1, -9.6, 3.7, 1.1, -3.0, 4.25)
     m.cube("body", "poly", -0.6, -4.9, -3.4, 0.6, -4.3, 0.3)
     m.cube("body", "poly", -0.6, -4.9, -3.4, 0.6, -1.6, -2.9)
-    m.slope("body", "black", -0.2, 0.2, -4.0, -2.3, -0.9, -0.4, -6)                       # trigger
+    m.cube("body", "stainless", -0.28, -4.3, -1.0, 0.28, -2.0, -0.35)                       # trigger blade
+    m.cube("body", "stainless", -0.28, -4.3, -1.5, 0.28, -3.8, -0.35)                       # trigger shoe
     m.cube("body", "gunmetal", -1.25, -2.4, 0.9, -1.0, -1.9, 2.0)                          # selector
     m.cube("body", "gunmetal", 1.0, -3.5, -2.0, 1.4, -3.0, -0.8)                           # mag/bolt catch
     # ---------------------------------------------------------------- folding iron sights on the rail
@@ -76,10 +79,10 @@ def build():
         g(m, "magazine", "black", -0.87, -12.0 + i * 0.7, 1.0, -0.8, -11.8 + i * 0.7, 3.4)
     m.muzzle_flash(mz - 0.2, length=4.4, width=3.0)
     m.casing(-1.2, 1.0, -0.4, length=2.2, r=0.4)
-    m.hand_left(-2.6, -8.2)
+    m.hand_left(-8.6, -8.4)
     m.hand_right(-5.8, 2.6, -2.8)
     cfg = dict(
-        name="mp7", hand_l=(-2.6, -8.2), mag_grip=(-11.0, 2.8), mag_drop=8.0, mag_rock=3,
+        name="mp7", hand_l=(-8.6, -8.4), mag_grip=(-11.0, 2.8), mag_drop=8.0, mag_rock=3,
         charge_hand="left", charge_bone="charge", handle=(0, 3.0, 5.4), bolt_travel=4.0,
         hold_open=True, release_mode="press", catch=(-3.2, -1.4), catch_x=3.0,
         fire_len=0.2, cycle=0.05, kick_z=1.0, kick_pitch=1.5, kick_yaw=0.4, flash=0.8,

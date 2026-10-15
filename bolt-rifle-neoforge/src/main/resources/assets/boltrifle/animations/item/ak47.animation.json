@@ -473,88 +473,88 @@
       "0.177": {
        "vector": [
         3.4,
-        -2.2,
-        2.45
+        -2.7,
+        2.55
        ],
        "easing": "easeInOutSine"
       },
       "0.483": {
        "vector": [
         0.0,
-        -5.4,
-        4.9
+        -6.4,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "0.598": {
        "vector": [
         0.0,
-        -4.4,
-        4.9
+        -5.4,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "0.920": {
        "vector": [
         0.0,
-        -13.4,
-        4.9
+        -14.4,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "1.081": {
        "vector": [
         0.6,
-        -16.9,
-        5.9
+        -17.9,
+        6.1
        ],
        "easing": "easeInQuad"
       },
       "1.334": {
        "vector": [
         3.0,
-        -20.4,
-        7.9
+        -21.4,
+        8.1
        ],
        "easing": "easeInOutSine"
       },
       "1.610": {
        "vector": [
         0.0,
-        -15.9,
-        4.9
+        -16.9,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "1.840": {
        "vector": [
         0.0,
-        -5.6000000000000005,
-        4.9
+        -6.6000000000000005,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "1.978": {
        "vector": [
         0.0,
-        -4.1000000000000005,
-        4.9
+        -5.1000000000000005,
+        5.1
        ],
        "easing": "easeOutCubic"
       },
       "2.093": {
        "vector": [
         0.0,
-        -4.9,
-        4.9
+        -5.9,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "2.185": {
        "vector": [
         3.4,
-        -2.2,
-        2.45
+        -2.7,
+        2.55
        ],
        "easing": "easeInOutSine"
       },
@@ -655,7 +655,7 @@
       "1.610": {
        "vector": [
         0.0,
-        -11.5,
+        -11.499999999999998,
         0.0
        ],
        "easing": "easeInOutSine"
@@ -904,88 +904,88 @@
       "0.177": {
        "vector": [
         3.4,
-        -2.2,
-        2.45
+        -2.7,
+        2.55
        ],
        "easing": "easeInOutSine"
       },
       "0.483": {
        "vector": [
         0.0,
-        -5.4,
-        4.9
+        -6.4,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "0.598": {
        "vector": [
         0.0,
-        -4.4,
-        4.9
+        -5.4,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "0.920": {
        "vector": [
         0.0,
-        -13.4,
-        4.9
+        -14.4,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "1.081": {
        "vector": [
         0.6,
-        -16.9,
-        5.9
+        -17.9,
+        6.1
        ],
        "easing": "easeInQuad"
       },
       "1.334": {
        "vector": [
         3.0,
-        -20.4,
-        7.9
+        -21.4,
+        8.1
        ],
        "easing": "easeInOutSine"
       },
       "1.610": {
        "vector": [
         0.0,
-        -15.9,
-        4.9
+        -16.9,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "1.840": {
        "vector": [
         0.0,
-        -5.6000000000000005,
-        4.9
+        -6.6000000000000005,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "1.978": {
        "vector": [
         0.0,
-        -4.1000000000000005,
-        4.9
+        -5.1000000000000005,
+        5.1
        ],
        "easing": "easeOutCubic"
       },
       "2.093": {
        "vector": [
         0.0,
-        -4.9,
-        4.9
+        -5.9,
+        5.1
        ],
        "easing": "easeInOutSine"
       },
       "2.185": {
        "vector": [
         3.4,
-        -2.2,
-        2.45
+        -2.7,
+        2.55
        ],
        "easing": "easeInOutSine"
       },
@@ -1086,7 +1086,7 @@
       "1.610": {
        "vector": [
         0.0,
-        -11.5,
+        -11.499999999999998,
         0.0
        ],
        "easing": "easeInOutSine"

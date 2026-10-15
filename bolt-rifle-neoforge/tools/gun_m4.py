@@ -21,7 +21,7 @@ def build_ar(ident, ar15):
     fz = mz + 9.0 if not ar15 else mz + 10.5                                      # front sight tower position
     m.rbox("barrel", "gunmetal", -0.8, -0.9, fz - 1.6, 0.8, 1.7, fz + 1.6, c=0.3)
     m.cube("barrel", "gunmetal", -0.55, 1.7, fz - 1.0, 0.55, 3.4, fz + 0.8)        # tower
-    m.cube("barrel", "steel", -0.18, 3.4, fz - 0.4, 0.18, 4.15, fz + 0.1)          # post
+    m.cube("barrel", "steel", -0.2, 3.4, fz - 0.4, 0.2, 4.3, fz + 0.1)           # post
     m.cube("barrel", "gunmetal", -0.35, 1.2, fz + 1.6, 0.35, 1.7, fz + 3.4)        # gas tube peek
     # ---------------------------------------------------------------- round handguards
     hg0 = fz + 1.8
@@ -53,10 +53,10 @@ def build_ar(ident, ar15):
             m.cube("upper", "black", -0.6, 1.95, z, 0.6, 2.15, z + 0.4)
         # flip-up rear aperture (BUIS); the A2 front tower + post already on the barrel
         m.cube("upper", "gunmetal", -0.85, 2.15, 3.6, 0.85, 2.9, 5.8)                   # base
-        m.cube("upper", "black", -0.8, 2.9, 3.9, -0.45, 4.9, 5.5)                        # left cheek
-        m.cube("upper", "black", 0.45, 2.9, 3.9, 0.8, 4.9, 5.5)                          # right cheek
+        m.cube("upper", "black", -0.8, 2.9, 3.9, -0.45, 4.75, 5.5)                       # left cheek
+        m.cube("upper", "black", 0.45, 2.9, 3.9, 0.8, 4.75, 5.5)                         # right cheek
         m.cube("upper", "black", -0.5, 2.9, 4.0, 0.5, 3.75, 5.4)                         # lower bridge
-        m.cube("upper", "black", -0.5, 4.5, 4.0, 0.5, 4.9, 5.4)                          # upper bar
+        m.cube("upper", "black", -0.5, 4.5, 4.0, 0.5, 4.75, 5.4)                         # upper bar
         m.cube("upper", "gunmetal", 0.8, 3.1, 4.4, 1.2, 3.5, 5.0)                        # windage knob
         sight = (4.12, 4.7)
     # ---------------------------------------------------------------- lower receiver, magwell, grip, controls
@@ -82,9 +82,12 @@ def build_ar(ident, ar15):
         m.cube("body", "rubber", -1.1, -6.2, 23.7, 1.1, 0.2, 24.6)
         butt = 24.6
     else:
-        m.rbox("body", "poly", -1.0, -3.1, 11.0, 1.0, 0.9, 16.4, c=0.35)                  # stock body
-        m.slope("body", "poly", -1.0, 1.0, -5.1, 0.9, 15.8, 19.2, -4)
-        m.cube("body", "rubber", -1.1, -5.4, 19.2, 1.1, 0.7, 20.0)
+        for i in range(8):                                                                # collapsible stock, sloping underside
+            z = 11.2 + i * 1.0
+            m.cube("body", "poly", -1.0 - i * 0.005, -3.1 - i * 0.3, z, 1.0 + i * 0.005, 0.9 - i * 0.06, z + 1.02, flat=True)
+        m.cube("body", "black", -1.03, -3.6, 11.4, -0.97, -1.0, 17.4)                      # moulded side ribs
+        m.cube("body", "black", 0.97, -3.6, 11.4, 1.03, -1.0, 17.4)
+        m.slope("body", "rubber", -1.1, 1.1, -5.6, 0.6, 19.0, 20.0, -6)                   # angled butt pad
         m.cube("body", "gunmetal", -0.6, -3.6, 11.0, 0.6, -3.1, 14.4)                     # adjust lever
         m.cube("body", "steel", -0.2, -4.2, 18.0, 0.2, -3.6, 18.6)
         butt = 20.0
@@ -95,7 +98,6 @@ def build_ar(ident, ar15):
     m.cube("charge", "gunmetal", -1.5, 1.5, 8.2, -0.8, 2.3, 9.6)
     m.bone("bolt", "rifle", (0, 0, 0))
     m.cube("bolt", "stainless", -0.99, 0.4, -2.6, -0.9, 1.4, 1.6)
-    m.cube("bolt", "steel", -0.8, 0.6, 1.6, 0.8, 1.5, 6.6)
 
     # ---------------------------------------------------------------- STANAG magazine (curved)
     m.bone("magazine", "rifle", (0, -5.2, -3.4))
@@ -112,7 +114,7 @@ def build_ar(ident, ar15):
 
     cfg = dict(
         name=ident, hand_l=(-2.9, hg0 + 4.0), mag_grip=(-9.0, -4.6), mag_drop=8.5, mag_rock=9,
-        charge_hand="left", charge_bone="charge", handle=(0, 1.8, 8.0), bolt_travel=6.5,
+        charge_hand="left", charge_bone="charge", handle=(0, 1.8, 8.0), bolt_travel=4.0,
         hold_open=True, release_mode="press", catch=(-3.0, 0.0), catch_x=3.0,
         fire_len=0.24, cycle=0.075, kick_z=1.7, kick_pitch=2.0, kick_yaw=0.45, flash=1.0,
         reload_len=2.0, charge_len=0.95, release_len=0.6, eject=(-1.0, 1.0, 0.8),

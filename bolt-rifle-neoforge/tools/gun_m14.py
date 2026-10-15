@@ -49,18 +49,19 @@ def build():
     m.cube("chassis", "gunmetal", -0.5, -3.7, 11.4, 0.5, -3.2, 15.2)                       # adjustment lever
     m.cube("chassis", "steel", -0.2, -4.4, 6.0, 0.2, -3.8, 6.6)
 
-    # vertical foregrip + folded bipod + sling mount (Mk14 look)
-    m.rbox("chassis", "poly", -0.75, -8.4, -21.0, 0.75, -2.6, -18.4, c=0.3)
-    for i in range(4):
-        m.cube("chassis", "black", -0.78, -7.6 + i * 1.1, -20.9, 0.78, -7.4 + i * 1.1, -18.5)
-    m.cube("chassis", "rubber", -0.78, -8.6, -21.1, 0.78, -8.3, -18.3)
-    m.cube("chassis", "gunmetal", -1.0, -3.2, -29.0, 1.0, -2.6, -27.0)                      # bipod mount
+    # bipod mount + folded legs (Mk14 look)
+    m.cube("chassis", "gunmetal", -1.0, -3.2, -29.0, 1.0, -2.6, -27.0)
     for sx in (-0.7, 0.7):
-        m.cube("chassis", "steel", sx - 0.22, -3.6, -28.6, sx + 0.22, -3.1, -22.0)         # folded legs
+        m.cube("chassis", "steel", sx - 0.22, -3.6, -28.6, sx + 0.22, -3.1, -22.0)
     m.cube("chassis", "steel", -0.4, -3.0, -11.2, 0.4, -2.3, -10.4)                         # QD sling socket
     # ---------------------------------------------------------------- receiver group
     m.rbox("receiver", "steel", -1.0, -0.8, -8.2, 1.0, 1.7, 6.8, c=0.3)
-    m.cube("receiver", "black", -1.03, 0.2, -3.6, -0.92, 1.5, 3.0)                         # ejection port
+    m.cube("receiver", "black", -1.06, 0.4, -3.8, -0.35, 1.78, 3.4)                        # ejection port (opens over the top-right corner)
+    m.cube("receiver", "gunmetal", -1.08, 0.3, -3.9, -1.0, 1.85, -3.8)                      # port rim
+    m.cube("receiver", "gunmetal", -1.08, 0.3, 3.4, -1.0, 1.85, 3.5)
+    m.cube("receiver", "gunmetal", -0.6, 1.7, -8.4, 0.6, 2.2, 6.8)                         # receiver top rail (continues the forend rail)
+    for z in [-8.0 + 1.0 * i for i in range(15)]:
+        m.cube("receiver", "black", -0.65, 2.15, z, 0.65, 2.35, z + 0.45)
     m.cube("receiver", "steel", -0.25, -5.1, -0.4, 0.25, -4.55, 4.2)                       # trigger guard
     m.cube("receiver", "steel", -0.25, -5.1, -0.4, 0.25, -3.4, 0.05)
     m.cube("receiver", "steel", -0.25, -5.1, 3.7, 0.25, -3.4, 4.2)
@@ -80,7 +81,7 @@ def build():
     m.hand_bolt("bolt_handle", -2.7, 1.0, -1.0)
 
     # ---------------------------------------------------------------- compact scope; eyepiece ends at z = 8
-    m.cube("scope", "gunmetal", -0.9, 1.7, -9.6, 0.9, 2.5, 0.8)                            # mount base
+    m.cube("scope", "gunmetal", -0.9, 2.2, -9.6, 0.9, 2.9, 0.8)                            # mount base
     m.rbox("scope", "scope", -1.2, 1.7, -9.4, 1.2, 5.7, -8.0, c=0.4)                       # rings
     m.rbox("scope", "scope", -1.2, 1.7, -1.2, 1.2, 5.7, 0.2, c=0.4)
     m.bar("scope", "scope", 0, 4.6, -12.2, 4.4, 1.05, fine=True)                           # main tube

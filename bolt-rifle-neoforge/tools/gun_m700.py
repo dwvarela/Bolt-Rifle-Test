@@ -19,14 +19,15 @@ def build():
     m.rbox("stock", "wood", -1.05, -2.7, -24.4, 1.05, -0.9, -23.1, c=0.4)                 # forend tip
     m.cube("stock", "black", -1.1, -3.0, -25.2, 1.1, -2.4, -24.3)                          # tip cap
     m.cube("stock", "black", -1.1, -2.4, -24.6, 1.1, -0.6, -24.35)
-    m.rbox("stock", "wood", -1.35, -4.2, -6.0, 1.35, -0.4, 7.6, c=0.5)                    # action section
-    m.cube("stock", "wood", -1.37, -1.4, -6.0, -1.3, 0.1, 7.2)                            # bedding walls
-    m.cube("stock", "wood", 1.3, -1.4, -6.0, 1.37, 0.1, 7.2)
-    m.slope("stock", "wood", -1.15, 1.15, -7.8, -0.4, 6.4, 10.4, 12)                      # wrist / pistol grip
+    m.rbox("stock", "wood", -1.35, -4.2, -6.0, 1.35, -1.0, 3.6, c=0.5)                    # action section (open behind the magazine for the trigger)
+    m.rbox("stock", "wood", -1.35, -1.9, 3.6, 1.35, -1.0, 7.6, c=0.3)                     # tang bridge above the trigger opening
+    m.cube("stock", "wood", -1.37, -1.4, -6.0, -1.3, -0.5, 3.4)                           # bedding walls
+    m.cube("stock", "wood", 1.3, -1.4, -6.0, 1.37, -0.5, 3.4)
+    m.slope("stock", "wood", -1.15, 1.15, -7.8, -1.0, 6.4, 10.4, 12)                      # wrist / pistol grip
     m.cube("stock", "black", -1.17, -8.1, 8.0, 1.17, -7.8, 10.6)                           # grip cap
     for i in range(14):                                                                    # buttstock: rising comb, dropped heel
         z = 9.6 + i * 0.92
-        top = -0.1 + min(i, 6) * 0.14 - max(0, i - 6) * 0.06
+        top = -1.15 + min(i, 5) * 0.05 - max(0, i - 9) * 0.12
         bot = -5.6 - i * 0.2
         m.cube("stock", "wood", -1.15 - i * 0.004, bot, z, 1.15 + i * 0.004, top, z + 0.94, flat=True)
     m.rbox("stock", "rubber", -1.25, -7.9, 22.4, 1.25, 0.6, 23.4, c=0.3)                  # recoil pad
@@ -50,7 +51,9 @@ def build():
     m.rbox("receiver", "steel", -0.9, -5.1, 3.8, 0.9, -4.5, 8.6, c=0.2)                    # trigger guard
     m.cube("receiver", "steel", -0.25, -5.1, 3.8, 0.25, -3.4, 4.35)
     m.cube("receiver", "steel", -0.25, -5.1, 8.0, 0.25, -3.4, 8.6)
-    m.slope("receiver", "black", -0.2, 0.2, -4.4, -2.6, 5.4, 5.95, -10)                    # trigger
+    m.cube("receiver", "stainless", -0.3, -4.7, 5.35, 0.3, -2.0, 6.0)                      # trigger blade
+    m.cube("receiver", "stainless", -0.3, -4.7, 4.95, 0.3, -4.2, 6.0)                      # trigger shoe
+    m.cube("receiver", "gunmetal", -0.4, -2.2, 5.0, 0.4, -1.8, 6.3)                         # trigger housing
     m.cube("receiver", "gunmetal", -1.0, -4.5, -3.6, 1.0, -3.9, 3.8)                       # floor-plate housing
 
     # ---------------------------------------------------------------- scope (4-16x), eyepiece ends at z = 8
@@ -97,5 +100,5 @@ def build():
     m.cube("chamber_round", "brass", -0.3, 0.2, -4.4, 0.3, 0.8, -3.2)
 
     m.hand_left(-3.8, -14.0)
-    m.hand_right(-5.0, 9.4, -3.4)
+    m.hand_right(-4.3, 8.6, -3.3)
     return m, None

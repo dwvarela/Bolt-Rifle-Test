@@ -17,7 +17,7 @@ MATS = {
     "steel": ((44, 50, 60), "metal"), "gunmetal": ((72, 77, 70), "metal"), "black": ((27, 27, 30), "metal"),
     "stainless": ((156, 160, 166), "bright"), "scope": ((33, 34, 38), "metal"), "poly": ((60, 62, 66), "poly"),
     "rubber": ((22, 22, 23), "rubber"), "brass": ((204, 152, 62), "brass"), "wood": ((112, 70, 40), "wood"),
-    "plum": ((128, 60, 32), "wood"), "glove": ((54, 58, 50), "cloth"), "lens": ((40, 58, 112), "lens"),
+    "plum": ((128, 60, 32), "wood"), "glove": ((92, 84, 66), "cloth"), "lens": ((40, 58, 112), "lens"),
     "flash": ((255, 235, 170), "glow"), "dot": ((255, 40, 40), "glow"), "olive": ((84, 88, 62), "poly"),
     "tan": ((150, 128, 92), "poly"), "smoke": ((92, 88, 84), "poly"),
 }
@@ -144,38 +144,63 @@ class Model:
         self.bone("casing", "rifle", (x, y, z))
         self.bar("casing", "brass", x, y, z - length / 2, z + length / 2, r)
 
+    def _finger(self, b, x_out, zc, y0, w=0.52, lens=(1.2, 1.3, 0.9), side=-1):
+        """One gloved finger wrapping around the right side (side=-1) or left side (+1) of something: out, up, curl in."""
+        sg = side
+        def X(a, c):
+            return (min(a, c) * 1.0, max(a, c) * 1.0)
+        xo = x_out * sg
+        self.cube(b, "glove", *X(xo, xo - 1.25 * sg)[:1], y0, zc - w, X(xo, xo - 1.25 * sg)[1], y0 + 0.85, zc + w)
+        self.cube(b, "glove", *X(xo - 0.1 * sg, xo - 0.1 * sg + 0.9 * sg)[:1], y0 + 0.8, zc - w + 0.03,
+                  X(xo - 0.1 * sg, xo - 0.1 * sg + 0.9 * sg)[1], y0 + 0.8 + lens[1], zc + w - 0.03)
+        self.cube(b, "glove", min(xo - 0.1 * sg, xo - 1.0 * sg), y0 + 0.8 + lens[1] - 0.15, zc - w + 0.06,
+                  max(xo - 0.1 * sg, xo - 1.0 * sg), y0 + 0.8 + lens[1] + 0.5, zc + w - 0.06)
+        self.cube(b, "black", min(xo, xo - 0.2 * sg), y0 + 0.2, zc - w + 0.08, max(xo, xo - 0.2 * sg), y0 + 0.8 + lens[1], zc + w - 0.08)
+
+    def _forearm(self, b, y, z, x=0.0):
+        """Wrist, tactical-glove cuff and a rolled olive sleeve running back toward the camera."""
+        self.rbox(b, "glove", x - 1.15, y - 3.4, z + 1.4, x + 1.15, y - 0.6, z + 4.6, c=0.45)
+        self.cube(b, "black", x - 1.22, y - 3.5, z + 3.2, x + 1.22, y - 0.5, z + 3.8)              # cuff strap
+        self.cube(b, "stainless", x - 0.3, y - 2.2, z + 3.7, x + 0.3, y - 1.6, z + 3.85)            # velcro tab
+        self.rbox(b, "olive", x - 1.55, y - 4.0, z + 4.4, x + 1.55, y - 0.2, z + 10.0, c=0.6)        # sleeve
+        self.cube(b, "black", x - 1.6, y - 4.0, z + 4.4, x + 1.6, y - 0.2, z + 4.75)                 # sleeve hem
+
     def hand_left(self, y, z):
-        """Support hand wrapped under the forend: palm below, four fingers up the right side, thumb on the left."""
+        """Support hand under the forend: palm below, four fingers curling up the right side, thumb along the left."""
         self.bone("left_hand", "rifle", (0, y, z))
-        self.rbox("left_hand", "glove", -1.35, y - 1.2, z - 2.8, 1.35, y + 0.9, z + 2.8, c=0.4)       # palm
-        for i in range(4):                                                                              # fingers
-            zf = z - 2.5 + i * 1.35
-            self.cube("left_hand", "glove", -2.3, y - 0.9, zf, -1.3, y + 1.9, zf + 1.2)
-            self.cube("left_hand", "glove", -2.3, y + 1.6, zf + 0.1, -1.5, y + 2.4, zf + 1.1)
-        self.cube("left_hand", "glove", 1.3, y - 0.2, z - 2.0, 1.9, y + 2.1, z + 0.4)                   # thumb
-        self.rbox("left_hand", "glove", -1.3, y - 4.4, z + 1.6, 1.3, y - 0.6, z + 9.0, c=0.4)           # wrist + sleeve
-        self.cube("left_hand", "olive", -1.45, y - 4.6, z + 5.5, 1.45, y - 0.3, z + 9.2)
+        self.rbox("left_hand", "glove", -1.3, y - 1.0, z - 2.4, 1.3, y + 0.5, z + 2.4, c=0.45)       # palm
+        self.cube("left_hand", "black", -1.25, y - 1.06, z - 2.2, 1.25, y - 0.9, z + 0.2)             # palm pad
+        for i, zc in enumerate((-1.75, -0.6, 0.55, 1.65)):                                            # fingers
+            self._finger("left_hand", 1.3, zc, y - 0.9, w=0.5, lens=(1.2, 1.25 - 0.1 * (i == 3), 0.8))
+        self.rbox("left_hand", "glove", 1.2, y - 0.5, z - 1.7, 2.2, y + 0.7, z + 0.5, c=0.3)         # thumb base
+        self.rbox("left_hand", "glove", 1.3, y + 0.4, z - 2.8, 2.1, y + 1.4, z - 1.2, c=0.25)        # thumb tip
+        self._forearm("left_hand", y, z)
 
     def hand_right(self, y, z, trigger_y):
-        """Firing hand around the grip, index finger on the trigger; pivot is at the grip."""
+        """Firing hand around the grip: heel behind it, three fingers wrapped round the front, index on the trigger,
+        thumb along the left side."""
         self.bone("right_hand", "rifle", (0, y, z))
-        self.rbox("right_hand", "glove", -1.5, y - 2.6, z - 1.8, 1.4, y + 2.4, z + 1.8, c=0.45)         # palm/back of hand
+        self.rbox("right_hand", "glove", -1.7, y - 2.4, z - 0.3, 1.4, y + 2.0, z + 2.6, c=0.5)         # palm heel behind the grip
+        self.cube("right_hand", "black", -1.74, y - 0.6, z + 0.2, -1.66, y + 1.8, z + 2.2)            # knuckle guard / back-of-hand panel
         for i in range(3):                                                                              # wrapped fingers
-            yf = y - 2.3 + i * 1.5
-            self.cube("right_hand", "glove", -1.8, yf, z - 2.2, -1.2, yf + 1.4, z + 0.4)
-        self.cube("right_hand", "glove", -1.7, trigger_y - 0.6, z - 4.4, -1.0, trigger_y + 0.6, z - 1.8)    # index finger
-        self.cube("right_hand", "glove", 1.2, y + 0.4, z - 2.0, 1.8, y + 2.6, z - 0.2)                  # thumb
-        self.rbox("right_hand", "glove", -1.2, y - 5.8, z + 0.8, 1.2, y - 0.8, z + 8.0, c=0.4)
-        self.cube("right_hand", "olive", -1.35, y - 6.2, z + 4.0, 1.35, y - 0.6, z + 8.2)
+            yf = y - 2.2 + i * 1.25
+            self.cube("right_hand", "glove", -1.9, yf, z - 0.9, -0.9, yf + 1.1, z + 0.4)                # along the right side
+            self.cube("right_hand", "glove", -1.9, yf + 0.04, z - 2.5, 1.0, yf + 1.06, z - 0.8)         # across the front
+            self.cube("right_hand", "glove", 0.9, yf + 0.06, z - 2.5, 1.4, yf + 1.0, z - 0.6)           # tips on the left
+        self.cube("right_hand", "glove", -1.8, trigger_y - 0.5, z - 3.6, -0.9, trigger_y + 0.55, z - 0.7)  # index along the frame
+        self.cube("right_hand", "glove", -1.6, trigger_y - 0.5, z - 4.8, -0.9, trigger_y + 0.5, z - 3.4)  # index tip on the trigger
+        self.rbox("right_hand", "glove", 1.0, y + 0.3, z - 1.6, 2.1, y + 2.0, z + 1.6, c=0.3)           # thumb base
+        self.rbox("right_hand", "glove", 0.8, y + 1.6, z - 3.4, 1.8, y + 2.6, z - 0.8, c=0.25)          # thumb tip along the frame
+        self._forearm("right_hand", y, z + 0.8)
 
     def hand_bolt(self, parent, x, y, z):
         """Glove that grabs the right-hand charging handle (child of the handle so it moves with it)."""
         self.bone("bolt_hand", parent, (x, y, z))
-        self.rbox("bolt_hand", "glove", x - 2.0, y - 1.5, z - 1.6, x + 1.2, y + 1.4, z + 1.8, c=0.4)
-        self.cube("bolt_hand", "glove", x - 2.4, y - 0.2, z - 1.8, x - 1.9, y + 1.2, z + 0.2)
-        self.cube("bolt_hand", "glove", x - 1.6, y - 1.0, z - 2.4, x + 0.8, y + 0.6, z - 1.6)
-        self.rbox("bolt_hand", "glove", x - 1.4, y - 5.0, z + 1.2, x + 1.0, y - 1.3, z + 9.0, c=0.4)
-        self.cube("bolt_hand", "olive", x - 1.55, y - 5.2, z + 4.5, x + 1.15, y - 1.2, z + 9.2)
+        self.rbox("bolt_hand", "glove", x - 2.0, y - 1.3, z - 1.6, x + 1.2, y + 1.2, z + 1.8, c=0.4)
+        for i in range(3):
+            self.cube("bolt_hand", "glove", x - 2.5, y - 1.2 + i * 0.85, z - 1.9, x - 1.8, y - 0.5 + i * 0.85, z + 0.2)
+        self.cube("bolt_hand", "glove", x - 1.6, y - 0.9, z - 2.6, x + 0.8, y + 0.5, z - 1.5)             # thumb
+        self._forearm("bolt_hand", y, z, x=x - 0.4)
 
     def chain(self, b, mat, x0, x1, start_y, start_z, seg_len, depth, n, bend_deg, thick_taper=0.0):
         """Curved column (magazine body): n segments hanging from (start_y, start_z), each leaning a bit

@@ -91,7 +91,7 @@ def build():
 
     # ---------------------------------------------------------------- curved 30-round magazine
     m.bone("magazine", "rifle", (0, -2.6, -5.2))
-    ey, ez, ang = m.chain("magazine", "black", -0.95, 0.95, -2.5, -3.8, 1.45, 3.7, 9, 24)
+    ey, ez, ang = m.chain("magazine", "black", -0.92, 0.92, -2.5, -3.8, 1.5, 3.6, 10, 42, thick_taper=0.0)
     m.cube("magazine", "steel", -1.0, ey - 0.2, ez - 2.0, 1.0, ey + 0.1, ez + 2.0, rot=[-ang, 0, 0], pivot=[0, ey, ez])
     m.cube("magazine", "brass", -0.5, -2.65, -5.3, 0.5, -2.45, -2.2)             # top round
     m.cube("magazine", "steel", -0.96, -3.0, -6.2, 0.96, -2.6, -5.7)              # front lug
@@ -102,7 +102,7 @@ def build():
     m.hand_right(-6.2, 5.2, -3.6)
 
     cfg = dict(
-        name=ID, hand_l=(-4.6, -12.5), mag_grip=(-9.0, -7.6), mag_drop=9.0, mag_rock=17,
+        name=ID, hand_l=(-4.6, -12.5), mag_grip=(-10.0, -7.4), mag_drop=9.0, mag_rock=17,
         charge_hand="right", handle=(-2.8, 1.0, -1.0), bolt_travel=7.0, hold_open=False,
         fire_len=0.28, cycle=0.10, kick_z=2.3, kick_pitch=3.2, kick_yaw=0.8, flash=1.1,
         reload_len=2.3, charge_len=0.95, release_len=0.0, eject=(-1.0, 1.0, 0.9),
