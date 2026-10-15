@@ -165,7 +165,7 @@ public final class Guns {
 		d.recoilPitch = 2.1f; d.recoilYaw = 0.5f;
 		d.scoped = true;
 		d.zoomDefault = 4; d.zoomMin = 2.5; d.zoomMax = 8;
-		hold(d, 22.9, 0.5);
+		hold(d, 23.5, 0.5);
 		aim(d, 4.6, 8.0, 0.30, 0.0);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;

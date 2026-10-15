@@ -23,15 +23,16 @@ def build():
     m.cube("barrel", "steel", -0.7, -0.7, -14.8, 0.7, 0.7, -13.8)
 
     # ---------------------------------------------------------------- aluminium chassis
-    m.rbox("chassis", "poly", -1.4, -2.3, -30.0, 1.4, 1.5, -8.4, c=0.6)                 # forend
+    m.rbox("chassis", "poly", -1.55, -3.3, -30.0, 1.55, 1.5, -8.4, c=0.8)                # forend (deep aluminium chassis)
+    m.rbox("chassis", "gunmetal", -1.6, -3.0, -30.4, 1.6, 1.2, -29.4, c=0.4)              # nose cap
     m.cube("chassis", "gunmetal", -0.6, 1.5, -30.0, 0.6, 2.0, -8.4)                       # top rail
     for z in [-29.6 + 1.0 * i for i in range(22)]:
         m.cube("chassis", "black", -0.65, 1.95, z, 0.65, 2.2, z + 0.45)
     for z0, z1 in ((-25.0, -21.0), (-14.6, -10.6)):                                        # side rails + bottom rail
         m.cube("chassis", "gunmetal", -1.65, -0.4, z0, -1.25, 0.5, z1)
         m.cube("chassis", "gunmetal", 1.25, -0.4, z0, 1.65, 0.5, z1)
-    m.cube("chassis", "gunmetal", -0.45, -2.7, -24.0, 0.45, -2.2, -19.0)
-    m.cube("chassis", "black", -0.5, -2.75, -23.4, 0.5, -2.65, -19.6)
+    m.cube("chassis", "gunmetal", -0.45, -3.7, -24.0, 0.45, -3.2, -19.0)
+    m.cube("chassis", "black", -0.5, -3.75, -23.4, 0.5, -3.65, -19.6)
     for yy in (-1.4, -0.4, 0.6):                                                           # M-LOK style slots
         m.cube("chassis", "black", -1.27, yy, -19.0, -1.2, yy + 0.35, -15.6)
         m.cube("chassis", "black", 1.2, yy, -19.0, 1.27, yy + 0.35, -15.6)
@@ -45,7 +46,8 @@ def build():
     for i in range(10):                                                                    # stock body
         z = 12.2 + i * 1.02
         m.cube("chassis", "poly", -1.0, -3.0 - i * 0.30, z, 1.0, 1.0 - i * 0.02, z + 1.04, flat=True)
-    m.cube("chassis", "rubber", -1.05, -6.0, 22.0, 1.05, 0.8, 22.9)
+    m.rbox("chassis", "poly", -1.3, -7.2, 21.6, 1.3, 2.6, 23.0, c=0.6)                     # big butt plate
+    m.rbox("chassis", "rubber", -1.32, -7.0, 22.9, 1.32, 2.4, 23.5, c=0.5)
     m.cube("chassis", "gunmetal", -0.5, -3.7, 11.4, 0.5, -3.2, 15.2)                       # adjustment lever
     m.cube("chassis", "steel", -0.2, -4.4, 6.0, 0.2, -3.8, 6.6)
 
@@ -104,15 +106,15 @@ def build():
 
     m.muzzle_flash(-37.0, length=5.5, width=3.6)
     m.casing(-1.0, 1.0, -0.4)
-    m.hand_left(-3.8, -15.5)
+    m.hand_left(-4.3, -15.5)
     m.hand_right(-6.4, 5.2, -3.2)
 
     cfg = dict(
-        name=ID, hand_l=(-3.8, -15.5), mag_grip=(-8.6, -3.6), mag_drop=9.0, mag_rock=10,
+        name=ID, hand_l=(-4.3, -15.5), mag_grip=(-8.6, -3.6), mag_drop=9.0, mag_rock=10,
         charge_hand="right", handle=(-2.7, 1.0, -1.0), bolt_travel=6.5, hold_open=True,
         release_mode="handle",
         fire_len=0.32, cycle=0.12, kick_z=2.8, kick_pitch=4.0, kick_yaw=0.8, flash=1.25,
         reload_len=2.3, charge_len=0.95, release_len=0.7, eject=(-1.0, 1.0, 0.9),
-        sight=(4.6, 8.0), butt=22.9,
+        sight=(4.6, 8.0), butt=23.5,
     )
     return m, cfg
