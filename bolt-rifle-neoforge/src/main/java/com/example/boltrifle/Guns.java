@@ -234,8 +234,8 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.boom = 0.7f; d.boomPitch = 1.3f;
 		d.aimSpeed = 0.2f;
-		hold(d, 14.9, 0.5);
-		aim(d, 5.0, -4.65, 0.30, 0.12);
+		hold(d, 15.35, 0.5);
+		aim(d, 6.3, -6.3, 0.30, 0.12);
 		d.cues = rifleCues(2.4, "left", false);
 		return d;
 	}
