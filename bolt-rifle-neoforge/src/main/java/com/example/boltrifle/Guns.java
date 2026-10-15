@@ -166,7 +166,7 @@ public final class Guns {
 		d.scoped = true;
 		d.zoomDefault = 4; d.zoomMin = 2.5; d.zoomMax = 8;
 		hold(d, 23.5, 0.5);
-		aim(d, 4.6, 8.0, 0.30, 0.0);
+		aim(d, 3.3, 4.0, 0.30, 0.0);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;
 	}
