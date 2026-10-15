@@ -14,22 +14,22 @@ def build():
     m.bone("bolt_handle", "bolt", (0, 0, 5.0))
     m.hand_bolt("bolt_handle", -4.4, -3.0, 4.8)
 
-    # ---------------------------------------------------------------- walnut stock (classic profile)
-    m.rbox("stock", "wood", -1.3, -3.0, -23.2, 1.3, -0.5, -6.0, c=0.5)                   # forend
-    m.rbox("stock", "wood", -1.05, -2.7, -24.4, 1.05, -0.9, -23.1, c=0.4)                 # forend tip
+    # ---------------------------------------------------------------- black synthetic stock (SPS profile)
+    m.rbox("stock", "synth", -1.3, -3.0, -23.2, 1.3, -0.5, -6.0, c=0.5)                   # forend
+    m.rbox("stock", "synth", -1.05, -2.7, -24.4, 1.05, -0.9, -23.1, c=0.4)                 # forend tip
     m.cube("stock", "black", -1.1, -3.0, -25.2, 1.1, -2.4, -24.3)                          # tip cap
     m.cube("stock", "black", -1.1, -2.4, -24.6, 1.1, -0.6, -24.35)
-    m.rbox("stock", "wood", -1.35, -4.2, -6.0, 1.35, -1.0, 3.6, c=0.5)                    # action section (open behind the magazine for the trigger)
-    m.rbox("stock", "wood", -1.35, -1.9, 3.6, 1.35, -1.0, 7.6, c=0.3)                     # tang bridge above the trigger opening
-    m.cube("stock", "wood", -1.37, -1.4, -6.0, -1.3, -0.5, 3.4)                           # bedding walls
-    m.cube("stock", "wood", 1.3, -1.4, -6.0, 1.37, -0.5, 3.4)
-    m.slope("stock", "wood", -1.15, 1.15, -7.8, -1.0, 6.4, 10.4, 12)                      # wrist / pistol grip
-    m.cube("stock", "black", -1.17, -8.1, 8.0, 1.17, -7.8, 10.6)                           # grip cap
+    m.rbox("stock", "synth", -1.35, -4.2, -6.0, 1.35, -1.0, 3.6, c=0.5)                    # action section (open behind the magazine for the trigger)
+    m.rbox("stock", "synth", -1.35, -1.9, 3.6, 1.35, -1.0, 7.6, c=0.3)                     # tang bridge above the trigger opening
+    m.cube("stock", "synth", -1.37, -1.4, -6.0, -1.3, -0.5, 3.4)                           # bedding walls
+    m.cube("stock", "synth", 1.3, -1.4, -6.0, 1.37, -0.5, 3.4)
+    m.rbox("stock", "synth", -1.2, -6.7, 7.4, 1.2, -1.0, 11.6, c=0.6)                      # wrist / pistol grip (compact, full-bodied)
+    m.cube("stock", "black", -1.22, -6.9, 7.6, 1.22, -6.65, 11.4)                           # grip cap
     for i in range(14):                                                                    # buttstock: rising comb, dropped heel
         z = 9.6 + i * 0.92
         top = -1.15 + min(i, 5) * 0.05 - max(0, i - 9) * 0.12
         bot = -5.6 - i * 0.2
-        m.cube("stock", "wood", -1.15 - i * 0.004, bot, z, 1.15 + i * 0.004, top, z + 0.94, flat=True)
+        m.cube("stock", "synth", -1.15 - i * 0.004, bot, z, 1.15 + i * 0.004, top, z + 0.94, flat=True)
     m.rbox("stock", "rubber", -1.25, -7.9, 22.4, 1.25, 0.6, 23.4, c=0.3)                  # recoil pad
     m.cube("stock", "stainless", -0.2, -3.7, -16.4, 0.2, -3.0, -15.8)                      # sling stud
     m.cube("stock", "stainless", -0.2, -6.2, 15.5, 0.2, -5.6, 16.1)
@@ -46,8 +46,9 @@ def build():
     m.cube("receiver", "black", -1.25, 0.0, -3.4, -1.05, 1.0, 3.4)                         # ejection port (right)
     m.cube("receiver", "steel", -1.3, -0.5, 4.2, -1.1, 0.4, 5.6)                           # bolt release
     m.slope("receiver", "steel", -1.7, -1.1, -0.1, 0.8, 5.0, 6.6, -10)                      # safety lever
-    m.cube("receiver", "gunmetal", -0.4, 1.1, -5.4, 0.4, 1.9, -3.0)                        # scope base (front)
-    m.cube("receiver", "gunmetal", -0.4, 1.1, 3.8, 0.4, 1.9, 6.0)                          # scope base (rear)
+    m.cube("receiver", "black", -0.55, 1.0, -5.6, 0.55, 1.45, 6.6)                         # Picatinny rail base
+    for z in [-5.3 + 0.8 * i for i in range(15)]:
+        m.cube("receiver", "black", -0.6, 1.4, z, 0.6, 1.65, z + 0.42)                     # rail teeth
     m.rbox("receiver", "steel", -0.9, -5.1, 3.8, 0.9, -4.5, 8.6, c=0.2)                    # trigger guard
     m.cube("receiver", "steel", -0.25, -5.1, 3.8, 0.25, -3.4, 4.35)
     m.cube("receiver", "steel", -0.25, -5.1, 8.0, 0.25, -3.4, 8.6)

@@ -15,6 +15,7 @@ def build():
     m.bar("barrel", "black", 0, 0, -27.7, -26.4, 0.9)                           # muzzle nut
     m.cube("barrel", "black", -0.3, -0.3, -27.72, 0.3, 0.3, -27.6)             # bore
     m.cube("barrel", "steel", -0.95, -0.15, -26.8, 0.95, 0.15, -26.6)          # nut groove
+    m.slope("barrel", "black", -0.92, 0.92, 0.35, 1.25, -28.0, -26.2, -40)      # slant brake cut
     # front sight base + post + hood
     m.rbox("barrel", "gunmetal", -0.7, 0.3, -25.8, 0.7, 2.0, -22.8, c=0.25)
     m.cube("barrel", "steel", -0.2, 2.0, -24.9, 0.2, 3.35, -24.5)
@@ -91,7 +92,7 @@ def build():
 
     # ---------------------------------------------------------------- curved 30-round magazine
     m.bone("magazine", "rifle", (0, -2.6, -5.2))
-    ey, ez, ang = m.chain("magazine", "black", -0.92, 0.92, -2.5, -3.8, 1.5, 3.6, 10, 42, thick_taper=0.0)
+    ey, ez, ang = m.chain("magazine", "black", -0.92, 0.92, -2.5, -3.8, 1.45, 3.6, 12, 54, thick_taper=0.0)
     m.cube("magazine", "steel", -1.0, ey - 0.2, ez - 2.0, 1.0, ey + 0.1, ez + 2.0, rot=[-ang, 0, 0], pivot=[0, ey, ez])
     m.cube("magazine", "brass", -0.5, -2.65, -5.3, 0.5, -2.45, -2.2)             # top round
     m.cube("magazine", "steel", -0.96, -3.0, -6.2, 0.96, -2.6, -5.7)              # front lug
