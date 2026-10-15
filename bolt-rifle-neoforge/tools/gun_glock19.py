@@ -49,8 +49,8 @@ def build():
         z = 2.3 + i * 0.5
         m.cube("bolt", "steel", -0.78, -0.6, z, -0.7, 0.9, z + 0.2)
         m.cube("bolt", "steel", 0.7, -0.6, z, 0.78, 0.9, z + 0.2)
-    for i in range(3):                                                                   # front serrations
-        z = -5.7 + i * 0.45
+    for i in range(6):                                                                   # front serrations
+        z = -5.55 + i * 0.36
         m.cube("bolt", "steel", -0.78, -0.6, z, -0.7, 0.9, z + 0.18)
         m.cube("bolt", "steel", 0.7, -0.6, z, 0.78, 0.9, z + 0.18)
     m.cube("bolt", "steel", -0.78, 0.05, -2.9, -0.55, 1.0, -0.6)                          # ejection port (right)
@@ -69,6 +69,10 @@ def build():
     # ---------------------------------------------------------------- shared parts
     m.muzzle_flash(-6.7, y=0.0, length=4.2, width=2.8)
     m.casing(-0.8, 0.5, -1.6, length=2.0, r=0.38)
+    for iy in range(6):                                                                  # square stippling on grip sides
+        for iz in range(4):
+            for sx in (-1, 1):
+                g(m, "body", "black", sx * 0.9 - 0.04, -6.8 + iy * 0.8, 1.8 + iz * 0.7, sx * 0.9 + 0.04, -6.55 + iy * 0.8, 2.05 + iz * 0.7)
     m.hand_left(-7.4, 2.8)
     m.hand_right(-4.4, 3.0, -2.1)
     cfg = dict(

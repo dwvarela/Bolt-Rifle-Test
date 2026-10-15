@@ -20,8 +20,11 @@ def build_ar(ident, mini14):
     m.cube("barrel", "gunmetal", -0.65, 0.3, mz + 2.6, 0.65, 0.9, mz + 3.1)       # barrel nut ring
     fz = mz + 9.0 if not mini14 else mz + 10.5                                      # front sight tower position
     m.rbox("barrel", "steel", -0.8, -0.9, fz - 1.6, 0.8, 1.7, fz + 1.6, c=0.3)
-    m.cube("barrel", "steel", -0.55, 1.7, fz - 1.0, 0.55, 3.4, fz + 0.8)        # tower
-    m.cube("barrel", "steel", -0.2, 3.4, fz - 0.4, 0.2, 4.3, fz + 0.1)           # post
+    for sx in (-0.5, 0.5):                                                         # A-frame front sight: vertical front edge, sloped rear
+        m.cube("barrel", "steel", sx - 0.13, 1.7, fz - 0.9, sx + 0.13, 4.4, fz - 0.55)
+        m.slope("barrel", "steel", sx - 0.13, sx + 0.13, 1.7, 4.0, fz - 0.8, fz + 0.9, 32)
+    m.cube("barrel", "steel", -0.2, 3.6, fz - 0.95, 0.2, 4.4, fz - 0.5)           # post
+    m.cube("barrel", "steel", -0.6, 4.1, fz - 0.95, 0.6, 4.4, fz - 0.55)          # apex bridge
     m.cube("barrel", "gunmetal", -0.35, 1.2, fz + 1.6, 0.35, 1.7, fz + 3.4)        # gas tube peek
     # ---------------------------------------------------------------- quad-rail handguard (RIS) with vent slots
     hg0 = fz + 1.8

@@ -31,6 +31,12 @@ def build():
     m.cube("body", "gunmetal", -1.0, 2.5, -10.0, 1.0, 3.0, 3.4)                            # top rail
     for z in [-9.6 + 0.9 * i for i in range(14)]:
         m.cube("body", "black", -1.05, 2.95, z, 1.05, 3.15, z + 0.4)
+    for sx in (-1, 1):                                                                   # 7-slot Picatinny side rails (front-lower)
+        x0, x1 = (1.2, 1.55) if sx > 0 else (-1.55, -1.2)
+        m.cube("body", "gunmetal", x0, -0.7, -10.2, x1, 0.6, -4.8)
+        for i in range(7):
+            z = -9.9 + i * 0.75
+            m.cube("body", "black", (1.4 if sx > 0 else -1.62), -0.7, z, (1.62 if sx > 0 else -1.4), 0.6, z + 0.38)
     # folded fore-grip
     m.rbox("body", "poly", -0.85, -8.4, -9.5, 0.85, -1.6, -7.3, c=0.35)                    # vertical fore-grip (deployed)
     m.cube("body", "rubber", -0.88, -8.5, -9.55, 0.88, -3.6, -7.25)
