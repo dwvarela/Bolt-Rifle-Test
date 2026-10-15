@@ -49,6 +49,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete latest --yes --cleanup-tag || true
-          gh release create latest build/libs/boltrifle.jar --target "${{ github.sha }}" \
-            --title "Latest build" --notes "Always the newest build. Needs GeckoLib 4.9.3 (NeoForge 1.21.1)."
+          TAG=latest
+          if [ "${GITHUB_REF_NAME}" != "v2-animated-rifle" ]; then TAG=preview; fi
+          gh release delete $TAG --yes --cleanup-tag || true
+          gh release create $TAG build/libs/boltrifle.jar --target "${{ github.sha }}" \
+            --title "$TAG build" --notes "Newest build of branch ${GITHUB_REF_NAME}. Needs GeckoLib 4.9.3 (NeoForge 1.21.1)."
