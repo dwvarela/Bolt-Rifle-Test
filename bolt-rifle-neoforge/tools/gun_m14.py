@@ -12,7 +12,7 @@ def build():
     m.bone("scope", "rifle", (0, 4.6, -4))
 
     # ---------------------------------------------------------------- barrel, flash hider, gas cylinder
-    m.bar("barrel", "steel", 0, 0, -35.6, -8.0, 0.72, fine=True)
+    m.bar("barrel", "steel", 0, 0, -35.6, -8.0, 0.8, fine=True)
     m.bar("barrel", "black", 0, 0, -36.8, -34.4, 0.95, fine=True)                       # flash hider
     for i in range(4):
         m.cube("barrel", "steel", -1.1, -0.1, -36.5 + i * 0.5, 1.1, 0.1, -36.3 + i * 0.5)
@@ -23,9 +23,9 @@ def build():
     m.cube("barrel", "steel", -0.7, -0.7, -14.8, 0.7, 0.7, -13.8)
 
     # ---------------------------------------------------------------- aluminium chassis
-    m.rbox("chassis", "poly", -1.25, -2.2, -26.2, 1.25, 1.5, -8.4, c=0.55)               # forend
-    m.cube("chassis", "gunmetal", -0.6, 1.5, -26.2, 0.6, 2.0, -8.4)                       # top rail
-    for z in [-25.8 + 1.0 * i for i in range(18)]:
+    m.rbox("chassis", "poly", -1.4, -2.3, -30.0, 1.4, 1.5, -8.4, c=0.6)                 # forend
+    m.cube("chassis", "gunmetal", -0.6, 1.5, -30.0, 0.6, 2.0, -8.4)                       # top rail
+    for z in [-29.6 + 1.0 * i for i in range(22)]:
         m.cube("chassis", "black", -0.65, 1.95, z, 0.65, 2.2, z + 0.45)
     for z0, z1 in ((-25.0, -21.0), (-14.6, -10.6)):                                        # side rails + bottom rail
         m.cube("chassis", "gunmetal", -1.65, -0.4, z0, -1.25, 0.5, z1)
@@ -49,6 +49,15 @@ def build():
     m.cube("chassis", "gunmetal", -0.5, -3.7, 11.4, 0.5, -3.2, 15.2)                       # adjustment lever
     m.cube("chassis", "steel", -0.2, -4.4, 6.0, 0.2, -3.8, 6.6)
 
+    # vertical foregrip + folded bipod + sling mount (Mk14 look)
+    m.rbox("chassis", "poly", -0.75, -8.4, -21.0, 0.75, -2.6, -18.4, c=0.3)
+    for i in range(4):
+        m.cube("chassis", "black", -0.78, -7.6 + i * 1.1, -20.9, 0.78, -7.4 + i * 1.1, -18.5)
+    m.cube("chassis", "rubber", -0.78, -8.6, -21.1, 0.78, -8.3, -18.3)
+    m.cube("chassis", "gunmetal", -1.0, -3.2, -29.0, 1.0, -2.6, -27.0)                      # bipod mount
+    for sx in (-0.7, 0.7):
+        m.cube("chassis", "steel", sx - 0.22, -3.6, -28.6, sx + 0.22, -3.1, -22.0)         # folded legs
+    m.cube("chassis", "steel", -0.4, -3.0, -11.2, 0.4, -2.3, -10.4)                         # QD sling socket
     # ---------------------------------------------------------------- receiver group
     m.rbox("receiver", "steel", -1.0, -0.8, -8.2, 1.0, 1.7, 6.8, c=0.3)
     m.cube("receiver", "black", -1.03, 0.2, -3.6, -0.92, 1.5, 3.0)                         # ejection port
@@ -62,6 +71,8 @@ def build():
     m.bone("bolt", "rifle", (0, 0, 0))
     m.cube("bolt", "stainless", -0.99, 0.3, -3.4, -0.9, 1.4, 1.6)
     m.cube("bolt", "steel", -0.88, 0.7, 1.6, 0.88, 1.7, 5.0)
+    m.cube("bolt", "steel", -1.95, -0.1, -29.0, -1.35, 0.5, -9.0)                           # op rod running to the gas piston
+    m.cube("bolt", "gunmetal", -1.8, -0.35, -9.4, -1.1, 0.7, -3.5)
     m.bone("bolt_handle", "bolt", (-1.0, 1.0, -1.0))
     m.cube("bolt_handle", "steel", -2.0, 0.55, -1.5, -0.9, 1.35, -0.5)
     m.cube("bolt_handle", "steel", -2.6, 0.2, -1.9, -1.9, 1.7, -0.1)

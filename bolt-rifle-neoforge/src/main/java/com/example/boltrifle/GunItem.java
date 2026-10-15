@@ -57,7 +57,7 @@ public class GunItem extends Item implements GeoItem {
 	private static final String CONTROLLER = "main";
 
 	public final GunDef def;
-	private final RawAnimation idle, fireAnim, fireLastAnim, dryAnim, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
+	private final RawAnimation idle, fireAnim, fireAnimB, fireLastAnim, dryAnim, dryAnimB, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
 	public GunItem(Properties properties, GunDef def) {
@@ -66,9 +66,11 @@ public class GunItem extends Item implements GeoItem {
 		String p = "animation." + def.id + ".";
 		this.idle = RawAnimation.begin().thenLoop(p + "idle");
 		this.fireAnim = RawAnimation.begin().thenPlay(p + "fire");
+		this.fireAnimB = RawAnimation.begin().thenPlay(p + "fire_b");
 		this.fireLastAnim = RawAnimation.begin().thenPlayAndHold(p + "fire_last");
 		this.reloadReleaseAnim = RawAnimation.begin().thenPlay(p + "reload_release");
 		this.dryAnim = RawAnimation.begin().thenPlay(p + "dryfire");
+		this.dryAnimB = RawAnimation.begin().thenPlay(p + "dryfire_b");
 		this.reloadAnim = RawAnimation.begin().thenPlay(p + "reload");
 		this.reloadChamberAnim = RawAnimation.begin().thenPlay(p + "reload_chamber");
 		SingletonGeoAnimatable.registerSyncedAnimatable(this);
@@ -183,13 +185,28 @@ public class GunItem extends Item implements GeoItem {
 		return false;
 	}
 
+	/** Alternates between twin animations so a new shot always restarts the animation. */
+	private boolean flip;
+
+	/** A shot is allowed when the gun is idle, or when the previous shot is within one tick of done (network jitter). */
+	private boolean readyToFire(ServerPlayer player, ItemStack stack) {
+		if (settle(player, stack)) {
+			return true;
+		}
+		if (getAction(stack) != ACTION_FIRE) {
+			return false;
+		}
+		long elapsed = player.level().getGameTime() - stack.getOrDefault(BoltRifleMod.ACTION_START.get(), 0L);
+		return elapsed >= Math.max(1, actionLength(stack, ACTION_FIRE) - 1);
+	}
+
 	private void fire(ServerPlayer player, ItemStack stack, boolean aiming) {
-		if (!settle(player, stack)) {
+		if (!readyToFire(player, stack)) {
 			return;
 		}
 		ServerLevel level = player.serverLevel();
 		if (!isChambered(stack)) {
-			startAction(player, stack, ACTION_DRY, "dry", def.dryTicks);
+			startAction(player, stack, ACTION_DRY, (flip = !flip) ? "dry" : "dry_b", def.dryTicks);
 			hint(player, Component.literal(getLoaded(stack) > 0 ? "Not chambered"
 					: hasMag(stack) ? "Magazine empty - press R" : "No magazine - press R").withStyle(ChatFormatting.YELLOW));
 			return;
@@ -217,7 +234,7 @@ public class GunItem extends Item implements GeoItem {
 		if (last) {
 			stack.set(BoltRifleMod.BOLT_OPEN.get(), true);
 		}
-		startAction(player, stack, ACTION_FIRE, last ? "fire_last" : "fire", length);
+		startAction(player, stack, ACTION_FIRE, last ? "fire_last" : ((flip = !flip) ? "fire" : "fire_b"), length);
 
 		play(level, player, SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 3.0f * def.boom, 0.55f * def.boomPitch);
 		play(level, player, SoundEvents.FIREWORK_ROCKET_BLAST, 2.0f * def.boom, 0.5f * def.boomPitch);
@@ -504,7 +521,9 @@ public class GunItem extends Item implements GeoItem {
 	public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
 		controllers.add(new AnimationController<GunItem>(this, CONTROLLER, 0, state -> state.setAndContinue(idle))
 				.triggerableAnim("fire", fireAnim)
+				.triggerableAnim("fire_b", fireAnimB)
 				.triggerableAnim("dry", dryAnim)
+				.triggerableAnim("dry_b", dryAnimB)
 				.triggerableAnim("fire_last", fireLastAnim)
 				.triggerableAnim("reload_release", reloadReleaseAnim)
 				.triggerableAnim("reload", reloadAnim)

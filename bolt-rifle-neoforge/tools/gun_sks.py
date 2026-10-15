@@ -91,6 +91,6 @@ def build():
         release_mode="handle",
         fire_len=0.3, cycle=0.11, kick_z=2.6, kick_pitch=3.8, kick_yaw=0.9, flash=1.2,
         reload_len=2.2, charge_len=0.95, release_len=0.7, eject=(-1.0, 1.0, 0.9),
-        sight=(3.65, -6.9), butt=20.6,
+        sight=(3.35, -6.9), butt=20.6,
     )
     return m, cfg

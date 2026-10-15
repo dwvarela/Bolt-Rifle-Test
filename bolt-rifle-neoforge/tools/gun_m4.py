@@ -46,23 +46,19 @@ def build_ar(ident, ar15):
         m.cube("upper", "gunmetal", 0.5, 3.0, 5.0, 0.9, 4.5, 6.4)
         m.cube("upper", "gunmetal", -0.5, 4.1, 5.0, 0.5, 4.5, 6.4)
         m.cube("upper", "gunmetal", -0.5, 3.0, 5.0, 0.5, 3.4, 6.4)
-        sight = (3.8, 5.7)
+        sight = (3.95, 5.7)
     else:
         m.cube("upper", "gunmetal", -0.55, 1.5, -5.4, 0.55, 2.0, 7.0)                  # flat-top rail
         for z in [-5.0 + 0.9 * i for i in range(14)]:
             m.cube("upper", "black", -0.6, 1.95, z, 0.6, 2.15, z + 0.4)
-        # red-dot optic
-        m.bar("upper", "scope", 0, 3.5, -2.6, 2.8, 0.95, fine=True)
-        m.rbox("upper", "scope", -0.9, 2.2, -1.8, 0.9, 2.7, 2.6, c=0.15)                # mount
-        m.cube("upper", "scope", -0.7, 2.5, -1.9, 0.7, 3.0, -0.8)
-        m.bar("upper", "scope", 0, 3.5, -3.8, -2.6, 1.15, fine=True)                    # objective hood
-        m.cube("upper", "lens", -0.9, 2.65, -3.82, 0.9, 4.35, -3.78)
-        m.bar("upper", "scope", 0, 3.5, 2.8, 4.9, 1.1, fine=True)                       # ocular
-        m.cube("upper", "lens", -0.85, 2.7, 4.88, 0.85, 4.3, 4.92)
-        m.cube("upper", "dot", -0.16, 3.35, 4.82, 0.16, 3.7, 4.86)                      # the glowing dot
-        m.cube("upper", "scope", -0.4, 4.4, 0.0, 0.4, 4.9, 1.2)                         # brightness turret
-        m.cube("upper", "scope", -1.55, 3.0, 0.0, -1.0, 3.9, 1.2)
-        sight = (3.55, 4.9)
+        # flip-up rear aperture (BUIS); the A2 front tower + post already on the barrel
+        m.cube("upper", "gunmetal", -0.85, 2.15, 3.6, 0.85, 2.9, 5.8)                   # base
+        m.cube("upper", "black", -0.8, 2.9, 3.9, -0.45, 4.9, 5.5)                        # left cheek
+        m.cube("upper", "black", 0.45, 2.9, 3.9, 0.8, 4.9, 5.5)                          # right cheek
+        m.cube("upper", "black", -0.5, 2.9, 4.0, 0.5, 3.75, 5.4)                         # lower bridge
+        m.cube("upper", "black", -0.5, 4.5, 4.0, 0.5, 4.9, 5.4)                          # upper bar
+        m.cube("upper", "gunmetal", 0.8, 3.1, 4.4, 1.2, 3.5, 5.0)                        # windage knob
+        sight = (4.12, 4.7)
     # ---------------------------------------------------------------- lower receiver, magwell, grip, controls
     m.rbox("body", "poly", -1.0, -3.4, -3.0, 1.0, -0.8, 7.0, c=0.3)
     m.rbox("body", "poly", -1.05, -5.4, -3.5, 1.05, -3.2, 0.4, c=0.3)                 # magwell (flared)
@@ -117,7 +113,7 @@ def build_ar(ident, ar15):
     cfg = dict(
         name=ident, hand_l=(-2.9, hg0 + 4.0), mag_grip=(-9.0, -4.6), mag_drop=8.5, mag_rock=9,
         charge_hand="left", charge_bone="charge", handle=(0, 1.8, 8.0), bolt_travel=6.5,
-        hold_open=True, release_mode="press", catch=(-3.0, 0.0), catch_x=1.7,
+        hold_open=True, release_mode="press", catch=(-3.0, 0.0), catch_x=3.0,
         fire_len=0.24, cycle=0.075, kick_z=1.7, kick_pitch=2.0, kick_yaw=0.45, flash=1.0,
         reload_len=2.0, charge_len=0.95, release_len=0.6, eject=(-1.0, 1.0, 0.8),
         sight=sight, butt=butt,

@@ -66,6 +66,10 @@ class Anim:
 def write(res_dir, model_name, prefix, anims, geo_path=None):
     """Writes animations/item/<model>.animation.json and sanity-checks against the geo bones."""
     out = {"format_version": "1.8.0", "animations": {prefix + a.name: a.to_json() for a in anims}}
+    # identical twins ("_b") so back-to-back shots can alternate and each one restarts the animation
+    for a in anims:
+        if a.name in ("fire", "dryfire"):
+            out["animations"][prefix + a.name + "_b"] = a.to_json()
     d = os.path.join(res_dir, "assets/boltrifle/animations/item")
     os.makedirs(d, exist_ok=True)
     with open(os.path.join(d, f"{model_name}.animation.json"), "w") as f:

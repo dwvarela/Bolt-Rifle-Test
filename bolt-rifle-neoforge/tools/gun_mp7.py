@@ -35,21 +35,26 @@ def build():
     m.cube("body", "poly", -0.8, -5.2, -9.2, 0.8, -1.6, -7.4)
     m.cube("body", "rubber", -0.85, -5.4, -9.2, 0.85, -4.6, -7.4)
     # pistol grip + trigger guard
-    g(m, "body", "poly", -1.0, -8.4, 0.2, 1.0, -2.0, 4.0)
-    for i in range(4):
-        g(m, "body", "black", -1.02, -7.6 + i * 1.2, 0.0, 1.02, -7.4 + i * 1.2, 0.35)
-    g(m, "body", "rubber", -1.05, -8.4, 3.6, 1.05, -3.0, 4.2)
+    g(m, "body", "poly", -1.05, -9.6, 0.1, 1.05, -2.0, 4.1)
+    g(m, "body", "black", -0.9, -9.7, 0.5, 0.9, -9.4, 3.7)                                   # magwell mouth
+    for i in range(5):
+        g(m, "body", "black", -1.07, -8.8 + i * 1.3, -0.05, 1.07, -8.6 + i * 1.3, 0.3)
+    g(m, "body", "rubber", -1.1, -9.6, 3.7, 1.1, -3.0, 4.25)
     m.cube("body", "poly", -0.6, -4.9, -3.4, 0.6, -4.3, 0.3)
     m.cube("body", "poly", -0.6, -4.9, -3.4, 0.6, -1.6, -2.9)
     m.slope("body", "black", -0.2, 0.2, -4.0, -2.3, -0.9, -0.4, -6)                       # trigger
     m.cube("body", "gunmetal", -1.25, -2.4, 0.9, -1.0, -1.9, 2.0)                          # selector
     m.cube("body", "gunmetal", 1.0, -3.5, -2.0, 1.4, -3.0, -0.8)                           # mag/bolt catch
-    # ---------------------------------------------------------------- red dot
-    m.bar("body", "scope", 0, 3.95, -2.3, 1.7, 0.95, fine=True)
-    m.rbox("body", "scope", -0.95, 3.1, -1.6, 0.95, 3.5, 1.4, c=0.15)
-    m.cube("body", "lens", -0.82, 3.2, -2.32, 0.82, 4.7, -2.28)
-    m.cube("body", "lens", -0.82, 3.2, 1.68, 0.82, 4.7, 1.72)
-    m.cube("body", "dot", -0.14, 3.75, 1.6, 0.14, 4.05, 1.66)
+    # ---------------------------------------------------------------- folding iron sights on the rail
+    m.cube("body", "gunmetal", -0.8, 3.15, -10.6, 0.8, 3.7, -9.4)                         # front base
+    m.cube("body", "black", -0.18, 3.7, -10.3, 0.18, 4.55, -9.8)                           # front post
+    m.cube("body", "black", -0.75, 3.7, -10.5, -0.5, 4.6, -9.7)                            # protective ears
+    m.cube("body", "black", 0.5, 3.7, -10.5, 0.75, 4.6, -9.7)
+    m.cube("body", "gunmetal", -0.9, 3.15, -1.4, 0.9, 3.7, 0.4)                            # rear base
+    m.cube("body", "black", -0.85, 3.7, -1.2, -0.45, 5.3, 0.2)                             # rear aperture cheeks
+    m.cube("body", "black", 0.45, 3.7, -1.2, 0.85, 5.3, 0.2)
+    m.cube("body", "black", -0.5, 3.7, -1.1, 0.5, 4.15, 0.1)                               # lower bridge
+    m.cube("body", "black", -0.5, 4.85, -1.1, 0.5, 5.3, 0.1)                               # upper bar
     # ---------------------------------------------------------------- wire stock
     for sx in (-0.95, 0.95):
         m.cube("body", "steel", sx - 0.2, -0.9, 3.4, sx + 0.2, -0.5, 14.0)
@@ -64,11 +69,11 @@ def build():
     m.cube("bolt", "stainless", -1.26, 0.45, -1.8, -1.1, 1.6, 0.9)
     # ---------------------------------------------------------------- 40-round magazine
     m.bone("magazine", "rifle", (0, -3.4, 1.8))
-    g(m, "magazine", "smoke", -0.85, -12.6, 0.6, 0.85, -3.0, 3.8)
-    g(m, "magazine", "black", -0.9, -13.2, 0.45, 0.9, -12.6, 3.95)
+    g(m, "magazine", "poly", -0.85, -12.6, 0.6, 0.85, -3.0, 3.8)
+    g(m, "magazine", "rubber", -0.9, -13.2, 0.45, 0.9, -12.6, 3.95)
     g(m, "magazine", "brass", -0.5, -3.3, 1.0, 0.5, -3.0, 3.4)
-    for i in range(5):
-        g(m, "magazine", "brass", -0.86, -11.4 + i * 1.8, 1.3, -0.82, -10.8 + i * 1.8, 3.0)
+    for i in range(4):
+        g(m, "magazine", "black", -0.87, -12.0 + i * 0.7, 1.0, -0.8, -11.8 + i * 0.7, 3.4)
     m.muzzle_flash(mz - 0.2, length=4.4, width=3.0)
     m.casing(-1.2, 1.0, -0.4, length=2.2, r=0.4)
     m.hand_left(-2.6, -8.2)
@@ -76,9 +81,9 @@ def build():
     cfg = dict(
         name="mp7", hand_l=(-2.6, -8.2), mag_grip=(-11.0, 2.8), mag_drop=8.0, mag_rock=3,
         charge_hand="left", charge_bone="charge", handle=(0, 3.0, 5.4), bolt_travel=4.0,
-        hold_open=True, release_mode="press", catch=(-3.2, -1.4), catch_x=1.6,
+        hold_open=True, release_mode="press", catch=(-3.2, -1.4), catch_x=3.0,
         fire_len=0.2, cycle=0.05, kick_z=1.0, kick_pitch=1.5, kick_yaw=0.4, flash=0.8,
-        reload_len=1.9, charge_len=0.95, release_len=0.55, eject=(-1.0, 1.0, 0.7),
-        sight=(4.2, 1.7), butt=14.8,
+        reload_len=1.9, charge_len=0.95, release_len=0.6, eject=(-1.0, 1.0, 0.7),
+        sight=(4.5, -0.5), butt=14.8,
     )
     return m, cfg

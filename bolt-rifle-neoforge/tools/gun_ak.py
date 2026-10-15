@@ -106,6 +106,6 @@ def build():
         charge_hand="right", handle=(-2.8, 1.0, -1.0), bolt_travel=7.0, hold_open=False,
         fire_len=0.28, cycle=0.10, kick_z=2.3, kick_pitch=3.2, kick_yaw=0.8, flash=1.1,
         reload_len=2.3, charge_len=0.95, release_len=0.0, eject=(-1.0, 1.0, 0.9),
-        sight=(3.65, -5.7), butt=19.9,
+        sight=(3.35, -5.7), butt=19.9,
     )
     return m, cfg

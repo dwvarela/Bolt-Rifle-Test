@@ -231,6 +231,14 @@ class Model:
                 glow[py:py + h, px:px + w, :3] = tile.astype(np.uint8)
                 glow[py:py + h, px:px + w, 3] = 255
             c.setdefault("uv", {})[face] = {"uv": [px, py], "uv_size": [w, h]}
+        # break coplanar faces apart (z-fighting shows up as flickering patches): every cube grows by its own tiny amount
+        n = 0
+        for bn in self.bones.values():
+            for c in bn["cubes"]:
+                e = 0.004 * (1 + (n * 7) % 29)
+                n += 1
+                c["origin"] = [round(o - e, 4) for o in c["origin"]]
+                c["size"] = [round(sz + 2 * e, 4) for sz in c["size"]]
         geo = {"format_version": "1.12.0", "minecraft:geometry": [{
             "description": {"identifier": "geometry." + self.ident, "texture_width": W,
                             "texture_height": W, "visible_bounds_width": 8,

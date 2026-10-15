@@ -70,32 +70,43 @@ def idle(c):
 
 
 def mag_swap(a, c, D, end_hand):
-    """Magazine change over D seconds. `end_hand` is the support-hand offset to finish on (rest = ZERO)."""
+    """Magazine change over D seconds. `end_hand` is the support-hand offset to finish on (rest = ZERO).
+    The hand swings out to the gun's left side (route_x) so it never passes through the receiver."""
     t = lambda f: round(D * f, 3)
     hy, hz = c["hand_l"]
     gy, gz = c["mag_grip"]
-    d = v(0, gy - hy, gz - hz)                      # support hand on the magazine
-    drop = c["mag_drop"]
-    pouch = v(c.get("pouch_x", 3.0), d[1] - drop - 7, d[2] + 3)
-    if "pouch_off" in c:
-        pouch = [d[i] + c["pouch_off"][i] for i in range(3)]
-    app = v(0.0, d[1] - drop - 2.5, d[2])
+    gx = c.get("grip_x", 0.0)
+    rx = c.get("route_x", 3.4)
+    d = v(gx, gy - hy, gz - hz)                     # support hand on the magazine
+    pull = list(c.get("mag_out", v(0, -c["mag_drop"], 0)))
+    L = max(1e-6, sum(p * p for p in pull) ** 0.5)
+    u = [p / L for p in pull]
     add = lambda p, q: [p[i] + q[i] for i in range(3)]
-    H = [(0.0, ZERO, SMOOTH), (F_REACH, add(d, v(0, -1.0, 0)), SMOOTH), (F_RELEASE - 0.04, d, SMOOTH),
-         (F_PULL, add(d, v(0, -drop, 0)), SMOOTH), (F_OUT, add(d, v(0.6, -drop - 3.5, 1.0)), FALL),
-         (F_POUCH, pouch, SMOOTH), (F_APPROACH, app, SMOOTH), (F_INSERT, add(d, v(0, -1.2, 0)), SMOOTH),
-         (F_SEAT, add(d, v(0, 0.3, 0)), SNAP), (F_TUG, add(d, v(0, -0.5, 0)), SMOOTH)]
+    sub = lambda p, q: [p[i] - q[i] for i in range(3)]
+    sc = lambda p, k: [p[i] * k for i in range(3)]
+    out = add(add(d, pull), add(sc(u, 3.5), v(0.6, 0, 1.0)))
+    pouch = v(c.get("pouch_x", 3.0), d[1] + pull[1] - 7, d[2] + 3)
+    if "pouch_off" in c:
+        pouch = add(d, c["pouch_off"])
+    app = add(d, sc(u, L + 2.5))
+    seat0 = add(d, sc(u, 1.2))
+    swing = v(rx, d[1] * 0.5, d[2] * 0.5)
+    H = [(0.0, ZERO, SMOOTH), (F_REACH * 0.55, swing, SMOOTH), (F_RELEASE - 0.06, add(d, v(0, -1.0 if u[1] < -0.5 else 0.0, 0)), SMOOTH),
+         (F_RELEASE - 0.01, d, SMOOTH), (F_PULL, add(d, pull), SMOOTH), (F_OUT, out, FALL),
+         (F_POUCH, pouch, SMOOTH), (F_APPROACH, app, SMOOTH), (F_INSERT, seat0, SMOOTH),
+         (F_SEAT, sub(d, sc(u, 0.3)), SNAP), (F_TUG, sub(d, sc(u, -0.5)), SMOOTH)]
     for f, vec, e in H:
         a.pos("left_hand", t(f), vec, e)
-    a.pos("left_hand", t(0.97), end_hand, SMOOTH)
+    back = v(rx, d[1] * 0.5, d[2] * 0.5)
+    a.pos("left_hand", t(0.95), back, SMOOTH)
+    a.pos("left_hand", t(0.995), end_hand, SMOOTH)
     # old magazine: with the hand until it is pulled clear, then gone
     a.show("magazine", 0.0).key("magazine", "scale", t(F_OUT), ONE, STEP).key("magazine", "scale", t(F_OUT) + 0.01, ZERO, STEP)
     a.key("magazine", "scale", t(F_POUCH) - 0.02, ZERO, STEP).key("magazine", "scale", t(F_POUCH), ONE, STEP)
-    sub = lambda p, q: [p[i] - q[i] for i in range(3)]
     a.pos("magazine", 0.0, ZERO).pos("magazine", t(F_RELEASE), ZERO)
-    a.pos("magazine", t(F_PULL), v(0, -drop, 0), FALL).pos("magazine", t(F_OUT), v(0.6, -drop - 3.5, 1.0), FALL)
+    a.pos("magazine", t(F_PULL), pull, FALL).pos("magazine", t(F_OUT), sub(out, d), FALL)
     a.pos("magazine", t(F_POUCH), sub(pouch, d)).pos("magazine", t(F_APPROACH), sub(app, d))
-    a.pos("magazine", t(F_INSERT), v(0, -1.2, 0)).pos("magazine", t(F_SEAT), v(0, 0.3, 0), SNAP)
+    a.pos("magazine", t(F_INSERT), sub(seat0, d)).pos("magazine", t(F_SEAT), sc(u, -0.3), SNAP)
     a.pos("magazine", t(F_TUG), ZERO).pos("magazine", D, ZERO)
     rock = c.get("mag_rock", 0)
     a.rot("magazine", 0.0, ZERO).rot("magazine", t(F_RELEASE), ZERO)
@@ -109,22 +120,28 @@ def mag_swap(a, c, D, end_hand):
     return d
 
 
-def charge_left(a, c, t0, tr):
-    """Left hand reaches to the handle, pulls the bolt back and lets it fly forward. Returns end time."""
+def charge_left(a, c, t0, tr, start=None):
+    """Left hand goes around the outside of the gun to the handle, pulls the bolt back and lets it fly forward."""
     hy, hz = c["hand_l"]
     hx, hyy, hzz = c["handle"]
+    rx = c.get("route_x", 3.4)
     off = v(hx, hyy - hy - c.get("handle_below", 0), hzz - hz)
     back = [off[0], off[1], off[2] + tr]
-    a.pos("left_hand", t0 + 0.14, off, SMOOTH).pos("left_hand", t0 + 0.2, off)
-    a.pos("left_hand", t0 + 0.34, back, SNAP).pos("left_hand", t0 + 0.4, back)
-    a.pos("left_hand", t0 + 0.46, off, SNAP).pos("left_hand", t0 + 0.7, ZERO, SMOOTH)
+    s = start or ZERO
+    a.pos("left_hand", t0 + 0.05, v(rx, s[1], s[2]), SMOOTH)
+    a.pos("left_hand", t0 + 0.16, v(rx, off[1], off[2]), SMOOTH)
+    a.pos("left_hand", t0 + 0.22, off, SMOOTH).pos("left_hand", t0 + 0.26, off)
+    a.pos("left_hand", t0 + 0.38, back, SNAP).pos("left_hand", t0 + 0.43, back)
+    a.pos("left_hand", t0 + 0.5, off, SNAP).pos("left_hand", t0 + 0.56, v(rx, off[1], off[2]), SMOOTH)
+    a.pos("left_hand", t0 + 0.68, v(rx, off[1] * 0.3, off[2] * 0.1), SMOOTH)
+    a.pos("left_hand", t0 + 0.8, ZERO, SMOOTH)
     bone = c.get("charge_bone", "bolt")
-    a.pos(bone, t0 + 0.2, ZERO).pos(bone, t0 + 0.34, v(0, 0, tr), SNAP).pos(bone, t0 + 0.4, v(0, 0, tr))
-    a.pos(bone, t0 + 0.46, ZERO, SNAP)
+    a.pos(bone, t0 + 0.26, ZERO).pos(bone, t0 + 0.38, v(0, 0, tr), SNAP).pos(bone, t0 + 0.43, v(0, 0, tr))
+    a.pos(bone, t0 + 0.5, ZERO, SNAP)
     if bone != "bolt":
-        a.pos("bolt", t0 + 0.2, ZERO).pos("bolt", t0 + 0.34, v(0, 0, tr), SNAP).pos("bolt", t0 + 0.4, v(0, 0, tr))
-        a.pos("bolt", t0 + 0.46, ZERO, SNAP)
-    return t0 + 0.7
+        a.pos("bolt", t0 + 0.26, ZERO).pos("bolt", t0 + 0.38, v(0, 0, tr), SNAP).pos("bolt", t0 + 0.43, v(0, 0, tr))
+        a.pos("bolt", t0 + 0.5, ZERO, SNAP)
+    return t0 + 0.8
 
 
 def charge_right(a, c, t0, tr, start_open=False):
@@ -156,17 +173,18 @@ def reload(c, kind):
         if c["charge_hand"] == "right":
             a.key("right_hand", "scale", 0.0, ONE)
         return a
+    def drop_return(D):                       # the hand goes on from the magazine instead of back to the forend
+        pos = a.bones["left_hand"]["position"]
+        for f in (0.95, 0.995):
+            pos.pop(round(D * f, 3), None)
+        gy, gz = c["mag_grip"]
+        hy, hz = c["hand_l"]
+        return v(c.get("grip_x", 0.0), gy - hy, gz - hz)
+
     if kind == "reload_chamber":
         if c["charge_hand"] == "left":
-            mag_swap(a, c, D, ZERO)       # placeholder; hand is re-keyed below
-            hy, hz = c["hand_l"]
-            # replace the final return with the trip to the handle
-            gy, gz = c["mag_grip"]
-            d = v(0, gy - hy, gz - hz)
-            end = a.bones["left_hand"]["position"]
-            end.pop(round(D * 0.97, 3), None)
-            a.pos("left_hand", round(D * 0.97, 3), v(d[0], d[1] + 0.6, d[2]), SMOOTH)
-            charge_left(a, c, D + 0.0, tr)
+            mag_swap(a, c, D, ZERO)
+            charge_left(a, c, D, tr, start=drop_return(D))
         else:
             mag_swap(a, c, D, ZERO)
             charge_right(a, c, D + 0.02, tr)
@@ -179,10 +197,16 @@ def reload(c, kind):
             mag_swap(a, c, D, ZERO)
             hy, hz = c["hand_l"]
             cy, cz = c["catch"]
-            off = v(c.get("catch_x", 0), cy - hy, cz - hz)
-            a.pos("left_hand", D + 0.12, off, SMOOTH).pos("left_hand", D + 0.2, v(off[0], off[1] - 0.5, off[2]), SNAP)
-            a.pos("left_hand", D + 0.3, off, SMOOTH).pos("left_hand", D + 0.5, ZERO, SMOOTH)
-            a.pos("bolt", D + 0.18, v(0, 0, tr)).pos("bolt", D + 0.24, ZERO, SNAP)
+            rx = c.get("route_x", 3.4)
+            s = drop_return(D)
+            off = v(c.get("catch_x", 3.0), cy - hy, cz - hz)
+            a.pos("left_hand", D + 0.05, v(rx, s[1], s[2]), SMOOTH)
+            a.pos("left_hand", D + 0.14, v(rx, off[1], off[2]), SMOOTH)
+            a.pos("left_hand", D + 0.19, off, SMOOTH).pos("left_hand", D + 0.25, v(off[0], off[1] - 0.5, off[2]), SNAP)
+            a.pos("left_hand", D + 0.31, off, SMOOTH).pos("left_hand", D + 0.38, v(rx, off[1], off[2]), SMOOTH)
+            a.pos("left_hand", D + 0.46, v(rx, off[1] * 0.3, off[2] * 0.1), SMOOTH)
+            a.pos("left_hand", D + 0.54, ZERO, SMOOTH)
+            a.pos("bolt", D + 0.22, v(0, 0, tr)).pos("bolt", D + 0.27, ZERO, SNAP)
     return a
 
 

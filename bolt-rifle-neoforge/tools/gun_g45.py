@@ -15,10 +15,12 @@ def build():
     m.bone("body", "rifle", (0, 0, 0))
     m.bone("barrel", "rifle", (0, 0, 0))
     # ---------------------------------------------------------------- barrel (peeks out the front of the slide)
-    m.cube("barrel", "steel", -0.42, -0.42, -7.15, 0.42, 0.42, -6.0)
-    m.cube("barrel", "black", -0.2, -0.2, -7.17, 0.2, 0.2, -7.1)
+    m.cube("barrel", "steel", -0.45, -0.45, -6.55, 0.45, 0.45, -1.2)
+    m.cube("barrel", "black", -0.22, -0.22, -6.57, 0.22, 0.22, -6.5)                      # bore
+    m.cube("barrel", "gunmetal", -0.5, -0.5, -2.6, 0.5, 0.5, -1.2)                         # chamber hood
+    m.cube("barrel", "steel", -0.3, -0.95, -6.0, 0.3, -0.45, -2.0)                         # recoil spring guide rod + lug
     # ---------------------------------------------------------------- frame
-    m.rbox("body", "poly", -0.72, -2.4, -5.6, 0.72, -0.85, 4.3, c=0.3)                  # dust cover + rear frame
+    m.rbox("body", "poly", -0.72, -2.4, -6.1, 0.72, -0.85, 4.3, c=0.3)                  # dust cover + rear frame
     m.cube("body", "black", -0.73, -1.9, -4.8, 0.73, -1.55, -3.8)                        # accessory rail slot
     m.cube("body", "black", -0.73, -1.9, -3.4, 0.73, -1.55, -2.9)
     m.cube("body", "poly", -0.7, -1.4, 2.4, 0.7, -0.85, 4.7)                             # beavertail
@@ -65,7 +67,7 @@ def build():
     g(m, "magazine", "black", -0.66, -9.35, 1.2, 0.66, -9.25, 4.0)
     g(m, "magazine", "brass", -0.4, -2.3, 1.7, 0.4, -2.0, 3.4)
     # ---------------------------------------------------------------- shared parts
-    m.muzzle_flash(-7.2, y=0.0, length=4.2, width=2.8)
+    m.muzzle_flash(-6.7, y=0.0, length=4.2, width=2.8)
     m.casing(-0.8, 0.5, -1.6, length=2.0, r=0.38)
     m.hand_left(-8.0, 2.8)
     m.hand_right(-4.4, 3.0, -2.1)
@@ -74,7 +76,7 @@ def build():
         charge_hand="left", charge_bone="bolt", handle=(0.0, 0.3, 3.4), bolt_travel=3.6,
         hold_open=True, release_mode="press", catch=(-0.9, 0.2), catch_x=1.5,
         fire_len=0.26, cycle=0.06, kick_z=1.1, kick_pitch=4.2, kick_yaw=0.6, flash=0.9,
-        reload_len=1.7, charge_len=0.9, release_len=0.5, eject=(-1.0, 1.0, 0.6),
-        sight=(1.75, 3.8), butt=5.0,
+        reload_len=1.7, charge_len=0.9, release_len=0.6, eject=(-1.0, 1.0, 0.6),
+        sight=(1.62, 3.8), butt=5.0,
     )
     return m, cfg
