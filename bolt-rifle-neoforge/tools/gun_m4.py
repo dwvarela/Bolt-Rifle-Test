@@ -19,24 +19,31 @@ def build_ar(ident, mini14):
     m.cube("barrel", "black", -0.3, -0.3, mz - 0.03, 0.3, 0.3, mz + 0.05)
     m.cube("barrel", "gunmetal", -0.65, 0.3, mz + 2.6, 0.65, 0.9, mz + 3.1)       # barrel nut ring
     fz = mz + 9.0 if not mini14 else mz + 10.5                                      # front sight tower position
-    m.rbox("barrel", "gunmetal", -0.8, -0.9, fz - 1.6, 0.8, 1.7, fz + 1.6, c=0.3)
-    m.cube("barrel", "gunmetal", -0.55, 1.7, fz - 1.0, 0.55, 3.4, fz + 0.8)        # tower
+    m.rbox("barrel", "steel", -0.8, -0.9, fz - 1.6, 0.8, 1.7, fz + 1.6, c=0.3)
+    m.cube("barrel", "steel", -0.55, 1.7, fz - 1.0, 0.55, 3.4, fz + 0.8)        # tower
     m.cube("barrel", "steel", -0.2, 3.4, fz - 0.4, 0.2, 4.3, fz + 0.1)           # post
     m.cube("barrel", "gunmetal", -0.35, 1.2, fz + 1.6, 0.35, 1.7, fz + 3.4)        # gas tube peek
-    # ---------------------------------------------------------------- round handguards
+    # ---------------------------------------------------------------- quad-rail handguard (RIS) with vent slots
     hg0 = fz + 1.8
-    m.bar("body", "poly", 0, 0, hg0, -3.6, 1.2, fine=True)
-    m.cube("body", "gunmetal", -1.3, -0.5, hg0 + 0.6, 1.3, 0.5, hg0 + 1.1)         # delta ring
-    for z in (hg0 + 2.4, hg0 + 3.2, hg0 + 4.0, hg0 + 4.8):                         # heat-shield ribs
-        m.cube("body", "black", -1.24, -0.25, z, 1.24, 0.25, z + 0.3)
-        m.cube("body", "black", -0.25, -1.24, z, 0.25, 1.24, z + 0.3)
-    m.cube("body", "gunmetal", -0.4, -1.5, hg0 + 2.5, 0.4, -1.2, hg0 + 3.6)         # sling swivel
+    hz1 = -3.6
+    m.rbox("body", "black", -1.35, -1.35, hg0, 1.35, 1.35, hz1, c=0.45)                 # rail body
+    for z in [hg0 + 0.4 + 0.9 * i for i in range(int((hz1 - hg0 - 0.6) / 0.9))]:
+        m.cube("body", "gunmetal", -0.55, 1.3, z, 0.55, 1.62, z + 0.42)                   # top rail teeth
+        m.cube("body", "gunmetal", -0.55, -1.62, z, 0.55, -1.3, z + 0.42)                 # bottom
+        m.cube("body", "gunmetal", 1.3, -0.55, z, 1.62, 0.55, z + 0.42)                   # left
+        m.cube("body", "gunmetal", -1.62, -0.55, z, -1.3, 0.55, z + 0.42)                 # right
+    for z in [hg0 + 1.6 + 1.6 * i for i in range(int((hz1 - hg0 - 3.0) / 1.6))]:           # oval vents between the rails
+        for sx in (-1, 1):
+            m.cube("body", "steel", sx * 1.05 - 0.05, 0.62, z, sx * 1.05 + 0.05, 0.98, z + 0.9)
+            m.cube("body", "steel", sx * 1.05 - 0.05, -0.98, z, sx * 1.05 + 0.05, -0.62, z + 0.9)
+    m.cube("body", "gunmetal", -1.45, -1.45, hz1 - 0.1, 1.45, 1.45, hz1 + 0.5)             # delta ring
+    m.cube("body", "gunmetal", -0.4, -1.8, hg0 + 2.5, 0.4, -1.6, hg0 + 3.6)                # sling swivel
     # ---------------------------------------------------------------- upper receiver
-    m.rbox("upper", "gunmetal", -1.0, -0.9, -4.4, 1.0, 1.5, 7.0, c=0.35)
-    m.rbox("upper", "gunmetal", -0.75, -0.9, -5.8, 0.75, 0.8, -4.3, c=0.3)         # barrel extension nut area
+    m.rbox("upper", "steel", -1.0, -0.9, -4.4, 1.0, 1.5, 7.0, c=0.35)
+    m.rbox("upper", "steel", -0.75, -0.9, -5.8, 0.75, 0.8, -4.3, c=0.3)         # barrel extension nut area
     m.cube("upper", "black", -1.03, 0.2, -2.4, -0.93, 1.4, 2.2)                     # ejection port (open cover)
     m.slope("upper", "gunmetal", -1.25, -0.95, 0.6, 1.5, -2.6, -1.8, -35)            # dust cover (hinged open)
-    m.rbox("upper", "gunmetal", -1.1, 0.0, 2.5, -0.9, 0.9, 3.6, c=0.15)              # forward assist
+    m.rbox("upper", "steel", -1.1, 0.0, 2.5, -0.9, 0.9, 3.6, c=0.15)              # forward assist
     m.cube("upper", "gunmetal", 0.93, 0.2, -2.4, 1.03, 1.4, 2.2)
     if mini14:
         m.cube("upper", "gunmetal", -0.75, 1.5, -2.8, 0.75, 2.6, 6.0)
@@ -48,7 +55,7 @@ def build_ar(ident, mini14):
         m.cube("upper", "gunmetal", -0.5, 3.0, 5.0, 0.5, 3.4, 6.4)
         sight = (3.95, 5.7)
     else:
-        m.cube("upper", "gunmetal", -0.55, 1.5, -5.4, 0.55, 2.0, 7.0)                  # flat-top rail
+        m.cube("upper", "steel", -0.55, 1.5, -5.4, 0.55, 2.0, 7.0)                  # flat-top rail
         for z in [-5.0 + 0.9 * i for i in range(14)]:
             m.cube("upper", "black", -0.6, 1.95, z, 0.6, 2.15, z + 0.4)
         # flip-up rear aperture (BUIS); the A2 front tower + post already on the barrel

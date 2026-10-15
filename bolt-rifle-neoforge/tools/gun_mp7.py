@@ -13,7 +13,7 @@ def build():
     m = Model("mp7", seed=61)
     m.bone("body", "rifle", (0, 0, 0))
     m.bone("barrel", "rifle", (0, 0, 0))
-    mz = -17.0
+    mz = -15.4
     m.bar("barrel", "steel", 0, 0, mz, -9.0, 0.5, fine=True)
     m.bar("barrel", "black", 0, 0, mz, mz + 2.2, 0.68, fine=True)                      # flash hider
     for i in range(3):
@@ -58,12 +58,14 @@ def build():
     m.cube("body", "black", 0.45, 3.7, -1.2, 0.85, 5.3, 0.2)
     m.cube("body", "black", -0.5, 3.7, -1.1, 0.5, 4.15, 0.1)                               # lower bridge
     m.cube("body", "black", -0.5, 4.85, -1.1, 0.5, 5.3, 0.1)                               # upper bar
-    # ---------------------------------------------------------------- wire stock
-    for sx in (-0.95, 0.95):
-        m.cube("body", "steel", sx - 0.2, -0.9, 3.4, sx + 0.2, -0.5, 14.0)
-        m.cube("body", "steel", sx - 0.2, -3.9, 13.6, sx + 0.2, -0.5, 14.0)
-    m.cube("body", "steel", -0.95, -3.9, 13.6, 0.95, -3.5, 14.0)
-    m.rbox("body", "rubber", -1.0, -3.9, 13.9, 1.0, -0.2, 14.8, c=0.3)
+    # ---------------------------------------------------------------- telescoping single-rod stock + plate
+    m.bar("body", "steel", 0, 0.5, 3.4, 17.0, 0.42, fine=True)
+    m.cube("body", "gunmetal", -0.7, -0.2, 3.4, 0.7, 1.2, 4.6)                              # stock sleeve
+    m.rbox("body", "poly", -1.15, -4.6, 16.6, 1.15, 1.9, 17.7, c=0.45)                      # butt plate
+    m.rbox("body", "rubber", -1.18, -4.4, 17.6, 1.18, 1.7, 18.1, c=0.4)                      # pad
+    m.cube("body", "black", -0.5, 1.9, 16.8, 0.5, 2.4, 17.6)                                 # top hook
+    for i in range(4):
+        m.cube("body", "black", -1.19, -3.8 + i * 1.2, 17.3, 1.19, -3.6 + i * 1.2, 17.6)      # grip ribs
     # ---------------------------------------------------------------- folding charging handle (rear, on top)
     m.bone("charge", "rifle", (0, 2.5, 3.0))
     m.cube("charge", "gunmetal", -0.3, 2.45, 2.6, 0.3, 3.3, 5.6)
@@ -87,6 +89,6 @@ def build():
         hold_open=True, release_mode="press", catch=(-3.2, -1.4), catch_x=3.0,
         fire_len=0.2, cycle=0.05, kick_z=1.0, kick_pitch=1.5, kick_yaw=0.4, flash=0.8,
         reload_len=1.9, charge_len=0.95, release_len=0.6, eject=(-1.0, 1.0, 0.7),
-        sight=(4.5, -0.5), butt=14.8,
+        sight=(4.5, -0.5), butt=18.1,
     )
     return m, cfg

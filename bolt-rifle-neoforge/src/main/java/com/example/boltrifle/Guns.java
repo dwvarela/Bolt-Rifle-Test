@@ -205,7 +205,7 @@ public final class Guns {
 	}
 
 	private static GunDef mp7() {
-		GunDef d = new GunDef("mp7", "HK MP7A1", Chamber.C46, MagType.MP7_40, Cartridge.HK_46);
+		GunDef d = new GunDef("mp7", "HK MP7A2", Chamber.C46, MagType.MP7_40, Cartridge.HK_46);
 		d.durability = 1400;
 		d.auto = true; d.selector = true;
 		d.interval = 1.33;                     // ~950 rpm
@@ -216,7 +216,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.25;
 		d.boom = 0.7f; d.boomPitch = 1.35f;
 		d.aimSpeed = 0.2f;
-		hold(d, 14.8, 0.5);
+		hold(d, 18.1, 0.5);
 		aim(d, 4.5, -0.5, 0.30, 0.12);
 		d.cues = rifleCues(1.9, "left", false);
 		return d;
