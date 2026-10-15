@@ -23,10 +23,10 @@ public final class Guns {
 	public static final GunDef AK47 = add(ak47());
 	public static final GunDef M14 = add(m14());
 	public static final GunDef M4A1 = add(m4a1());
-	public static final GunDef AR15 = add(ar15());
+	public static final GunDef MINI14 = add(mini14());
 	public static final GunDef MP7 = add(mp7());
 	public static final GunDef P90 = add(p90());
-	public static final GunDef G45 = add(g45());
+	public static final GunDef GLOCK19 = add(glock19());
 
 	private static Cue c(double ticks, SoundEvent s, float vol, float pitch) {
 		return new Cue((int) Math.round(ticks), s, vol, pitch);
@@ -188,8 +188,8 @@ public final class Guns {
 		return d;
 	}
 
-	private static GunDef ar15() {
-		GunDef d = new GunDef("ar15", "AR-15", Chamber.C223, MagType.STANAG_30, Cartridge.REM_223);
+	private static GunDef mini14() {
+		GunDef d = new GunDef("mini14", "Ruger Mini-14", Chamber.C223, MagType.MINI14_20, Cartridge.REM_223);
 		d.durability = 1500;
 		d.interval = 2.5;
 		d.reloadTicks = 40; d.reloadChamberTicks = 59; d.reloadReleaseTicks = 52;
@@ -198,8 +198,8 @@ public final class Guns {
 		d.recoilPitch = 0.9f; d.recoilYaw = 0.3f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.2;
 		d.boom = 0.85f; d.boomPitch = 1.1f;
-		hold(d, 24.6, 0.46);
-		aim(d, 3.95, 5.7, 0.30, 0.12);
+		hold(d, 29.1, 0.40);
+		aim(d, 3.3, 7.0, 0.30, 0.12);
 		d.cues = rifleCues(2.0, "left", false);
 		return d;
 	}
@@ -227,7 +227,7 @@ public final class Guns {
 		d.durability = 1600;
 		d.auto = true; d.selector = true;
 		d.interval = 1.33;                     // ~900 rpm
-		d.reloadTicks = 44; d.reloadChamberTicks = 63; d.reloadReleaseTicks = 55;
+		d.reloadTicks = 48; d.reloadChamberTicks = 67; d.reloadReleaseTicks = 60;
 		d.holdOpen = true;
 		d.spreadHip = 3.2f; d.spreadAds = 0.35f;
 		d.recoilPitch = 0.45f; d.recoilYaw = 0.2f;
@@ -236,12 +236,12 @@ public final class Guns {
 		d.aimSpeed = 0.2f;
 		hold(d, 14.9, 0.5);
 		aim(d, 5.0, -4.65, 0.30, 0.12);
-		d.cues = rifleCues(2.2, "left", false);
+		d.cues = rifleCues(2.4, "left", false);
 		return d;
 	}
 
-	private static GunDef g45() {
-		GunDef d = new GunDef("g45", "Glock G45 Gen 7", Chamber.C9, MagType.G45_17, Cartridge.P_9X19);
+	private static GunDef glock19() {
+		GunDef d = new GunDef("glock19", "Glock 19 Gen 5", Chamber.C9, MagType.GLOCK19_15, Cartridge.P_9X19);
 		d.durability = 1200;
 		d.interval = 2.0;                      // as fast as you can pull the trigger
 		d.reloadTicks = 34; d.reloadChamberTicks = 52; d.reloadReleaseTicks = 44;

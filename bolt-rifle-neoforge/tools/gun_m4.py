@@ -3,12 +3,12 @@ import math
 from gunlib import Model
 
 
-def build_ar(ident, ar15):
-    m = Model(ident, seed=41 if not ar15 else 43)
+def build_ar(ident, mini14):
+    m = Model(ident, seed=41 if not mini14 else 43)
     m.bone("body", "rifle", (0, 0, 0))
     m.bone("barrel", "rifle", (0, 0, 0))
     m.bone("upper", "rifle", (0, 0, 0))
-    mz = -29.5 if ar15 else -26.8                                  # muzzle tip
+    mz = -29.5 if mini14 else -26.8                                  # muzzle tip
 
     # ---------------------------------------------------------------- barrel, A2 flash hider, gas block + sight tower
     m.bar("barrel", "steel", 0, 0, mz, -6.0, 0.55, fine=True)
@@ -18,7 +18,7 @@ def build_ar(ident, ar15):
         m.cube("barrel", "steel", -0.1, -0.9, mz + 0.35 + i * 0.5, 0.1, 0.9, mz + 0.55 + i * 0.5)
     m.cube("barrel", "black", -0.3, -0.3, mz - 0.03, 0.3, 0.3, mz + 0.05)
     m.cube("barrel", "gunmetal", -0.65, 0.3, mz + 2.6, 0.65, 0.9, mz + 3.1)       # barrel nut ring
-    fz = mz + 9.0 if not ar15 else mz + 10.5                                      # front sight tower position
+    fz = mz + 9.0 if not mini14 else mz + 10.5                                      # front sight tower position
     m.rbox("barrel", "gunmetal", -0.8, -0.9, fz - 1.6, 0.8, 1.7, fz + 1.6, c=0.3)
     m.cube("barrel", "gunmetal", -0.55, 1.7, fz - 1.0, 0.55, 3.4, fz + 0.8)        # tower
     m.cube("barrel", "steel", -0.2, 3.4, fz - 0.4, 0.2, 4.3, fz + 0.1)           # post
@@ -38,7 +38,7 @@ def build_ar(ident, ar15):
     m.slope("upper", "gunmetal", -1.25, -0.95, 0.6, 1.5, -2.6, -1.8, -35)            # dust cover (hinged open)
     m.rbox("upper", "gunmetal", -1.1, 0.0, 2.5, -0.9, 0.9, 3.6, c=0.15)              # forward assist
     m.cube("upper", "gunmetal", 0.93, 0.2, -2.4, 1.03, 1.4, 2.2)
-    if ar15:
+    if mini14:
         m.cube("upper", "gunmetal", -0.75, 1.5, -2.8, 0.75, 2.6, 6.0)
         m.slope("upper", "gunmetal", -0.85, 0.85, 2.6, 3.4, -2.8, 5.2, 0)             # carry handle top
         m.cube("upper", "black", -0.35, 1.5, -1.0, 0.35, 2.6, 3.6)                     # handle window
@@ -75,7 +75,7 @@ def build_ar(ident, ar15):
     m.cube("body", "gunmetal", 1.0, -3.2, -2.4, 1.5, -2.6, -1.6)                      # mag release
     # buffer tube + stock
     m.bar("body", "poly", 0, -0.45, 7.0, 12.4, 0.95, fine=True)
-    if ar15:
+    if mini14:
         for i in range(10):
             z = 12.2 + i * 1.15
             m.cube("body", "poly", -1.0 - i * 0.006, -3.0 - i * 0.28, z, 1.0 + i * 0.006, 0.7 - i * 0.04, z + 1.18, flat=True)

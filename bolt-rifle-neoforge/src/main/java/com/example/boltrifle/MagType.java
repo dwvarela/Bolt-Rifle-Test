@@ -9,10 +9,11 @@ public enum MagType {
 	SKS_10("mag_sks", "SKS 10-Round Magazine", 10, EnumSet.of(Cartridge.R762X39), 1),
 	AK_30("mag_ak", "AK 30-Round Magazine", 30, EnumSet.of(Cartridge.R762X39), 2),
 	M14_20("mag_m14", "M14 20-Round Magazine", 20, EnumSet.of(Cartridge.NATO_762, Cartridge.WIN_308), 3),
+	MINI14_20("mag_mini14", "Mini-14 20-Round Magazine", 20, EnumSet.of(Cartridge.REM_223, Cartridge.NATO_556), 8),
 	STANAG_30("mag_stanag", "STANAG 30-Round Magazine", 30, EnumSet.of(Cartridge.NATO_556, Cartridge.REM_223), 4),
 	P90_50("mag_p90", "P90 50-Round Magazine", 50, EnumSet.of(Cartridge.FN_57), 5),
 	MP7_40("mag_mp7", "MP7 40-Round Magazine", 40, EnumSet.of(Cartridge.HK_46), 6),
-	G45_17("mag_g45", "Glock 17-Round Magazine", 17, EnumSet.of(Cartridge.P_9X19), 7);
+	GLOCK19_15("mag_glock19", "Glock 15-Round Magazine", 15, EnumSet.of(Cartridge.P_9X19), 7);
 
 	public final String itemId;
 	public final String display;

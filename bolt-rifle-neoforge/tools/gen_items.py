@@ -196,28 +196,44 @@ def mag(name):
         shaded(cv, [(9.5, 26), (22.5, 26), (22.5, 29), (9.5, 29)], (112, 70, 40), grain=0.15)
         rib_lines(cv, 10, 22, (10, 14, 18, 22), (30, 32, 36))
         rib_lines(cv, 11, 21, (5,), (200, 150, 60), 0.9)
-    elif name == "mag_ak":                      # orange bakelite banana
-        pts = curve(18, 3, 29, 8, 9)
-        shaded(cv, pts, (150, 70, 30), hi=1.3, lo=0.55, grain=0.03)
-        for f in (0.15, 0.28, 0.41, 0.54, 0.67, 0.80):
-            y = 3 + 26 * f; x = 18 - 8 * f * f
-            rib_lines(cv, x - 4.5, x + 4.5, (y,), (92, 40, 18), 0.5)
-        shaded(cv, [(18 - 8 - 5.2, 28.5), (18 - 8 + 4.2, 28.5), (18 - 8 + 4.2, 30.5), (18 - 8 - 5.2, 30.5)], (60, 60, 64))
-        shaded(cv, [(13.5, 1.5), (22.5, 1.5), (22.5, 3.6), (13.5, 3.6)], (80, 84, 90))
+    elif name == "mag_ak":
+        pts = curve(19, 5, 29, 10, 8.6)
+        shaded(cv, pts, (46, 50, 56), hi=1.35, lo=0.55, grain=0.03)
+        for f in [0.10 + 0.075 * i for i in range(11)]:
+            y = 5 + 24 * f; x = 19 - 10 * f * f
+            rib_lines(cv, x - 3.9, x + 3.9, (y,), (22, 24, 28), 0.4)
+            rib_lines(cv, x - 3.9, x + 3.9, (y + 0.45,), (92, 98, 108), 0.25)
+        shaded(cv, [(19 - 10 - 5.0, 28.6), (19 - 10 + 4.0, 28.6), (19 - 10 + 4.0, 30.6), (19 - 10 - 5.0, 30.6)], (32, 34, 38))
+        shaded(cv, [(15, 3.2), (23.6, 3.2), (23.6, 5.2), (15, 5.2)], (70, 74, 82))                 # feed lips
+        shaded(cv, [(16.4, 1.2), (19.2, 1.2), (19.2, 3.4), (16.4, 3.4)], (190, 140, 58), hi=1.2)     # round tops (brass)
+        shaded(cv, [(19.6, 0.8), (22.4, 0.8), (22.4, 3.2), (19.6, 3.2)], (160, 120, 52), hi=1.2)
     elif name == "mag_m14":                     # long straight blued steel
         shaded(cv, [(10, 3), (22, 3), (22, 28), (10, 28)], (58, 66, 84), grain=0.02)
         shaded(cv, [(10, 1.5), (22, 1.5), (22, 3.4), (10, 3.4)], (150, 154, 160))
         shaded(cv, [(9.5, 28), (22.5, 28), (22.5, 30), (9.5, 30)], (110, 114, 120))
         rib_lines(cv, 10, 22, (6, 9, 12, 15, 18, 21, 24), (30, 36, 50), 0.4)
         rib_lines(cv, 11, 21, (2.6,), (200, 150, 60), 0.8)
-    elif name == "mag_stanag":                  # black polymer with ribbed face
-        pts = curve(18, 3, 29, 3.5, 9)
-        shaded(cv, pts, (52, 54, 58), hi=1.3, lo=0.6, grain=0.04)
-        for f in (0.12, 0.2, 0.28, 0.36, 0.44, 0.52, 0.60, 0.68, 0.76, 0.84):
-            y = 3 + 26 * f; x = 18 - 3.5 * f * f
-            rib_lines(cv, x - 3.4, x + 3.4, (y,), (24, 25, 28), 0.35)
-        shaded(cv, [(18 - 3.5 - 5.2, 28.6), (18 - 3.5 + 4.4, 28.6), (18 - 3.5 + 4.4, 30.4), (18 - 3.5 - 5.2, 30.4)], (86, 88, 92))
-        shaded(cv, [(13.5, 1.6), (22.5, 1.6), (22.5, 3.4), (13.5, 3.4)], (140, 144, 150))
+    elif name == "mag_stanag":                  # STANAG: black ribbed face, grey follower window, feed lips, 5.56 rounds
+        pts = curve(18, 5, 29, 3.5, 9.4)
+        shaded(cv, pts, (44, 46, 50), hi=1.3, lo=0.6, grain=0.04)
+        for f in [0.1 + 0.07 * i for i in range(11)]:
+            y = 5 + 24 * f; x = 18 - 3.5 * f * f
+            rib_lines(cv, x - 3.5, x + 3.5, (y,), (20, 21, 24), 0.35)
+            rib_lines(cv, x - 3.5, x + 3.5, (y + 0.4,), (84, 86, 92), 0.2)
+        shaded(cv, [(18 - 3.5 - 5.2, 28.6), (18 - 3.5 + 4.6, 28.6), (18 - 3.5 + 4.6, 30.6), (18 - 3.5 - 5.2, 30.6)], (90, 92, 96))
+        shaded(cv, [(13.6, 3.2), (22.8, 3.2), (22.8, 5.2), (13.6, 5.2)], (120, 124, 130))
+        shaded(cv, [(15.2, 1.0), (17.4, 1.0), (17.4, 3.4), (15.2, 3.4)], (190, 140, 58), hi=1.2)
+        shaded(cv, [(18.0, 0.5), (20.4, 0.5), (20.4, 3.2), (18.0, 3.2)], (170, 124, 54), hi=1.2)
+    elif name == "mag_mini14":                  # Ruger Mini-14: blocky blued box, slight curve, stamped witness ribs, floorplate
+        pts = curve(18, 4, 29, 3.0, 10.4)
+        shaded(cv, pts, (30, 33, 38), hi=1.4, lo=0.6, grain=0.03)
+        for f in (0.2, 0.34, 0.48, 0.62, 0.76):
+            y = 4 + 25 * f; x = 18 - 3.0 * f * f
+            rib_lines(cv, x - 4.2, x + 4.2, (y,), (66, 70, 78), 0.45)
+        shaded(cv, [(18 - 3 - 5.8, 28.6), (18 - 3 + 5.2, 28.6), (18 - 3 + 5.2, 30.6), (18 - 3 - 5.8, 30.6)], (84, 88, 94))
+        shaded(cv, [(13, 2.6), (23.6, 2.6), (23.6, 4.4), (13, 4.4)], (110, 114, 122))
+        shaded(cv, [(14.6, 0.6), (17.4, 0.6), (17.4, 2.8), (14.6, 2.8)], (190, 140, 58), hi=1.2)
+        shaded(cv, [(18.0, 0.3), (21.0, 0.3), (21.0, 2.6), (18.0, 2.6)], (170, 124, 54), hi=1.2)
     elif name == "mag_p90":                     # flat translucent smoke polymer, rounds visible
         shaded(cv, [(3, 11), (29, 11), (29, 21), (3, 21)], (70, 82, 74), hi=1.2, lo=0.8)
         for i in range(8):
@@ -231,7 +247,7 @@ def mag(name):
         rib_lines(cv, 12, 20, (6, 10, 14, 18, 22), (18, 18, 20), 0.35)
         shaded(cv, [(12, 1), (20, 1), (20, 2.6), (12, 2.6)], (150, 154, 160))
         rib_lines(cv, 13, 19, (4,), (200, 150, 60), 0.9)
-    elif name == "mag_g45":                     # pistol mag: steel body, polymer floorplate, round witness holes
+    elif name == "mag_glock19":                     # pistol mag: steel body, polymer floorplate, round witness holes
         shaded(cv, [(11, 5), (21, 5), (21, 25), (11, 25)], (78, 82, 90), grain=0.02)
         shaded(cv, [(11, 3), (21, 3), (21, 5.4), (11, 5.4)], (30, 32, 36))
         shaded(cv, [(10, 25), (22.5, 25), (22.5, 28.5), (10, 28.5)], (40, 42, 46), hi=1.3)
@@ -242,7 +258,7 @@ def mag(name):
     finish(cv, name)
 
 
-MAGS = ["mag_m700", "mag_sks", "mag_ak", "mag_m14", "mag_stanag", "mag_p90", "mag_mp7", "mag_g45"]
+MAGS = ["mag_m700", "mag_sks", "mag_ak", "mag_m14", "mag_stanag", "mag_mini14", "mag_p90", "mag_mp7", "mag_glock19"]
 for n in MAGS:
     mag(n)
 for n in list(SPECS) + MAGS:

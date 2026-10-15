@@ -1,6 +1,6 @@
 {
  "parent": "minecraft:item/generated",
  "textures": {
-  "layer0": "boltrifle:item/mag_g45"
+  "layer0": "boltrifle:item/mag_mini14"
  }
 }
