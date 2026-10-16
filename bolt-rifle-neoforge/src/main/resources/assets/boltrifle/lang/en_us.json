@@ -30,5 +30,13 @@
   "item.boltrifle.mp7": "HK MP7A2",
   "item.boltrifle.p90": "FN P90",
   "item.boltrifle.grenade": "M67 Fragmentation Grenade",
-  "entity.boltrifle.grenade": "Grenade"
+  "entity.boltrifle.grenade": "Grenade",
+  "key.boltrifle.attach": "Fit / remove attachment",
+  "item.boltrifle.red_dot": "Red Dot Sight",
+  "item.boltrifle.holo": "Holographic Sight",
+  "item.boltrifle.acog": "ACOG 4x32 Scope",
+  "item.boltrifle.scope": "1-6x Variable Scope",
+  "item.boltrifle.flash_hider": "Flash Hider",
+  "item.boltrifle.muzzle_brake": "Muzzle Brake",
+  "item.boltrifle.suppressor": "Suppressor"
 }

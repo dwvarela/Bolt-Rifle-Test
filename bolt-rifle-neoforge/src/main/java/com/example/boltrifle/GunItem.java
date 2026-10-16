@@ -164,6 +164,54 @@ public class GunItem extends Item implements GeoItem {
 		}
 	}
 
+	/** B: fits the attachment held in the off hand, or (empty off hand) removes the optic, then the muzzle device. */
+	public static void handleAttach(ServerPlayer player) {
+		ItemStack gunStack = player.getMainHandItem();
+		if (!(gunStack.getItem() instanceof GunItem gun)) {
+			return;
+		}
+		if (isBusy(gunStack)) {
+			hint(player, Component.literal("Wait until the gun is ready").withStyle(ChatFormatting.YELLOW));
+			return;
+		}
+		ItemStack off = player.getOffhandItem();
+		if (off.getItem() instanceof AttachmentItem ai) {
+			Attachment a = ai.attachment;
+			var type = a.slot == Attachment.Slot.OPTIC ? BoltRifleMod.ATTACH_OPTIC : BoltRifleMod.ATTACH_MUZZLE;
+			if (a.slot == Attachment.Slot.OPTIC && gun.def.optic == null) {
+				hint(player, Component.literal(gun.def.display + " has no rail for an optic").withStyle(ChatFormatting.RED));
+				return;
+			}
+			Attachment old = Attachment.byId(gunStack.get(type.get()));
+			gunStack.set(type.get(), a.id);
+			off.shrink(1);
+			if (old != null) {
+				giveBack(player, old);
+			}
+			play(player.level(), player, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.7f);
+			hint(player, Component.literal("Fitted: " + a.display).withStyle(ChatFormatting.GREEN));
+			return;
+		}
+		for (var type : List.of(BoltRifleMod.ATTACH_OPTIC, BoltRifleMod.ATTACH_MUZZLE)) {
+			Attachment cur = Attachment.byId(gunStack.get(type.get()));
+			if (cur != null) {
+				gunStack.remove(type.get());
+				giveBack(player, cur);
+				play(player.level(), player, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f);
+				hint(player, Component.literal("Removed: " + cur.display).withStyle(ChatFormatting.YELLOW));
+				return;
+			}
+		}
+		hint(player, Component.literal("Hold an attachment in the off hand, then press B").withStyle(ChatFormatting.GRAY));
+	}
+
+	private static void giveBack(ServerPlayer player, Attachment a) {
+		ItemStack st = new ItemStack(BoltRifleMod.ATTACHMENTS.get(a).get());
+		if (!player.getInventory().add(st)) {
+			player.drop(st, false);
+		}
+	}
+
 	public static void handleReload(ServerPlayer player) {
 		ItemStack stack = player.getMainHandItem();
 		if (stack.getItem() instanceof GunItem gun) {
@@ -245,14 +293,16 @@ public class GunItem extends Item implements GeoItem {
 		}
 		startAction(player, stack, ACTION_FIRE, last ? "fire_last" : ((flip = !flip) ? "fire" : "fire_b"), length);
 
-		play(level, player, SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 3.0f * def.boom, 0.55f * def.boomPitch);
-		play(level, player, SoundEvents.FIREWORK_ROCKET_BLAST, 2.0f * def.boom, 0.5f * def.boomPitch);
-		play(level, player, SoundEvents.CROSSBOW_SHOOT, 1.0f * def.boom, 0.5f * def.boomPitch);
-		shoot(level, player, round, aiming);
+		Attachment muzzle = Attachment.muzzle(stack);
+		float loud = def.boom * (muzzle == null ? 1.0f : muzzle.boom);
+		play(level, player, SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 3.0f * loud, 0.55f * def.boomPitch);
+		play(level, player, SoundEvents.FIREWORK_ROCKET_BLAST, 2.0f * loud, 0.5f * def.boomPitch);
+		play(level, player, SoundEvents.CROSSBOW_SHOOT, 1.0f * loud, 0.5f * def.boomPitch);
+		shoot(level, player, round, aiming, muzzle);
 		wear(player, stack, mismatch ? GunConfig.UNSAFE_WEAR.get() : 1);
 	}
 
-	private void shoot(ServerLevel level, ServerPlayer player, Cartridge round, boolean aiming) {
+	private void shoot(ServerLevel level, ServerPlayer player, Cartridge round, boolean aiming, Attachment mz) {
 		float spread = aiming ? def.spreadAds : def.spreadHip;
 		float dYaw = (float) (level.random.nextGaussian() * spread * 0.5);
 		float dPitch = (float) (level.random.nextGaussian() * spread * 0.5);
@@ -273,7 +323,7 @@ public class GunItem extends Item implements GeoItem {
 		if (entityHit != null) {
 			Entity target = entityHit.getEntity();
 			impact = entityHit.getLocation();
-			float damage = round.damage * def.damageScale * GunConfig.DAMAGE_SCALE.get().floatValue()
+			float damage = round.damage * def.damageScale * (mz == null ? 1.0f : mz.damage) * GunConfig.DAMAGE_SCALE.get().floatValue()
 					* round.falloff(start.distanceTo(impact));
 			if (target instanceof LivingEntity living) {
 				int armor = living.getArmorValue();
@@ -304,7 +354,7 @@ public class GunItem extends Item implements GeoItem {
 				continue;
 			}
 			level.sendParticles(viewer, ParticleTypes.SMOKE, false, muzzle.x, muzzle.y, muzzle.z, 2, 0.03, 0.03, 0.03, 0.01);
-			level.sendParticles(viewer, ParticleTypes.FLAME, false, muzzle.x, muzzle.y, muzzle.z, 1, 0.01, 0.01, 0.01, 0.02);
+			if (mz == null || !mz.hidesFlash) level.sendParticles(viewer, ParticleTypes.FLAME, false, muzzle.x, muzzle.y, muzzle.z, 1, 0.01, 0.01, 0.01, 0.02);
 			Vec3 pos = muzzle.add(step);
 			for (double d = 4.0; d < length; d += 4.0) {
 				level.sendParticles(viewer, ParticleTypes.CRIT, false, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
@@ -505,6 +555,12 @@ public class GunItem extends Item implements GeoItem {
 			tooltip.add(Component.literal("V: switch semi / auto   (now " + (autoMode(stack) ? "AUTO" : "SEMI") + ")")
 					.withStyle(ChatFormatting.DARK_GRAY));
 		}
+		Attachment optic = Attachment.optic(stack), muz = Attachment.muzzle(stack);
+		if (optic != null || muz != null) {
+			tooltip.add(Component.literal("Fitted: " + (optic != null ? optic.display : "")
+					+ (optic != null && muz != null ? ", " : "") + (muz != null ? muz.display : "")).withStyle(ChatFormatting.AQUA));
+		}
+		tooltip.add(Component.literal("B: fit off-hand attachment / remove").withStyle(ChatFormatting.DARK_GRAY));
 		tooltip.add(Component.literal("Repair: iron ingot on an anvil").withStyle(ChatFormatting.DARK_GRAY));
 	}
 

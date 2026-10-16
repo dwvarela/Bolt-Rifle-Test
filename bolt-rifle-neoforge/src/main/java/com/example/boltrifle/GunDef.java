@@ -41,6 +41,15 @@ public final class GunDef {
 	/** How quickly the sights come up, per tick (0-1). */
 	public float aimSpeed = 0.16f;
 
+	/** Model pixels per real metre: scales attachments (authored in cm) to this gun. */
+	public double pxPerM = 55;
+	/** Rail mount for optics: {top of the rail (y px), centre z px}; null = no optic can be fitted (built-in scope / no rail). */
+	public double[] optic = null;
+	/** Where the barrel ends (z px, bore at y = 0): muzzle devices attach here. */
+	public double muzzleZ = -20;
+	/** Iron-sight aim parameters used by Guns.aim (model px, scaled size, eye relief) so optics can shift the aim point. */
+	public double aimSy, aimSz, aimS, aimRelief;
+
 	public Xf hip = new Xf(0.36, -0.20, 0.14, -0.134, 0, 0, 0);
 	public Xf ads = new Xf(0.30, -0.56, 0.43, 0.37, 0, 0, 0);
 	public Xf third = new Xf(0.36, 0, 0, 0, 90, 0, 0);

@@ -1,6 +1,7 @@
 package com.example.boltrifle;
 
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.HashMap;
@@ -92,6 +93,22 @@ public final class ClientConfig {
 
 	public static Values aiming(GunDef d) {
 		return Values.of(PER_GUN.get(d.id).aim);
+	}
+
+	/** Aiming transform for this stack: with an optic fitted the aim point moves to the optic's sight line and rear lens. */
+	public static Values aiming(GunDef d, ItemStack stack) {
+		Values v = aiming(d);
+		Attachment o = Attachment.optic(stack);
+		if (o == null || d.optic == null) {
+			return v;
+		}
+		double k = d.pxPerM / 100.0;
+		double osy = d.optic[0] + o.axisCm * k;
+		double osz = d.optic[1] + o.lengthCm / 2.0 * k;
+		double relief = o.mask ? 0.0 : 0.04;
+		double s = v.scale();
+		return new Values(s, v.tx(), v.ty() - s * (osy - d.aimSy) / 16.0,
+				v.tz() - s * (osz - d.aimSz) / 16.0 - (relief - d.aimRelief), v.rx(), v.ry(), v.rz());
 	}
 
 	private ClientConfig() {}

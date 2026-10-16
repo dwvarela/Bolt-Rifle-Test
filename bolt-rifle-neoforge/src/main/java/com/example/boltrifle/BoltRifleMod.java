@@ -62,6 +62,11 @@ public class BoltRifleMod {
 	/** Selector: true = full auto (default), false = semi. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> AUTO_MODE =
 			component("auto_mode", Codec.BOOL, ByteBufCodecs.BOOL);
+	/** Fitted optic / muzzle device (Attachment ids). */
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> ATTACH_OPTIC =
+			component("attach_optic", Codec.STRING, ByteBufCodecs.STRING_UTF8);
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> ATTACH_MUZZLE =
+			component("attach_muzzle", Codec.STRING, ByteBufCodecs.STRING_UTF8);
 	/** Current timed action (see GunItem.ACTION_*), 0 = idle. */
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> ACTION =
 			component("action", Codec.INT, ByteBufCodecs.VAR_INT);
@@ -86,6 +91,7 @@ public class BoltRifleMod {
 	public static final Map<Cartridge, DeferredItem<AmmoItem>> AMMO_ITEMS = new EnumMap<>(Cartridge.class);
 	public static final Map<MagType, DeferredItem<MagItem>> MAGS = new EnumMap<>(MagType.class);
 	public static final Map<String, DeferredItem<GunItem>> GUNS = new LinkedHashMap<>();
+	public static final Map<Attachment, DeferredItem<AttachmentItem>> ATTACHMENTS = new EnumMap<>(Attachment.class);
 
 	public static final DeferredItem<GrenadeItem> GRENADE =
 			ITEMS.register("grenade", () -> new GrenadeItem(new Item.Properties().stacksTo(16)));
@@ -102,6 +108,9 @@ public class BoltRifleMod {
 		for (MagType m : MagType.values()) {
 			MAGS.put(m, ITEMS.register(m.itemId, () -> new MagItem(new Item.Properties().stacksTo(16), m)));
 		}
+		for (Attachment a : Attachment.values()) {
+			ATTACHMENTS.put(a, ITEMS.register(a.id, () -> new AttachmentItem(new Item.Properties().stacksTo(1), a)));
+		}
 		for (GunDef d : Guns.ALL) {
 			GUNS.put(d.id, ITEMS.register(d.id, () -> new GunItem(new Item.Properties().durability(d.durability), d)));
 		}
@@ -114,6 +123,7 @@ public class BoltRifleMod {
 					.displayItems((params, out) -> {
 						GUNS.values().forEach(g -> out.accept(g.get()));
 						MAGS.values().forEach(m -> out.accept(m.get()));
+						ATTACHMENTS.values().forEach(a -> out.accept(a.get()));
 						AMMO_ITEMS.values().forEach(a -> out.accept(a.get()));
 							out.accept(GRENADE.get());
 					}).build());

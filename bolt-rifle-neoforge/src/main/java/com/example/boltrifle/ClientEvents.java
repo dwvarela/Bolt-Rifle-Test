@@ -36,10 +36,13 @@ public final class ClientEvents {
 	public static final KeyMapping RELOAD_KEY =
 			new KeyMapping("key.boltrifle.reload", InputConstants.KEY_R, "key.categories.boltrifle");
 
+	private static Attachment lastOptic;
 	private static float aim, aimOld;          // 0 = hip, 1 = fully scoped
 	private static boolean wantAim;
 	private static double zoom = 1;
 	private static Double savedSensitivity;
+	public static final KeyMapping ATTACH_KEY =
+			new KeyMapping("key.boltrifle.attach", InputConstants.KEY_B, "key.categories.boltrifle");
 	public static final KeyMapping MODE_KEY =
 			new KeyMapping("key.boltrifle.mode", InputConstants.KEY_V, "key.categories.boltrifle");
 
@@ -48,6 +51,8 @@ public final class ClientEvents {
 	private static double fireCooldown;            // client-side shot timer (ticks), mirrors the server's
 	private static int reloadBuffer;            // ticks a pressed R key stays queued (e.g. during bolt cycling)
 	private static float kickRise, kickRecover, kickYaw;   // camera recoil, spread over several ticks
+	/** Sustained-fire build-up: each shot in a quick string adds climb and sway, and it bleeds off when you stop. */
+	private static float sustain;
 
 	public static float aimProgress(float partialTick) {
 		return Mth.lerp(partialTick, aimOld, aim);
@@ -55,6 +60,28 @@ public final class ClientEvents {
 
 	private static GunDef heldDef(Player p) {
 		return p != null && p.getMainHandItem().getItem() instanceof GunItem g ? g.def : null;
+	}
+
+	private static Attachment heldOptic(Player p) {
+		GunDef d = heldDef(p);
+		return d == null || d.optic == null ? null : Attachment.optic(p.getMainHandItem());
+	}
+
+	private static double zoomDefault(GunDef d, Attachment o) {
+		return o != null ? o.zoomDefault : d.zoomDefault;
+	}
+
+	private static double zoomMin(GunDef d, Attachment o) {
+		return o != null ? o.zoomMin : d.zoomMin;
+	}
+
+	private static double zoomMax(GunDef d, Attachment o) {
+		return o != null ? o.zoomMax : d.zoomMax;
+	}
+
+	/** True when a magnified optic (built-in scope or fitted ACOG / variable scope) is in use. */
+	private static boolean scopedNow() {
+		return lastOptic != null ? lastOptic.mask : lastDef != null && lastDef.scoped;
 	}
 
 	private static boolean holdingGun(Player p) {
@@ -72,6 +99,7 @@ public final class ClientEvents {
 		public static void registerKeys(RegisterKeyMappingsEvent event) {
 			event.register(RELOAD_KEY);
 			event.register(MODE_KEY);
+			event.register(ATTACH_KEY);
 		}
 
 		@SubscribeEvent
@@ -101,16 +129,32 @@ public final class ClientEvents {
 			boolean holding = def != null;
 			if (def != lastDef) {                   // switched guns: reset zoom and timers
 				lastDef = def;
+				lastOptic = null;
 				if (def != null) {
 					zoom = def.zoomDefault;
 				}
 				fireCooldown = 0;
 			}
+			Attachment optic = holding ? heldOptic(player) : null;
+			if (optic != lastOptic) {               // optic fitted/removed/swapped: reset to its own zoom
+				lastOptic = optic;
+				if (holding) {
+					zoom = zoomDefault(def, optic);
+				}
+			}
 			fireCooldown = Math.max(fireCooldown - 1.0, -1.0);
+			if (fireCooldown <= 0) {
+				sustain = Math.max(0.0f, sustain - 0.6f);
+			}
 
 			while (MODE_KEY.consumeClick()) {
 				if (holding) {
 					PacketDistributor.sendToServer(new Net.TogglePayload());
+				}
+			}
+			while (ATTACH_KEY.consumeClick()) {
+				if (holding) {
+					PacketDistributor.sendToServer(new Net.AttachPayload());
 				}
 			}
 			while (RELOAD_KEY.consumeClick()) {
@@ -180,8 +224,9 @@ public final class ClientEvents {
 		@SubscribeEvent
 		public static void onScroll(InputEvent.MouseScrollingEvent event) {
 			if (wantAim && aim > 0.5f && lastDef != null) {
-				if (lastDef.zoomMax > lastDef.zoomMin) {
-					zoom = lastDef.zoomClamp(zoom + Math.signum(event.getScrollDeltaY()));
+				double zmin = zoomMin(lastDef, lastOptic), zmax = zoomMax(lastDef, lastOptic);
+				if (zmax > zmin) {
+					zoom = Math.max(zmin, Math.min(zmax, zoom + Math.signum(event.getScrollDeltaY())));
 				}
 				event.setCanceled(true);       // don't change hotbar slot while aiming
 			}
@@ -198,7 +243,7 @@ public final class ClientEvents {
 
 		@SubscribeEvent
 		public static void onRenderHand(RenderHandEvent event) {
-			if (lastDef != null && lastDef.scoped && event.getHand() == InteractionHand.MAIN_HAND && aimProgress(event.getPartialTick()) > 0.94f) {
+			if (lastDef != null && scopedNow() && event.getHand() == InteractionHand.MAIN_HAND && aimProgress(event.getPartialTick()) > 0.94f) {
 				event.setCanceled(true);
 			}
 		}
@@ -226,10 +271,12 @@ public final class ClientEvents {
 		PacketDistributor.sendToServer(new Net.FirePayload(aiming));
 		if (GunItem.isChambered(stack)) {   // predicted recoil kick, applied smoothly in applyRecoil()
 			fireCooldown += def.interval;
-			float kick = def.recoilPitch * (float) (double) ClientConfig.RECOIL_SCALE.get() * (aiming ? 0.6f : 1.0f);
+			float build = 1.0f + 0.07f * sustain;
+			sustain = Math.min(sustain + 1.0f, 12.0f);
+			float kick = def.recoilPitch * build * Attachment.recoilMul(stack) * (float) (double) ClientConfig.RECOIL_SCALE.get() * (aiming ? 0.6f : 1.0f);
 			kickRise += kick;
 			kickRecover += kick * 0.35f;
-			kickYaw += (player.getRandom().nextFloat() - 0.5f) * 2.0f * def.recoilYaw
+			kickYaw += (player.getRandom().nextFloat() - 0.5f) * 2.0f * def.recoilYaw * (1.0f + 0.05f * sustain)
 					* (float) (double) ClientConfig.RECOIL_SCALE.get();
 		} else {
 			fireCooldown = def.dryTicks;
@@ -279,7 +326,8 @@ public final class ClientEvents {
 	private static void renderScope(GuiGraphics g, DeltaTracker delta) {
 		Minecraft mc = Minecraft.getInstance();
 		float p = aimProgress(delta.getGameTimeDeltaPartialTick(false));
-		if (p > 0.7f && lastDef != null && lastDef.dot && holdingGun(mc.player)) {
+		if (p > 0.7f && lastDef != null && holdingGun(mc.player) && (lastOptic != null
+				? lastOptic.reticle == Attachment.Reticle.DOT || lastOptic.reticle == Attachment.Reticle.RING : lastDef.dot)) {
 			int a = ((int) (255 * Mth.clamp((p - 0.7f) / 0.3f, 0.0f, 1.0f))) << 24;
 			int half = (a >>> 1) & 0xFF000000;
 			int cx = g.guiWidth() / 2, cy = g.guiHeight() / 2;
@@ -288,8 +336,16 @@ public final class ClientEvents {
 			g.fill(cx + 1, cy, cx + 2, cy + 1, half | 0xFF2020);
 			g.fill(cx, cy - 2, cx + 1, cy - 1, half | 0xFF2020);
 			g.fill(cx, cy + 1, cx + 1, cy + 2, half | 0xFF2020);
+			if (lastOptic != null && lastOptic.reticle == Attachment.Reticle.RING) {      // holographic ring
+				int rr = Math.max(14, g.guiHeight() / 22);
+				for (int deg = 0; deg < 360; deg += 3) {
+					int rx = cx + (int) Math.round(rr * Math.cos(Math.toRadians(deg)));
+					int ry = cy + (int) Math.round(rr * Math.sin(Math.toRadians(deg)));
+					g.fill(rx, ry, rx + 1, ry + 1, half | 0xFF2020);
+				}
+			}
 		}
-		if (p <= 0.6f || lastDef == null || !lastDef.scoped || !holdingGun(mc.player)) {
+		if (p <= 0.6f || lastDef == null || !scopedNow() || !holdingGun(mc.player)) {
 			return;
 		}
 		float fade = Mth.clamp((p - 0.6f) / 0.4f, 0.0f, 1.0f);
@@ -330,6 +386,13 @@ public final class ClientEvents {
 			g.fill(cx + d - 1, cy - 1, cx + d + 1, cy + 1, line);
 			g.fill(cx - 1, cy - d - 1, cx + 1, cy - d + 1, line);
 			g.fill(cx - 1, cy + d - 1, cx + 1, cy + d + 1, line);
+		}
+		if (lastOptic != null && lastOptic.reticle == Attachment.Reticle.CHEVRON) {   // ACOG chevron below the centre
+			int c = ((int) (255 * fade)) << 24 | 0xCC2222;
+			for (int k = 0; k < 14; k++) {
+				g.fill(cx - k - 1, cy + 6 + k, cx - k + 1, cy + 7 + k, c);
+				g.fill(cx + k, cy + 6 + k, cx + k + 2, cy + 7 + k, c);
+			}
 		}
 		g.fill(cx - 1, cy - 1, cx + 1, cy + 1, 0xFFCC2222);
 

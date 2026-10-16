@@ -81,8 +81,16 @@ public final class Guns {
 	 */
 	private static void aim(GunDef d, double sy, double sz, double s, double relief) {
 		s *= SCALE;
+		d.aimSy = sy; d.aimSz = sz; d.aimS = s; d.aimRelief = relief;
 		d.ads = new GunDef.Xf(s, -0.71 + 0.5 * s, 0.86625 - 0.5 - s * (sy / 16 - 0.5),
 				0.87 - relief - 0.5 - s * (sz / 16 - 0.5), 0, 0, 0);
+	}
+
+	/** Attachment mounting: model px per real metre, optic rail {top y, centre z} (null = none) and barrel tip z. */
+	private static void mount(GunDef d, double pxPerM, double[] optic, double muzzleZ) {
+		d.pxPerM = pxPerM;
+		d.optic = optic;
+		d.muzzleZ = muzzleZ;
 	}
 
 	private static GunDef m700() {
@@ -97,6 +105,7 @@ public final class Guns {
 		d.recoilYaw = 0.7f;
 		hold(d, 22.4, 0.5);
 		aim(d, 4.6, 8.0, 0.30, 0.0);
+		mount(d, 51, null, -33.7);
 		d.scoped = true;
 		d.zoomDefault = 6;
 		d.zoomMin = 3;
@@ -140,6 +149,7 @@ public final class Guns {
 		d.boom = 0.95f; d.boomPitch = 1.05f;
 		hold(d, 20.6, 0.4);
 		aim(d, 3.0, -6.9, 0.30, 0.12);
+		mount(d, 52, new double[]{3.1, 1.0}, -32.0);
 		d.cues = rifleCues(2.2, "right", true);
 		return d;
 	}
@@ -156,6 +166,7 @@ public final class Guns {
 		d.boom = 0.95f; d.boomPitch = 1.05f;
 		hold(d, 19.9, 0.4);
 		aim(d, 3.0, -5.7, 0.30, 0.12);
+		mount(d, 55, new double[]{3.2, 3.0}, -28.1);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;
 	}
@@ -172,6 +183,7 @@ public final class Guns {
 		d.zoomDefault = 4; d.zoomMin = 2.5; d.zoomMax = 8;
 		hold(d, 23.5, 0.5);
 		aim(d, 3.3, 4.0, 0.30, 0.0);
+		mount(d, 54, null, -36.6);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;
 	}
@@ -189,6 +201,7 @@ public final class Guns {
 		d.boom = 0.85f; d.boomPitch = 1.1f;
 		hold(d, 20.0, 0.46);
 		aim(d, 4.12, 4.7, 0.30, 0.12);
+		mount(d, 52, new double[]{2.3, 0.0}, -26.9);
 		d.cues = rifleCues(2.0, "left", false);
 		return d;
 	}
@@ -205,6 +218,7 @@ public final class Guns {
 		d.boom = 0.85f; d.boomPitch = 1.1f;
 		hold(d, 29.1, 0.40);
 		aim(d, 3.3, 7.0, 0.30, 0.12);
+		mount(d, 60, new double[]{2.0, -1.0}, -29.6);
 		d.cues = rifleCues(2.0, "left", false);
 		return d;
 	}
@@ -223,6 +237,7 @@ public final class Guns {
 		d.aimSpeed = 0.2f;
 		hold(d, 18.1, 0.5);
 		aim(d, 4.5, -0.5, 0.30, 0.12);
+		mount(d, 62, new double[]{3.5, 1.0}, -15.5);
 		d.cues = rifleCues(1.9, "left", false);
 		return d;
 	}
@@ -241,6 +256,7 @@ public final class Guns {
 		d.aimSpeed = 0.2f;
 		hold(d, 15.35, 0.5);
 		aim(d, 6.3, -6.3, 0.30, 0.12);
+		mount(d, 63, new double[]{4.2, -7.5}, -16.0);
 		d.cues = rifleCues(2.4, "left", false);
 		return d;
 	}
@@ -259,6 +275,7 @@ public final class Guns {
 		d.hip = new GunDef.Xf(0.43 * SCALE, -0.285 - 0.5 * 0.043, 0.375 - 0.5 * 0.043, 0.031, 0, 0, 0);
 		d.third = new GunDef.Xf(0.43 * SCALE, 0, 0, 0, 90, 0, 0);
 		aim(d, 1.62, 3.8, 0.30, 0.10);
+		mount(d, 63, null, -6.6);
 		d.cues = rifleCues(1.7, "left", false);
 		return d;
 	}
