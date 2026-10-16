@@ -81,7 +81,7 @@ def acog():
     b.add(Cyl((0, ax + 1.6, -0.6), (0, ax + 2.5, -0.6), 0.68, rr=0.12), mat=mid("gunmetal"))         # turrets
     b.add(Cyl((1.4, ax, -0.6), (2.5, ax, -0.6), 0.68, rr=0.12), mat=mid("gunmetal"))
     b.paint(cylz(0, ax, 5.5, 7.2, 1.98), "steel")
-    b.paint(box(-0.9, 0.9, ax + 3.0, ax + 3.2, -3.0, 0.5), "dot")
+    b.paint(box(-0.9, 0.9, ax + 3.0, ax + 3.2, -3.0, 0.5), "brass")
     return m
 
 
