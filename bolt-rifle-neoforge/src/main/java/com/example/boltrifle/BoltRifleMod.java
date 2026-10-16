@@ -119,6 +119,7 @@ public class BoltRifleMod {
 					}).build());
 
 	public BoltRifleMod(IEventBus modEventBus, ModContainer container) {
+		software.bernie.geckolib.util.GeckoLibUtil.addCustomBakedModelFactory(MODID, new MeshModelFactory());
 		ITEMS.register(modEventBus);
 		ENTITIES.register(modEventBus);
 		COMPONENTS.register(modEventBus);

@@ -227,10 +227,13 @@ class Model:
                 for face, (fw, fh) in dims.items():
                     yield c, face, max(2, int(round(fw * TEXEL))), max(2, int(round(fh * TEXEL)))
 
-    def write(self, res, texture=True):
+    def write(self, res, texture=True, extras=None, geo_hook=None):
         rng = np.random.default_rng(self.seed)
-        faces = sorted(self._faces(), key=lambda f: -f[3])
-        for W in (256, 512, 1024):
+        faces = list(self._faces())
+        for key, img in (extras or []):
+            faces.append((("extra", key), "up", img.shape[1], img.shape[0]))
+        faces = sorted(faces, key=lambda f: -f[3])
+        for W in (256, 512, 1024, 2048):
             x = y = row_h = 0
             placed, ok = [], True
             for c, face, w, h in faces:
@@ -248,7 +251,13 @@ class Model:
         atlas = np.zeros((W, W, 4), dtype=np.uint8)
         atlas[..., 3] = 255
         glow = np.zeros_like(atlas)
+        placements = {}
+        imgs = dict(extras or [])
         for c, face, w, h, px, py in placed:
+            if isinstance(c, tuple):
+                atlas[py:py + h, px:px + w] = imgs[c[1]]
+                placements[c[1]] = (px, py)
+                continue
             mat, flat = self._mats[id(c)]
             tile = _paint_face(mat, face, w, h, rng, flat)
             atlas[py:py + h, px:px + w, :3] = tile.astype(np.uint8)
@@ -269,10 +278,12 @@ class Model:
                             "texture_height": W, "visible_bounds_width": 8,
                             "visible_bounds_height": 6, "visible_bounds_offset": [0, 0, 0]},
             "bones": [self.bones[n] for n in self.order]}]}
+        if geo_hook:
+            geo_hook(geo, placements, W)
         d = os.path.join(res, "assets/boltrifle/geo/item")
         os.makedirs(d, exist_ok=True)
         with open(os.path.join(d, self.ident + ".geo.json"), "w") as f:
-            json.dump(geo, f, indent=1)
+            json.dump(geo, f, indent=None if extras else 1, separators=(",", ":") if extras else None)
         t = os.path.join(res, "assets/boltrifle/textures/item")
         os.makedirs(t, exist_ok=True)
         Image.fromarray(atlas, "RGBA").save(os.path.join(t, self.ident + ".png"))
