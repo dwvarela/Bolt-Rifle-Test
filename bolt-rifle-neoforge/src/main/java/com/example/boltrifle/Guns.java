@@ -65,7 +65,11 @@ public final class Guns {
 	}
 
 	/** Held at the hip/shoulder: the bore stays at the same spot on screen whatever the model scale; butt = rear of the gun (px). */
+	/** All guns are drawn 10% smaller than their authored size. */
+	private static final double SCALE = 0.9;
+
 	private static void hold(GunDef d, double butt, double s) {
+		s *= SCALE;
 		d.hip = new GunDef.Xf(s, -0.38 + 0.5 * s, -0.04 + 0.5 * s, 0.37 - butt * s / 16, 0, 0, 0);
 		d.third = new GunDef.Xf(0.36 * s / 0.36, 0, 0, 0, 90, 0, 0);
 	}
@@ -76,6 +80,7 @@ public final class Guns {
 	 * the eye (blocks): scopes sit right at the eye (0), iron sights are held out at arm\u0027s length like in real life.
 	 */
 	private static void aim(GunDef d, double sy, double sz, double s, double relief) {
+		s *= SCALE;
 		d.ads = new GunDef.Xf(s, -0.71 + 0.5 * s, 0.86625 - 0.5 - s * (sy / 16 - 0.5),
 				0.87 - relief - 0.5 - s * (sz / 16 - 0.5), 0, 0, 0);
 	}
@@ -251,8 +256,8 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.1;
 		d.boom = 0.65f; d.boomPitch = 1.45f;
 		d.aimSpeed = 0.24f;
-		d.hip = new GunDef.Xf(0.43, -0.285, 0.375, 0.031, 0, 0, 0);
-		d.third = new GunDef.Xf(0.43, 0, 0, 0, 90, 0, 0);
+		d.hip = new GunDef.Xf(0.43 * SCALE, -0.285 - 0.5 * 0.043, 0.375 - 0.5 * 0.043, 0.031, 0, 0, 0);
+		d.third = new GunDef.Xf(0.43 * SCALE, 0, 0, 0, 90, 0, 0);
 		aim(d, 1.62, 3.8, 0.30, 0.10);
 		d.cues = rifleCues(1.7, "left", false);
 		return d;

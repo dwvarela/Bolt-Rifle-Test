@@ -2,11 +2,29 @@
 Body outline, trigger loop and thumbhole come from the photo (image coords -> px via P()); everything else is
 rounded solids merged smoothly, then meshed + texture-baked by meshbake."""
 import math
+import numpy as np
 from meshbake import MModel, mid
 from sdf import *
 
 SY, SZ = 6.3, -6.3          # rear aperture centre (height above bore, z)
 HW = 1.55
+
+
+class Clip:
+    """Limit a primitive to a z/y window (lets different parts of one outline have different thickness)."""
+    def __init__(self, prim, z0=-99.0, z1=99.0, y0=-99.0, y1=99.0):
+        self.p, self.z0, self.z1, self.y0, self.y1 = prim, z0, z1, y0, y1
+
+    def bounds(self):
+        lo, hi = self.p.bounds()
+        lo, hi = lo.copy(), hi.copy()
+        lo[2], hi[2] = max(lo[2], self.z0), min(hi[2], self.z1)
+        lo[1], hi[1] = max(lo[1], self.y0), min(hi[1], self.y1)
+        return lo, hi
+
+    def d(self, X, Y, Z):
+        d = self.p.d(X, Y, Z)
+        return np.maximum.reduce([d, self.z0 - Z + 0 * d, Z - self.z1 + 0 * d, self.y0 - Y + 0 * d, Y - self.y1 + 0 * d])
 
 
 def P(x, Y):
@@ -27,7 +45,8 @@ def build():
                              (584, 556), (540, 566), (480, 562), (440, 550), (418, 534)]]
     sil = Sil([(outer, [guard, thumb])], res=0.03)
     body = m.mesh("body", "rifle", (0, 0, 0), tris=14000)
-    body.add(Ext(sil, "zy", -HW, HW, r=0.85), mat=mid("p90"))
+    body.add(Ext(sil, "zy", -1.3, 1.3, r=1.15), mat=mid("p90"))                       # round-section grip loop / lower body
+    body.add(Clip(Ext(sil, "zy", -HW, HW, r=0.5), z0=4.6), mat=mid("p90"))            # wider, crisp-edged stock block
     # front hood (rail housing) with side windows
     body.add(box(-1.62, 1.62, -1.2, 3.3, -12.2, -3.0, r=0.5), mat=mid("p90"))
     body.sub(box(-1.9, -1.42, 0.3, 2.5, -11.7, -9.4, r=0.2))
@@ -44,25 +63,26 @@ def build():
     body.add(box(-1.5, 1.5, 3.3, 3.8, -4.7, -3.4, r=0.1), mat=mid("black"))
     for sx in (-1, 1):
         body.add(box(sx * 1.66 - 0.13, sx * 1.66 + 0.13, 0.9, 3.6, -4.7, -3.4, r=0.1), mat=mid("black"))
-    # flip-up iron sights (raised)
-    body.add(box(-1.0, 1.0, 4.1, 4.6, -7.5, -5.8, r=0.1), mat=mid("gunmetal"))
+    # flip-up iron sights (raised): rear peep with side ears + windage drum, front post between wing ears
+    body.add(box(-1.05, 1.05, 4.1, 4.6, -7.6, -5.7, r=0.12), mat=mid("gunmetal"))
     for sx in (-1, 1):
-        body.add(box(sx * 0.78 - 0.28, sx * 0.78 + 0.28, 4.5, SY + 0.85, -7.1, -6.0, r=0.12), mat=mid("black"))
-    body.add(box(-0.62, 0.62, 4.5, SY - 0.55, -6.9, -6.1, r=0.1), mat=mid("black"))
-    body.add(box(-0.62, 0.62, SY + 0.45, SY + 0.9, -6.9, -6.1, r=0.1), mat=mid("black"))
-    body.add(Cyl((0.85, SY, -6.45), (1.75, SY, -6.45), 0.5, rr=0.08), mat=mid("black"))              # windage drum
+        body.add(box(sx * 0.82 - 0.17, sx * 0.82 + 0.17, 4.5, SY + 0.7, -7.2, -6.0, r=0.1), mat=mid("black"))
+    body.add(box(-0.7, 0.7, SY - 0.65, SY + 0.6, -6.95, -6.3, r=0.12), mat=mid("black"))
+    body.add(box(-0.7, 0.7, 4.5, SY - 0.6, -6.95, -6.3, r=0.1), mat=mid("black"))
+    body.sub(cylz(0, SY, -7.2, -6.0, 0.3))
+    body.add(Cyl((0.9, SY - 0.1, -6.2), (1.8, SY - 0.1, -6.2), 0.48, rr=0.08), mat=mid("black"))        # windage drum
+    body.paint(Cyl((1.7, SY - 0.1, -6.2), (1.9, SY - 0.1, -6.2), 0.3), "gunmetal")
     body.add(box(-1.0, 1.0, 4.1, 4.5, -12.0, -10.4, r=0.1), mat=mid("gunmetal"))
     for sx in (-1, 1):
-        body.add(box(sx * 0.8 - 0.28, sx * 0.8 + 0.28, 4.4, SY + 0.9, -11.9, -10.6, r=0.12), mat=mid("black"))
-    body.add(box(-0.26, 0.26, 4.4, SY + 0.05, -11.6, -10.9, r=0.08), mat=mid("black"))
-    body.add(box(-0.85, 0.85, SY + 0.6, SY + 0.9, -11.8, -10.6, r=0.05), mat=mid("black"))
+        body.add(box(sx * 0.82 - 0.17, sx * 0.82 + 0.17, 4.4, SY + 0.75, -11.9, -10.7, r=0.1), mat=mid("black"))
+    body.add(box(-0.14, 0.14, 4.4, SY + 0.3, -11.5, -11.1, r=0.06), mat=mid("black"))
     # butt cap
     body.add(box(-1.5, 1.5, -4.55, 2.55, 14.8, 15.4, r=0.35), mat=mid("rubber"))
     # trigger loop details + cross-bolt selector
     body.add(Cyl((-1.9, -4.5, -5.8), (1.9, -4.5, -5.8), 0.28, rr=0.05), mat=mid("black"))
     # screws (painted)
     for zz, yy in ((-4.0, -3.6), (-0.6, -5.4), (6.4, -3.3), (12.0, -3.6), (13.2, 1.4), (-10.6, -2.2), (-8.4, -4.7), (2.6, 1.6)):
-        body.paint(Cyl((-2.0, yy, zz), (2.0, yy, zz), 0.22), "stainless")
+        body.paint(Cyl((-2.0, yy, zz), (2.0, yy, zz), 0.17), "black")
     # moulded panel lines / markings
     body.paint(box(-2, 2, -0.2, -0.1, -9.0, 4.5), "black")
     body.paint(box(-2, 2, -1.4, -1.25, 5.8, 13.4), "black")
@@ -83,14 +103,19 @@ def build():
         ch.add(box(sx * 2.3, sx * 2.8, -0.9, 1.0, -11.8, -9.2, r=0.2), mat=mid("black"))
 
     # ---------------------------------------------------------------- amber translucent magazine
-    mg = m.mesh("magazine", "rifle", (0, 1.8, 0.0), tris=2600)
-    mg.add(box(-1.3, 1.3, 1.05, 2.65, -11.4, 5.8, r=0.4), mat=mid("amber"))
-    mg.add(box(-1.34, 1.34, 1.0, 2.7, -11.5, -10.9, r=0.15), mat=mid("black"))
-    mg.add(box(-1.34, 1.34, 1.0, 2.7, 5.3, 5.95, r=0.15), mat=mid("black"))
-    for i in range(13):
+    mg = m.mesh("magazine", "rifle", (0, 1.8, 0.0), tris=3000)
+    mg.add(box(-1.3, 1.3, 1.05, 2.75, -11.4, 5.8, r=0.35), mat=mid("amber"))
+    mg.add(box(-0.42, 0.42, 2.6, 2.95, -10.9, 5.2, r=0.15), mat=mid("amber"))          # raised centre rib
+    for i in range(34):                                                             # transverse ribbing either side of the rib
+        zz = -10.6 + i * 0.47
+        for sx in (-1, 1):
+            mg.sub(box(sx * 0.62 - 0.3, sx * 0.62 + 0.3, 2.62, 2.9, zz, zz + 0.2))
+    mg.add(box(-1.34, 1.34, 1.0, 2.8, -11.5, -10.9, r=0.15), mat=mid("black"))
+    mg.add(box(-1.34, 1.34, 1.0, 2.8, 5.3, 5.95, r=0.15), mat=mid("black"))
+    for i in range(13):                                                             # round-count windows along the sides
         zz = -10.4 + i * 1.25
-        mg.paint(box(-1.5, 1.5, 1.55, 2.2, zz, zz + 0.75), "brass")
-    mg.paint(box(-0.9, 0.9, 2.5, 2.8, -10.5, 4.8), "black")
+        for sx in (-1, 1):
+            mg.paint(Cyl((sx * 1.2, 1.9, zz + 0.3), (sx * 1.5, 1.9, zz + 0.3), 0.17), "wood")
 
     # ---------------------------------------------------------------- bolt (underside ejection) + cube parts kept from before
     m.bone("bolt", "rifle", (0, 0, 0))
