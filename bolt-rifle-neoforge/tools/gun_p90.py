@@ -10,23 +10,6 @@ SY, SZ = 6.3, -6.3          # rear aperture centre (height above bore, z)
 HW = 1.55
 
 
-class Clip:
-    """Limit a primitive to a z/y window (lets different parts of one outline have different thickness)."""
-    def __init__(self, prim, z0=-99.0, z1=99.0, y0=-99.0, y1=99.0):
-        self.p, self.z0, self.z1, self.y0, self.y1 = prim, z0, z1, y0, y1
-
-    def bounds(self):
-        lo, hi = self.p.bounds()
-        lo, hi = lo.copy(), hi.copy()
-        lo[2], hi[2] = max(lo[2], self.z0), min(hi[2], self.z1)
-        lo[1], hi[1] = max(lo[1], self.y0), min(hi[1], self.y1)
-        return lo, hi
-
-    def d(self, X, Y, Z):
-        d = self.p.d(X, Y, Z)
-        return np.maximum.reduce([d, self.z0 - Z + 0 * d, Z - self.z1 + 0 * d, self.y0 - Y + 0 * d, Y - self.y1 + 0 * d])
-
-
 def P(x, Y):
     """Reference image (P90-2, 900px) -> (z, y) in model px."""
     return (-16 + (x - 12) / 28.0, (437 - Y) / 28.0)

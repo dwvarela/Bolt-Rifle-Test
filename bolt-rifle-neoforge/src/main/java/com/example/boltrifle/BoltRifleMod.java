@@ -112,7 +112,7 @@ public class BoltRifleMod {
 			ATTACHMENTS.put(a, ITEMS.register(a.id, () -> new AttachmentItem(new Item.Properties().stacksTo(1), a)));
 		}
 		for (GunDef d : Guns.ALL) {
-			GUNS.put(d.id, ITEMS.register(d.id, () -> new GunItem(new Item.Properties().durability(d.durability), d)));
+			GUNS.put(d.id, ITEMS.register(d.id, () -> new GunItem(d.id.equals("bolt_rifle") ? new Item.Properties().durability(d.durability).component(ATTACH_OPTIC.get(), "scope") : new Item.Properties().durability(d.durability), d)));
 		}
 	}
 

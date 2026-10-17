@@ -228,6 +228,48 @@ class Loft:
         return np.sqrt(np.maximum(dxy, 0) ** 2 + np.maximum(dz, 0) ** 2) + np.minimum(np.maximum(dxy, dz), 0)
 
 
+class Clip:
+    """Limit a primitive to a window in z / y / x (lets different parts of one traced outline have different widths)."""
+
+    def __init__(self, prim, z0=-99.0, z1=99.0, y0=-99.0, y1=99.0, x0=-99.0, x1=99.0):
+        self.p, self.z0, self.z1, self.y0, self.y1, self.x0, self.x1 = prim, z0, z1, y0, y1, x0, x1
+
+    def bounds(self):
+        lo, hi = self.p.bounds()
+        lo, hi = np.array(lo, float), np.array(hi, float)
+        lo[0], hi[0] = max(lo[0], self.x0), min(hi[0], self.x1)
+        lo[1], hi[1] = max(lo[1], self.y0), min(hi[1], self.y1)
+        lo[2], hi[2] = max(lo[2], self.z0), min(hi[2], self.z1)
+        return lo, hi
+
+    def d(self, X, Y, Z):
+        d = self.p.d(X, Y, Z)
+        z = 0 * d
+        return np.maximum.reduce([d, self.z0 - Z + z, Z - self.z1 + z, self.y0 - Y + z, Y - self.y1 + z,
+                                  self.x0 - X + z, X - self.x1 + z])
+
+
+class Traced:
+    """A silhouette traced from a reference photo (tools/trace_side.py JSON) as a Sil with its holes."""
+
+    @staticmethod
+    def load(path, res=0.03, min_area=60, keep=None):
+        import json
+        data = json.load(open(path))
+        outers = [(np.array(c["pts"], np.float32), c) for c in data if not c["hole"] and c["area"] >= min_area]
+        holes = [np.array(c["pts"], np.float32) for c in data if c["hole"]]
+        if keep is not None:      # drop dark-but-not-see-through patches the tracer mistook for holes
+            holes = [h for h in holes if keep(h.mean(0), np.ptp(h, axis=0))]
+        polys = []
+        for pts, c in outers:
+            hs = []
+            for h in holes:
+                if cv2.pointPolygonTest(pts.reshape(-1, 1, 2), (float(h[0][0]), float(h[0][1])), False) > 0:
+                    hs.append([tuple(p) for p in h])
+            polys.append(([tuple(p) for p in pts], hs))
+        return Sil(polys, res=res)
+
+
 # ------------------------------------------------------------------ volume
 class Vol:
     def __init__(self, lo, hi, h):

@@ -104,12 +104,9 @@ public final class Guns {
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
 		hold(d, 22.4, 0.5);
-		aim(d, 4.6, 8.0, 0.30, 0.0);
-		mount(d, 51, null, -33.7);
-		d.scoped = true;
-		d.zoomDefault = 6;
-		d.zoomMin = 3;
-		d.zoomMax = 12;
+		aim(d, 2.0, 1.0, 0.30, 0.05);                  // no iron sights: looks along the rail
+		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.cues = new Cue[][]{
 				{},
 				{ // fire: handle up, bolt back, bolt forward, handle down
@@ -179,11 +176,10 @@ public final class Guns {
 		d.holdOpen = true;
 		d.spreadHip = 3.0f; d.spreadAds = 0.12f;
 		d.recoilPitch = 2.1f; d.recoilYaw = 0.5f;
-		d.scoped = true;
-		d.zoomDefault = 4; d.zoomMin = 2.5; d.zoomMax = 8;
-		hold(d, 23.5, 0.5);
-		aim(d, 3.3, 4.0, 0.30, 0.0);
-		mount(d, 54, null, -36.6);
+		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;       // iron sights; optics come from attachments
+		hold(d, 23.6, 0.5);
+		aim(d, 1.95, 4.4, 0.30, 0.12);
+		mount(d, 54, new double[]{1.38, -9.0}, -36.8);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;
 	}

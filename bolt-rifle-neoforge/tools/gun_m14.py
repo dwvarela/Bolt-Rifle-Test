@@ -1,139 +1,92 @@
-"""M14 EBR (Mk14 Mod 0 style), modelled from the reference side views: black aluminium chassis with slotted handguard,
-Picatinny rails, slotted birdcage, telescoping stock with cheek riser and perforated side plates, angular grip, 20-rd box mag.
-Coordinates are taken straight from the reference image (x,Y in image units) via Z()/Yy() so proportions stay faithful."""
-from gunlib import Model
+"""M14 EBR (Mk14 Mod 0 in the Sage chassis) - SDF mesh model.
+The whole side silhouette (handguard with its slots, rails, grip, stock plates, trigger guard, magazine) is TRACED from the
+reference side photo (tools/trace/m14_side.json, made with trace_side.py) and extruded to a width per component; barrel, flash hider,
+sights and details are placed at positions measured from the same photo.  It has iron sights and a top rail: no built-in scope."""
+import math
+from meshbake import MModel, mid
+from sdf import *
 
 ID = "m14ebr"
-
-
-def Z(x):
-    return 23.5 - (x - 18) / 22.8
-
-
-def Yy(y):
-    return (166 - y) / 22.8
+import os
+SIL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trace", "m14_side.json")
+SY, SZ = 1.95, 4.4          # rear aperture centre (iron sights)
+RAIL_TOP, RAIL_Z = 1.38, -9.0   # optic mount on the top rail
 
 
 def build():
-    m = Model(ID, seed=31)
-    for b in ("chassis", "barrel", "receiver"):
-        m.bone(b, "rifle", (0, 0, 0))
-    m.bone("scope", "rifle", (0, 3.3, -4))
+    m = MModel(ID, lo=(-3.2, -9.6, -38.0), hi=(3.2, 3.2, 24.8), h=0.14, seed=31, tx=9)
+    def real_hole(c, size):
+        z, y = c
+        if z < -3.0:                      # handguard slots, gaps around the gas block
+            return True
+        if z > 19.4:                      # stock plate holes
+            return True
+        return abs(z - 5.4) < 0.3 and abs(y + 3.2) < 0.3 or (abs(z - 6.4) < 0.3 and abs(y + 2.4) < 0.3)   # trigger guard opening, grip gap
 
-    def sb(bone, mat, x0, x1, Y0, Y1, hw, c=0.5):
-        """Side-profile block: image x range -> z, image Y range -> y, symmetric half width."""
-        m.rbox(bone, mat, -hw, Yy(Y1), Z(x1), hw, Yy(Y0), Z(x0), c=c)
+    sil = Traced.load(SIL, res=0.03, keep=real_hole)
 
-    # ---------------------------------------------------------------- barrel, collar, gas cylinder, slotted birdcage, front sight
-    m.bar("barrel", "steel", 0, 0, Z(1260), Z(640), 0.5, fine=True)
-    m.bar("barrel", "black", 0, 0, Z(1385), Z(1255), 0.68, fine=True)                         # birdcage
-    for zz in (Z(1300), Z(1335)):
-        for sx in (-1, 1):
-            m.cube("barrel", "steel", sx * 0.69 - 0.05, -0.18, zz - 0.5, sx * 0.69 + 0.05, 0.18, zz + 0.9)
-        m.cube("barrel", "steel", -0.18, 0.67, zz - 0.5, 0.18, 0.74, zz + 0.9)
-        m.cube("barrel", "steel", -0.18, -0.74, zz - 0.5, 0.18, -0.67, zz + 0.9)
-    m.cube("barrel", "black", -0.3, -0.3, Z(1385) - 0.03, 0.3, 0.3, Z(1385) + 0.05)
-    sb("barrel", "steel", 1042, 1100, 150, 190, 0.85, c=0.35)                               # gas lock / collar
-    m.bar("barrel", "steel", 0, -1.0, Z(1150), Z(1060), 0.3)                                 # gas cylinder nose
-    sb("barrel", "black", 1268, 1300, 160, 182, 0.7, c=0.25)                                 # front sight base
+    def side(vol, mat, hw, r, z0, z1, y0, y1, k=0.0):
+        vol.add(Clip(Ext(sil, "zy", -hw, hw, r=r), z0=z0, z1=z1, y0=y0, y1=y1), mat=mat, k=k)
+
+    # ------------------------------------------------------------------ chassis: handguard, grip, buffer tube, stock, magazine well
+    ch = m.mesh("chassis", "rifle", (0, 0, 0), tris=11500)
+    alu, blk, poly = mid("alu"), mid("black"), mid("poly")
+    side(ch, alu, 1.45, 0.6, -21.7, -3.5, -3.05, 1.12)            # slotted handguard body
+    side(ch, alu, 0.55, 0.08, -21.7, -3.5, 1.05, 1.45)            # top Picatinny rail (teeth come from the traced outline)
+    side(ch, alu, 1.2, 0.3, -3.6, 6.9, -3.2, 1.0)                 # receiver shoulders / magwell
+    side(ch, poly, 0.98, 0.4, 6.5, 11.9, -9.0, -2.6)              # pistol grip
+    side(ch, alu, 0.42, 0.1, 3.7, 6.8, -5.0, -2.8)                # trigger guard
+    side(ch, alu, 0.8, 0.2, 3.9, 17.8, -2.9, -0.15)               # stock adapter + rail block
+    side(ch, alu, 1.3, 0.45, 17.6, 21.6, -7.4, -0.3)              # perforated side plates
+    side(ch, mid("rubber"), 1.38, 0.7, 21.2, 23.7, -7.4, -0.3)    # butt pad
+    side(ch, alu, 1.38, 0.45, 12.6, 21.4, -0.3, 1.4)              # cheek riser
+    ch.add(cylz(0, -1.9, 4.2, 18.4, 0.62, rr=0.15), mat=alu)      # buffer tube
+    for zz in (13.1, 15.9):                                       # riser posts
+        ch.add(box(-0.95, 0.95, -0.6, 0.1, zz, zz + 0.5, r=0.1), mat=alu)
+    ch.paint(box(-1.3, 1.3, -6.9, -2.9, 7.6, 10.7), "black")      # grip texture panel
+    # ------------------------------------------------------------------ receiver + rear aperture sight
+    rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=3600)
+    gm = mid("gunmetal")
+    side(rc, gm, 1.1, 0.3, -3.7, 6.7, -3.0, 1.02)
+    rc.add(box(-0.95, 0.95, 0.9, 1.5, 2.0, 5.9, r=0.1), mat=gm)                   # sight base
+    rc.add(Cyl((0.0, 1.55, 4.35), (0.0, 1.55, 4.35), 0.0), mat=gm) if False else None
+    rc.add(cylz(0, 1.75, 3.9, 4.9, 0.5, rr=0.12), mat=gm)                          # aperture housing
+    rc.sub(cylz(0, 1.75, 3.7, 5.1, 0.24))                                           # aperture
     for sx in (-1, 1):
-        m.cube("barrel", "black", sx * 0.62 - 0.1, 0.5, Z(1298), sx * 0.62 + 0.1, 1.95, Z(1270))   # hood ears
-    m.cube("barrel", "black", -0.14, 0.5, Z(1294), 0.14, 1.75, Z(1278))                      # post
-    # ---------------------------------------------------------------- chassis: smooth rear shell, slotted front handguard, rails
-    sb("chassis", "poly", 640, 872, 152, 236, 1.78, c=0.95)                                  # solid upper/lower shell
-    sb("chassis", "poly", 872, 1040, 176, 236, 1.78, c=0.8)                                  # lower block
-    for i in range(4):                                                                       # oval cut-outs through the upper walls
-        x0 = 905 + i * 35
-        m.cube("chassis", "black", -1.84, Yy(172), Z(x0 + 26), -1.7, Yy(158), Z(x0))
-        m.cube("chassis", "black", 1.7, Yy(172), Z(x0 + 26), 1.84, Yy(158), Z(x0))
-    for sx in (-1, 1):                                                                       # thin upper side walls between slots
-        m.cube("chassis", "poly", sx * 1.75 - 0.08, Yy(176), Z(1040), sx * 1.75 + 0.08, Yy(152), Z(872))
-    m.cube("chassis", "gunmetal", -0.65, Yy(152), Z(1040), 0.65, Yy(130), Z(640))            # top rail base
-    for zz in [Z(1040) + 0.8 * i for i in range(int((Z(640) - Z(1040)) / 0.8))]:
-        m.cube("chassis", "black", -0.68, Yy(140), zz, 0.68, Yy(132), zz + 0.42)               # rail teeth
-    m.cube("chassis", "gunmetal", -0.65, Yy(238), Z(1040), 0.65, Yy(236), Z(872))              # bottom rail
-    for zz in [Z(1036) + 0.8 * i for i in range(int((Z(872) - Z(1040)) / 0.8))]:
-        m.cube("chassis", "black", -0.68, Yy(246), zz, 0.68, Yy(238), zz + 0.42)
-    for sx in (-1, 1):                                                                       # side rails (lower)
-        for zz in [Z(1040) + 0.8 * i for i in range(int((Z(872) - Z(1040)) / 0.8))]:
-            m.cube("chassis", "black", sx * 1.78 - (0.3 if sx > 0 else 0), Yy(214), zz, sx * 1.78 + (0.3 if sx < 0 else 0), Yy(190), zz + 0.42)
-    # chassis body between receiver and handguard, magwell, rear adapter
-    sb("chassis", "poly", 440, 645, 196, 238, 1.4, c=0.6)
-    sb("chassis", "poly", 385, 445, 184, 228, 1.2, c=0.5)                                    # rear receiver adapter
-    m.bar("chassis", "steel", 0, Yy(214), Z(440), Z(100), 0.5, fine=True)                    # telescoping stock tube
-    for zz in (Z(330), Z(350)):
-        m.cube("chassis", "black", -0.62, Yy(214) + 0.4, zz - 0.3, 0.62, Yy(214) + 0.6, zz + 0.3)  # sling button pads
-    # stock: perforated side plates, big buttplate, floating cheek riser
+        rc.add(Cyl((sx * 0.85, 1.15, 4.7), (sx * 1.45, 1.15, 4.7), 0.52, rr=0.1), mat=gm)   # windage / elevation knobs
+        rc.paint(Cyl((sx * 1.3, 1.15, 4.7), (sx * 1.5, 1.15, 4.7), 0.3), "black")
+    rc.add(box(-0.5, 0.5, 1.2, 2.0, 2.4, 3.6, r=0.1), mat=gm)                      # sight cover
+    rc.sub(box(-1.4, -1.0, -2.6, -0.4, -2.6, 3.0))                                  # ejection port groove (right side)
+    # ------------------------------------------------------------------ barrel, birdcage flash hider, gas cylinder, front sight
+    ba = m.mesh("barrel", "rifle", (0, 0, 0), tris=2800)
+    stl = mid("gunmetal")
+    ba.add(cylz(0, 0, -36.3, -21.0, 0.45, rr=0.05), mat=mid("steel"))
+    ba.add(cylz(0, 0, -36.6, -32.5, 0.6, rr=0.08), mat=stl)                         # slotted birdcage
+    ba.sub(cylz(0, 0, -36.8, -33.0, 0.34))
+    for ang in (0, 90):
+        ba.sub(Box((0, 0, -34.7), (0.9, 0.09, 1.55), 0.03, rot=[("z", ang)]))
+    ba.add(box(-0.55, 0.55, -0.4, 0.65, -32.5, -31.3, r=0.1), mat=stl)              # sight base
     for sx in (-1, 1):
-        m.cube("chassis", "poly", sx * 1.2 - 0.12, Yy(305), Z(118), sx * 1.2 + 0.12, Yy(198), Z(62))
-        for i in range(6):
-            m.cube("chassis", "black", sx * 1.2 - 0.14, Yy(215 + i * 14) - 0.2, Z(100), sx * 1.2 + 0.14, Yy(215 + i * 14) + 0.2, Z(76))
-    m.rbox("chassis", "poly", -1.3, Yy(345), Z(62), 1.3, Yy(195), Z(18), c=0.7)               # buttplate
-    m.rbox("chassis", "rubber", -1.3, Yy(340), Z(30), 1.3, Yy(200), Z(18), c=0.6)
-    for i in range(5):
-        m.cube("chassis", "black", -1.28, Yy(215 + i * 25), Z(60), 1.28, Yy(212 + i * 25), Z(40))
-    for sx in (-1, 1):
-        m.cube("chassis", "poly", sx * 1.0 - 0.15, Yy(196), Z(112), sx * 1.0 + 0.15, Yy(148), Z(72))   # riser posts
-    m.slope("chassis", "poly", -1.35, 1.35, Yy(160), Yy(143), Z(252), Z(62), -3)              # cheek riser plate
-    m.slope("chassis", "black", -1.2, 1.2, Yy(147), Yy(143), Z(240), Z(80), -3)
-    # pistol grip: angular, rear-raked, textured panels
-    m.slope("chassis", "poly", -0.98, 0.98, -8.7, -3.0, 7.6, 10.0, 23)
-    m.slope("chassis", "rubber", -1.0, 1.0, -8.3, -3.6, 7.9, 9.9, 23)
-    m.cube("chassis", "black", -0.99, -8.95, 9.0, 0.99, -8.7, 11.2)                      # heel cap
-    for i in range(5):                                                                    # diamond panel lines
-        m.slope("chassis", "black", -1.02, 1.02, -7.8 + i * 0.9, -7.65 + i * 0.9, 8.0, 9.7, 23)
-    # trigger guard + trigger
-    m.cube("receiver", "steel", -0.25, Yy(270), Z(446), 0.25, Yy(262), Z(398))
-    m.cube("receiver", "steel", -0.25, Yy(270), Z(446), 0.25, Yy(215), Z(438))
-    m.cube("receiver", "steel", -0.25, Yy(270), Z(400), 0.25, Yy(240), Z(392))
-    m.slope("receiver", "black", -0.2, 0.2, Yy(262), Yy(215), Z(436), Z(422), -12)
-    # ---------------------------------------------------------------- receiver group
-    sb("receiver", "steel", 380, 645, 152, 205, 1.1, c=0.35)
-    m.cube("receiver", "black", -1.12, Yy(185), Z(618), -0.4, Yy(150), Z(520))               # ejection port
-    m.cube("receiver", "gunmetal", -1.14, Yy(185), Z(522), -1.04, Yy(150), Z(518))
-    m.cube("receiver", "gunmetal", -1.14, Yy(185), Z(620), -1.04, Yy(150), Z(616))
-    m.cube("receiver", "gunmetal", -0.62, Yy(152), Z(645), 0.62, Yy(130), Z(396))            # rail over the receiver (scope base)
-    for zz in [Z(645) + 0.8 * i for i in range(int((Z(396) - Z(645)) / 0.8))]:
-        m.cube("receiver", "black", -0.65, Yy(140), zz, 0.65, Yy(132), zz + 0.42)
-    # M14 rear aperture sight (ghost ring with windage knobs), under the scope
-    m.rbox("receiver", "steel", -0.95, Yy(152), Z(490), 0.95, Yy(140), Z(425), c=0.2)
-    m.cube("receiver", "black", -0.75, 0.9, Z(470), -0.45, 1.5, Z(440))
-    m.cube("receiver", "black", 0.45, 0.9, Z(470), 0.75, 1.5, Z(440))
-    m.cube("receiver", "gunmetal", -1.3, 0.8, Z(458), -0.95, 1.2, Z(442))
-    m.cube("receiver", "gunmetal", 0.95, 0.8, Z(458), 1.3, 1.2, Z(442))
+        ba.add(box(sx * 0.5 - 0.09, sx * 0.5 + 0.09, 0.5, 2.0, -32.3, -31.6, r=0.05), mat=stl)   # hood ears
+    ba.add(box(-0.1, 0.1, 0.5, 1.8, -32.1, -31.8, r=0.03), mat=stl)                 # post
+    ba.add(box(-0.5, 0.5, -1.1, 0.6, -25.1, -23.4, r=0.15), mat=stl)                # gas lock / clamp
+    ba.add(cylz(0, -0.9, -27.3, -23.3, 0.34, rr=0.06), mat=stl)                     # gas cylinder nose
+    # ------------------------------------------------------------------ 20-round magazine (own bone so it can drop)
+    mg = m.mesh("magazine", "rifle", (0, -3.0, -0.95), tris=1400)
+    mg.add(Clip(Ext(sil, "zy", -0.93, 0.93, r=0.12), z0=-3.2, z1=1.1, y0=-8.3, y1=-2.95), mat=mid("steel"))
+    mg.paint(box(-1.2, 1.2, -6.2, -5.9, -3.2, 1.1), "black")
+    mg.paint(box(-1.2, 1.2, -4.5, -4.3, -3.2, 1.1), "black")
+
     m.bone("bolt", "rifle", (0, 0, 0))
-    m.cube("bolt", "stainless", -1.0, -0.3, Z(612), -0.9, 0.55, Z(540))
-    m.cube("bolt", "steel", -0.88, 0.0, Z(540), 0.88, 0.6, Z(470))
-    m.cube("bolt", "steel", -1.95, -0.6, Z(1030), -1.3, -0.1, Z(660))                       # op rod
+    m.cube("bolt", "steel", -1.0, -0.3, -2.9, -0.9, 0.55, -0.7)
+    m.cube("bolt", "steel", -0.88, 0.0, -0.7, 0.88, 0.6, 1.5)
+    m.cube("bolt", "steel", -1.95, -0.6, -22.0, -1.3, -0.1, -4.0)                    # op rod
     m.bone("bolt_handle", "bolt", (-1.1, 0.3, -1.0))
     m.cube("bolt_handle", "steel", -2.0, -0.15, -1.5, -0.9, 0.65, -0.5)
     m.cube("bolt_handle", "steel", -2.6, -0.5, -1.9, -1.9, 1.0, -0.1)
     m.cube("bolt_handle", "black", -2.9, -0.6, -2.0, -2.55, 1.1, 0.0)
     m.hand_bolt("bolt_handle", -2.7, 0.3, -1.0)
-
-    # ---------------------------------------------------------------- compact scope on the rail (axis 3.3 above bore; eyepiece at z=4)
-    m.cube("scope", "gunmetal", -0.9, 1.4, -11.4, 0.9, 2.2, -4.2)                            # mount base
-    m.rbox("scope", "scope", -1.2, 1.9, -11.0, 1.2, 4.9, -9.8, c=0.4)                        # rings
-    m.rbox("scope", "scope", -1.2, 1.9, -6.0, 1.2, 4.9, -4.8, c=0.4)
-    m.bar("scope", "scope", 0, 3.3, -13.0, 0.5, 1.05, fine=True)                             # main tube
-    m.bar("scope", "scope", 0, 3.3, -16.6, -13.0, 1.6, fine=True)                            # objective bell
-    m.bar("scope", "scope", 0, 3.3, 0.5, 4.0, 1.3, fine=True)                                # eyepiece
-    m.cube("scope", "lens", -1.45, 1.85, -16.64, 1.45, 4.75, -16.6)
-    m.cube("scope", "lens", -0.95, 2.35, 3.98, 0.95, 4.25, 4.02)
-    m.rbox("scope", "scope", -0.55, 4.3, -8.4, 0.55, 5.3, -7.2, c=0.15)                      # elevation turret
-    m.cube("scope", "stainless", -0.4, 5.3, -8.2, 0.4, 5.6, -7.4)
-    m.rbox("scope", "scope", -1.9, 2.8, -8.4, -1.0, 3.8, -7.2, c=0.15)                       # windage turret
-    m.cube("scope", "stainless", -0.9, 2.7, 0.0, 0.9, 3.9, 0.4)                              # power ring
-
-    # ---------------------------------------------------------------- 20-round box magazine
-    m.bone("magazine", "rifle", (0, -3.0, -0.95))
-    m.rbox("magazine", "black", -0.98, Yy(358), Z(620), 0.98, Yy(228), Z(530), c=0.1)
-    m.cube("magazine", "steel", -1.02, Yy(362), Z(624), 1.02, Yy(352), Z(526))               # floorplate
-    m.cube("magazine", "steel", -1.0, Yy(300), Z(612), 1.0, Yy(296), Z(538))                 # witness rib
-    m.cube("magazine", "steel", -1.0, Yy(270), Z(612), 1.0, Yy(266), Z(538))
-    m.cube("magazine", "brass", -0.5, Yy(230), Z(612), 0.5, Yy(228), Z(540))
-
-    m.muzzle_flash(Z(1385) - 0.2, length=5.5, width=3.6)
+    m.muzzle_flash(-36.8, length=5.5, width=3.6)
     m.casing(-1.1, 0.5, -1.0)
     m.hand_left(-4.0, -14.5)
     m.hand_right(-6.0, 8.8, -3.6)
@@ -144,6 +97,6 @@ def build():
         release_mode="handle",
         fire_len=0.32, cycle=0.12, kick_z=2.8, kick_pitch=4.0, kick_yaw=0.8, flash=1.25,
         reload_len=2.3, charge_len=0.95, release_len=0.7, eject=(-1.1, 0.5, 0.9),
-        sight=(3.3, 4.0), butt=23.5,
+        sight=(SY, SZ), butt=23.6,
     )
     return m, cfg

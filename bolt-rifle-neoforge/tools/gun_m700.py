@@ -1,105 +1,81 @@
-"""Remington 700 (walnut stock, 4-16x scope, detachable box magazine). Animations: gen_m700_anim.py."""
-from gunlib import Model
+"""Remington 700 (black synthetic stock, one-piece rail base, no iron sights, no scope) - SDF mesh model.
+The side silhouette (stock, forend, comb, grip, butt, trigger guard with trigger, barrel line) is TRACED from the reference side view
+(tools/trace/m700_side.json, made with trace_side.py).  Widths (the photos only show the sides) are estimates for a real Model 700:
+forend 4.4 cm, wrist 3.6 cm, comb 3.8 cm, butt 4.4 cm.  Optics are mounted on the rail (see Guns.java mount()).
+Animations: gen_m700_anim.py."""
+import os
+from meshbake import MModel, mid
+from sdf import *
 
 ID = "bolt_rifle"
+SIL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trace", "m700_side.json")
+RAIL_TOP, RAIL_Z = 1.78, -0.2       # optic mount: top of the rail, centre of the rail along z
+RAIL_Z0, RAIL_Z1 = -5.0, 4.6
 
 
 def build():
-    m = Model(ID, seed=5)
-    m.bone("stock", "rifle", (0, 0, 0))
-    m.bone("barrel", "rifle", (0, 0, 0))
-    m.bone("receiver", "rifle", (0, 0, 0))
-    m.bone("scope", "rifle", (0, 4.6, -4))
-    m.bone("bolt", "rifle", (0, 0, 0))
-    m.bone("bolt_handle", "bolt", (0, 0, 5.0))
-    m.hand_bolt("bolt_handle", -4.4, -3.0, 4.8)
+    m = MModel(ID, lo=(-3.4, -9.0, -34.6), hi=(3.2, 3.0, 24.4), h=0.13, seed=5, tx=9)
+    sil = Traced.load(SIL, res=0.03, keep=lambda c, size: False)          # outer outline only (guard opening is built below)
+    full = Traced.load(SIL, res=0.03, keep=lambda c, size: abs(c[0] - 5.6) < 1.0 and abs(c[1] + 3.4) < 1.0)   # + trigger-guard opening
 
-    # ---------------------------------------------------------------- black synthetic stock (SPS profile)
-    m.rbox("stock", "synth", -1.3, -3.0, -23.2, 1.3, -0.5, -6.0, c=0.5)                   # forend
-    m.rbox("stock", "synth", -1.05, -2.7, -24.4, 1.05, -0.9, -23.1, c=0.4)                 # forend tip
-    m.cube("stock", "black", -1.1, -3.0, -25.2, 1.1, -2.4, -24.3)                          # tip cap
-    m.cube("stock", "black", -1.1, -2.4, -24.6, 1.1, -0.6, -24.35)
-    m.rbox("stock", "synth", -1.35, -4.2, -6.0, 1.35, -1.0, 3.6, c=0.5)                    # action section (open behind the magazine for the trigger)
-    m.rbox("stock", "synth", -1.35, -1.9, 3.6, 1.35, -1.0, 7.6, c=0.3)                     # tang bridge above the trigger opening
-    m.cube("stock", "synth", -1.37, -1.4, -6.0, -1.3, -0.5, 3.4)                           # bedding walls
-    m.cube("stock", "synth", 1.3, -1.4, -6.0, 1.37, -0.5, 3.4)
-    m.rbox("stock", "synth", -1.2, -6.7, 7.4, 1.2, -1.0, 11.6, c=0.6)                      # wrist / pistol grip (compact, full-bodied)
-    m.cube("stock", "black", -1.22, -6.9, 7.6, 1.22, -6.65, 11.4)                           # grip cap
-    for i in range(14):                                                                    # buttstock: rising comb, dropped heel
-        z = 9.6 + i * 0.92
-        top = -1.15 + min(i, 5) * 0.05 - max(0, i - 9) * 0.12
-        bot = -5.6 - i * 0.2
-        m.cube("stock", "synth", -1.15 - i * 0.004, bot, z, 1.15 + i * 0.004, top, z + 0.94, flat=True)
-    m.rbox("stock", "rubber", -1.25, -7.9, 22.4, 1.25, 0.6, 23.4, c=0.3)                  # recoil pad
-    m.cube("stock", "stainless", -0.2, -3.7, -16.4, 0.2, -3.0, -15.8)                      # sling stud
-    m.cube("stock", "stainless", -0.2, -6.2, 15.5, 0.2, -5.6, 16.1)
+    def side(vol, mat, hw, r, z0, z1, y0, y1, s=sil):
+        vol.add(Clip(Ext(s, "zy", -hw, hw, r=r), z0=z0, z1=z1, y0=y0, y1=y1), mat=mat, k=0.25)
 
-    # ---------------------------------------------------------------- barrel
-    m.bar("barrel", "steel", 0, 0, -26.0, -6.0, 0.8, fine=True)
-    m.bar("barrel", "steel", 0, 0, -33.0, -26.0, 0.62, fine=True)
-    m.bar("barrel", "black", 0, 0, -33.6, -32.9, 0.82, fine=True)                          # recessed crown / thread cap
-    m.cube("barrel", "black", -0.3, -0.3, -33.62, 0.3, 0.3, -33.5)
-    m.cube("barrel", "steel", -0.95, -0.95, -6.6, 0.95, 0.95, -5.8)                        # recoil lug
-
-    # ---------------------------------------------------------------- receiver
-    m.bar("receiver", "steel", 0, 0, -6.0, 7.0, 1.2, fine=True)
-    m.cube("receiver", "black", -1.25, 0.0, -3.4, -1.05, 1.0, 3.4)                         # ejection port (right)
-    m.cube("receiver", "steel", -1.3, -0.5, 4.2, -1.1, 0.4, 5.6)                           # bolt release
-    m.slope("receiver", "steel", -1.7, -1.1, -0.1, 0.8, 5.0, 6.6, -10)                      # safety lever
-    m.cube("receiver", "black", -0.55, 1.0, -5.6, 0.55, 1.45, 6.6)                         # Picatinny rail base
-    for z in [-5.3 + 0.8 * i for i in range(15)]:
-        m.cube("receiver", "black", -0.6, 1.4, z, 0.6, 1.65, z + 0.42)                     # rail teeth
-    m.rbox("receiver", "steel", -0.9, -5.1, 3.8, 0.9, -4.5, 8.6, c=0.2)                    # trigger guard
-    m.cube("receiver", "steel", -0.25, -5.1, 3.8, 0.25, -3.4, 4.35)
-    m.cube("receiver", "steel", -0.25, -5.1, 8.0, 0.25, -3.4, 8.6)
-    m.cube("receiver", "stainless", -0.3, -4.7, 5.35, 0.3, -2.0, 6.0)                      # trigger blade
-    m.cube("receiver", "stainless", -0.3, -4.7, 4.95, 0.3, -4.2, 6.0)                      # trigger shoe
-    m.cube("receiver", "gunmetal", -0.4, -2.2, 5.0, 0.4, -1.8, 6.3)                         # trigger housing
-    m.cube("receiver", "gunmetal", -1.0, -4.5, -3.6, 1.0, -3.9, 3.8)                       # floor-plate housing
-
-    # ---------------------------------------------------------------- scope (4-16x), eyepiece ends at z = 8
-    m.rbox("scope", "scope", -1.25, 1.4, -12.2, 1.25, 5.7, -10.6, c=0.4)                     # rings
-    m.rbox("scope", "scope", -1.25, 1.4, -2.8, 1.25, 5.7, -1.2, c=0.4)
-    m.cube("scope", "stainless", -0.2, 3.4, -11.9, 0.2, 3.7, -10.9)
-    m.bar("scope", "scope", 0, 4.6, -13.0, 3.5, 0.98, fine=True)                            # main tube
-    m.bar("scope", "scope", 0, 4.6, -18.2, -13.0, 1.5, fine=True)                           # objective bell
-    m.bar("scope", "scope", 0, 4.6, 3.5, 8.0, 1.3, fine=True)                               # eyepiece
-    m.cube("scope", "lens", -1.45, 3.15, -18.24, 1.45, 6.05, -18.2)
-    m.cube("scope", "lens", -0.95, 3.65, 7.98, 0.95, 5.55, 8.02)
-    m.rbox("scope", "scope", -0.55, 5.6, -8.4, 0.55, 6.5, -7.2, c=0.15)                     # elevation turret
-    m.cube("scope", "stainless", -0.4, 6.5, -8.2, 0.4, 6.8, -7.4)
-    m.rbox("scope", "scope", -2.0, 4.1, -8.4, -0.95, 5.1, -7.2, c=0.15)                     # windage turret
-    m.cube("scope", "stainless", -2.3, 4.2, -8.1, -2.0, 5.0, -7.5)
-    m.rbox("scope", "scope", -0.55, 4.0, -5.4, 0.55, 5.0, -4.0, c=0.15)                     # parallax knob
-    m.cube("scope", "stainless", -1.4, 4.0, -13.15, 1.4, 5.2, -13.0)                         # step ring
-    m.cube("scope", "stainless", -1.35, 4.1, 3.2, 1.35, 5.1, 3.6)                            # power ring
-    m.cube("scope", "black", -1.5, 3.2, -18.5, 1.5, 6.0, -18.2)                              # sunshade stub
-
-    # ---------------------------------------------------------------- bolt + bolt handle
-    m.cube("bolt", "stainless", -1.25, -0.4, -2.4, -1.2, 0.8, 3.0)                          # bolt body seen in the port
-    m.cube("bolt", "stainless", 1.2, -0.4, -2.4, 1.25, 0.8, 3.0)
-    m.bar("bolt", "black", 0, 0.1, 7.0, 12.0, 0.95, fine=True)                              # bolt shroud
-    m.cube("bolt", "stainless", -0.45, -0.35, 12.0, 0.45, 0.55, 13.4)                        # cocking piece
-    m.cube("bolt", "steel", -0.3, 0.5, 8.4, 0.3, 1.2, 9.0)                                   # cocking indicator
-    m.cube("bolt_handle", "steel", -3.2, -0.45, 4.4, -0.9, 0.35, 5.4)                        # stem
-    m.rbox("bolt_handle", "steel", -3.7, -2.4, 4.5, -2.9, 0.1, 5.3, c=0.15)                  # swept-down section
-    m.rbox("bolt_handle", "black", -5.0, -4.1, 4.0, -3.0, -2.1, 5.8, c=0.5)                  # knob
-
-    # ---------------------------------------------------------------- detachable box magazine
-    m.bone("magazine", "rifle", (0, -1.8, 0.5))
-    m.rbox("magazine", "black", -1.0, -10.2, -1.9, 1.0, -1.4, 2.9, c=0.3)
-    m.cube("magazine", "stainless", -1.05, -10.7, -2.0, 1.05, -10.2, 3.0)                    # floor plate
-    m.cube("magazine", "steel", -1.05, -8.0, -1.95, 1.05, -7.85, 2.95)
-    m.cube("magazine", "steel", -1.05, -5.4, -1.95, 1.05, -5.25, 2.95)
-    m.cube("magazine", "brass", -0.5, -1.7, -0.9, 0.5, -1.4, 1.9)                            # top round
-
-    # ---------------------------------------------------------------- muzzle flash, spent case, chambering round
-    m.muzzle_flash(-33.8)
+    syn, blu, rub, stl = mid("synth"), mid("bluing"), mid("rubber"), mid("steel")
+    # ------------------------------------------------------------------ stock + trigger guard
+    st = m.mesh("stock", "rifle", (0, 0, 0), tris=7500)
+    side(st, syn, 1.12, 0.55, -15.2, -5.0, -3.0, 0.10)                   # forend (the barrel sits in the channel)
+    side(st, syn, 1.18, 0.45, -5.2, 3.7, -2.6, 0.35)                      # action section
+    side(st, syn, 1.10, 0.45, 3.5, 7.4, -2.6, 0.9)                        # tang bridge above the trigger opening
+    side(st, syn, 0.92, 0.45, 7.2, 12.0, -9.0, 1.0)                       # wrist / pistol grip
+    side(st, syn, 0.98, 0.5, 11.8, 18.0, -9.0, 1.0)                       # comb and buttstock
+    side(st, syn, 1.10, 0.55, 17.8, 22.4, -9.0, 1.0)                      # buttstock rear
+    side(st, rub, 1.12, 0.5, 22.3, 23.4, -9.0, 1.0)                       # recoil pad
+    st.add(Clip(Ext(full, "zy", -0.3, 0.3, r=0.1), z0=4.2, z1=7.5, y0=-4.9, y1=-2.3), mat=blu, k=0.1)   # trigger guard + trigger
+    for z, y in ((-13.6, -1.95), (20.5, -7.1)):                            # sling studs
+        st.add(Cyl((0, y, z), (0, y - 0.55, z), 0.18), mat=stl)
+    # ------------------------------------------------------------------ receiver, rail base
+    rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=4200)
+    rc.add(cylz(0, 0, -5.2, 6.0, 1.08, rr=0.05), mat=blu)                 # receiver
+    rc.add(cylz(0, 0, -6.1, -5.1, 0.98), mat=blu)                         # barrel shoulder
+    rc.add(box(-1.0, 1.0, -1.7, -0.8, -5.3, -4.0, r=0.12), mat=blu)       # recoil lug
+    rc.add(box(-0.62, 0.62, 0.95, RAIL_TOP - 0.28, RAIL_Z0, RAIL_Z1, r=0.06), mat=blu)    # rail base plate
+    z = RAIL_Z0 + 0.15
+    while z + 0.5 < RAIL_Z1 - 0.1:                                        # rail teeth
+        rc.add(box(-0.62, 0.62, RAIL_TOP - 0.3, RAIL_TOP, z, z + 0.5, r=0.03), mat=blu)
+        z += 0.8
+    for z in (-4.2, -1.4, 2.0, 4.0):                                      # base screws
+        rc.add(Cyl((-0.62, 1.3, z), (-0.72, 1.3, z), 0.14), mat=stl)
+    rc.sub(box(-1.5, 1.5, 0.78, 1.18, -1.3, 2.6, r=0.15))                 # ejection port opening / slot under the rail
+    rc.sub(box(-1.5, -0.3, 0.1, 1.2, -3.3, 3.2, r=0.15))                  # ejection port (right side)
+    rc.add(box(-0.35, 0.35, 0.75, 1.25, 5.3, 6.2, r=0.1), mat=stl)        # safety lever
+    # ------------------------------------------------------------------ barrel (sporter taper), recessed crown
+    ba = m.mesh("barrel", "rifle", (0, 0, 0), tris=2600)
+    ba.add(Cyl((0, 0, -33.7), (0, 0, -17.0), 0.58, 0.60), mat=blu)
+    ba.add(Cyl((0, 0, -17.0), (0, 0, -5.0), 0.60, 0.95), mat=blu)
+    ba.sub(cylz(0, 0, -33.8, -33.2, 0.25))                                # crown recess / bore
+    # ------------------------------------------------------------------ bolt: body shows in the port, rear shroud sticks out behind the receiver
+    bo = m.mesh("bolt", "rifle", (0, 0, 0), tris=1800)
+    bo.add(cylz(0, 0.1, -3.2, 3.6, 0.70), mat=stl)                        # bolt body
+    bo.add(cylz(0, 0.25, 3.6, 6.9, 0.64, rr=0.08), mat=blu)               # bolt shroud
+    bo.add(cylz(0, 0.25, 6.7, 7.1, 0.34), mat=stl)                        # cocking piece
+    bo.add(cylz(0, 0.55, -1.0, -0.4, 0.2), mat=stl)
+    # ------------------------------------------------------------------ bolt handle (right side): stem, swept-down arm, ball knob
+    bh = m.mesh("bolt_handle", "bolt", (0, 0, 5.0), tris=900)
+    bh.add(Cyl((-0.9, 0.1, 4.1), (-1.9, -0.1, 4.2), 0.26), mat=stl)       # stem out of the bolt
+    bh.add(Cyl((-1.9, -0.1, 4.2), (-2.5, -0.95, 4.4), 0.24), mat=stl)     # arm swept down
+    bh.add(Ell((-2.6, -1.2, 4.5), (0.5, 0.5, 0.5)), mat=mid("black"))     # ball knob
+    m.hand_bolt("bolt_handle", -2.6, -1.2, 4.5)
+    # ------------------------------------------------------------------ magazine (floor plate flush with the stock; drops away on reload)
+    mg = m.mesh("magazine", "rifle", (0, -2.0, 0.5), tris=500)
+    mg.add(box(-0.85, 0.85, -2.45, -1.0, -1.7, 3.3, r=0.08), mat=mid("black"))
+    mg.add(box(-0.9, 0.9, -2.6, -2.4, -1.8, 3.4, r=0.05), mat=blu)       # floor plate
+    # ------------------------------------------------------------------ muzzle flash, spent case, chambering round
+    m.muzzle_flash(-33.9)
     m.casing(-1.5, 0.4, 0.5)
     m.bone("chamber_round", "rifle", (0, 0.4, -3))
     m.bar("chamber_round", "brass", 0, 0.5, -3.2, 0.4, 0.45)
     m.cube("chamber_round", "brass", -0.3, 0.2, -4.4, 0.3, 0.8, -3.2)
-
     m.hand_left(-3.8, -14.0)
     m.hand_right(-4.3, 8.6, -3.3)
     return m, None
