@@ -14,35 +14,47 @@ RAIL_TOP, RAIL_Z = 1.38, -9.0   # optic mount on the top rail
 
 
 def build():
-    m = MModel(ID, lo=(-3.2, -9.6, -38.0), hi=(3.2, 3.2, 24.8), h=0.14, seed=31, tx=9)
+    m = MModel(ID, lo=(-3.2, -9.6, -38.0), hi=(3.2, 3.2, 24.8), h=0.10, seed=31, tx=9)
     def real_hole(c, size):
         z, y = c
+        if min(size) < 0.25 or max(size) / min(size) > 3.2 and z > 12:   # sub-voxel slivers / thin gaps would fragment
+            return False
         if z < -3.0:                      # handguard slots, gaps around the gas block
             return True
-        if z > 19.4:                      # stock plate holes
-            return True
+        if z > 19.4:                      # stock plate holes (the 6+2 round lightening holes), not edge noise
+            return y > -5.6
         return abs(z - 5.4) < 0.3 and abs(y + 3.2) < 0.3 or (abs(z - 6.4) < 0.3 and abs(y + 2.4) < 0.3)   # trigger guard opening, grip gap
 
-    sil = Traced.load(SIL, res=0.03, keep=real_hole)
+    sil = Traced.load(SIL, res=0.025, keep=real_hole, smooth=0.07)
 
     def side(vol, mat, hw, r, z0, z1, y0, y1, k=0.0):
         vol.add(Clip(Ext(sil, "zy", -hw, hw, r=r), z0=z0, z1=z1, y0=y0, y1=y1), mat=mat, k=k)
 
     # ------------------------------------------------------------------ chassis: handguard, grip, buffer tube, stock, magazine well
-    ch = m.mesh("chassis", "rifle", (0, 0, 0), tris=11500)
+    ch = m.mesh("chassis", "rifle", (0, 0, 0), tris=19000)
     alu, blk, poly = mid("alu"), mid("black"), mid("poly")
-    side(ch, alu, 1.45, 0.6, -21.7, -3.5, -3.05, 1.12)            # slotted handguard body
-    side(ch, alu, 0.55, 0.08, -21.7, -3.5, 1.05, 1.45)            # top Picatinny rail (teeth come from the traced outline)
+    side(ch, alu, 1.45, 0.45, -21.7, -3.5, -2.62, 1.12)           # slotted handguard body (slots come from the traced outline)
+    side(ch, alu, 0.55, 0.05, -21.7, -3.5, 1.05, 1.45)            # top Picatinny rail (teeth come from the traced outline)
+    ch.add(box(-0.5, 0.5, -3.0, -2.5, -21.3, -3.9, r=0.06), mat=alu)   # bottom rail strip
+    z = -21.0
+    while z < -4.3:
+        ch.sub(box(-0.6, 0.6, -3.1, -2.82, z, z + 0.22))               # its notches
+        z += 0.46
+    z = -21.2
+    while z < -14.2:                                              # side rail ribs between the two slot rows (both sides)
+        ch.add(box(-1.72, 1.72, -1.32, -0.4, z, z + 0.26, r=0.05), mat=alu)
+        z += 0.46
     side(ch, alu, 1.2, 0.3, -3.6, 6.9, -3.2, 1.0)                 # receiver shoulders / magwell
     side(ch, poly, 0.98, 0.4, 6.5, 11.9, -9.0, -2.6)              # pistol grip
     side(ch, alu, 0.42, 0.1, 3.7, 6.8, -5.0, -2.8)                # trigger guard
-    side(ch, alu, 0.8, 0.2, 3.9, 17.8, -2.9, -0.15)               # stock adapter + rail block
+    side(ch, alu, 0.8, 0.2, 3.9, 9.5, -2.9, -0.15)                # stock adapter + rail block
     side(ch, alu, 1.3, 0.45, 17.6, 21.6, -7.4, -0.3)              # perforated side plates
     side(ch, mid("rubber"), 1.38, 0.7, 21.2, 23.7, -7.4, -0.3)    # butt pad
-    side(ch, alu, 1.38, 0.45, 12.6, 21.4, -0.3, 1.4)              # cheek riser
-    ch.add(cylz(0, -1.9, 4.2, 18.4, 0.62, rr=0.15), mat=alu)      # buffer tube
-    for zz in (13.1, 15.9):                                       # riser posts
-        ch.add(box(-0.95, 0.95, -0.6, 0.1, zz, zz + 0.5, r=0.1), mat=alu)
+    side(ch, poly, 1.2, 0.45, 13.2, 21.5, -0.12, 1.12)            # cheek riser slab (photo: rear post only, front end overhangs)
+    ch.add(box(-0.7, 0.7, -1.4, -0.05, 20.7, 21.6, r=0.08), mat=alu)   # its rear post, standing on the side-plate top
+    ch.add(cylz(0, -2.1, 4.2, 19.0, 0.40, rr=0.1), mat=alu)       # buffer tube
+    ch.add(cylz(0, -2.1, 16.6, 19.0, 0.48, rr=0.1), mat=alu)      # tube collar
+    ch.add(Ell((-0.62, -2.1, 19.8), (0.3, 0.42, 0.95)), mat=alu)  # oval adjustment lever
     ch.paint(box(-1.3, 1.3, -6.9, -2.9, 7.6, 10.7), "black")      # grip texture panel
     # ------------------------------------------------------------------ receiver + rear aperture sight
     rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=3600)
