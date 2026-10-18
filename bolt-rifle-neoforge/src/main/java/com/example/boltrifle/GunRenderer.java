@@ -77,6 +77,9 @@ public class GunRenderer extends GeoItemRenderer<GunItem> {
 								  MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
 								  int packedLight, int packedOverlay, int colour) {
 		ItemStack stack = getCurrentItemStack();
+		if (stack != null && bone.getName().startsWith("irons_") && def.optic != null && Attachment.optic(stack) != null) {
+			return;                                       // rail iron sights come off while an optic is mounted
+		}
 		if (stack != null && bone.getName().equals("muzzle_flash")) {
 			Attachment m = Attachment.muzzle(stack);
 			if (m != null && m.hidesFlash) {

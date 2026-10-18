@@ -228,6 +228,21 @@ class Loft:
         return np.sqrt(np.maximum(dxy, 0) ** 2 + np.maximum(dz, 0) ** 2) + np.minimum(np.maximum(dxy, dz), 0)
 
 
+class Isect:
+    """Intersection of two primitives."""
+
+    def __init__(self, a, b):
+        self.a, self.b = a, b
+
+    def bounds(self):
+        la, ha = self.a.bounds()
+        lb, hb = self.b.bounds()
+        return np.maximum(la, lb), np.minimum(ha, hb)
+
+    def d(self, X, Y, Z):
+        return np.maximum(self.a.d(X, Y, Z), self.b.d(X, Y, Z))
+
+
 class Clip:
     """Limit a primitive to a window in z / y / x (lets different parts of one traced outline have different widths)."""
 
@@ -253,13 +268,33 @@ class Traced:
     """A silhouette traced from a reference photo (tools/trace_side.py JSON) as a Sil with its holes."""
 
     @staticmethod
-    def load(path, res=0.03, min_area=60, keep=None):
+    def _smooth(pts, sigma, step=0.02):
+        """Gaussian-smooth a closed contour (arc-length sigma in model px) to remove pixel noise from the trace."""
+        if sigma <= 0 or len(pts) < 8:
+            return pts
+        p = np.asarray(pts, float)
+        q = np.vstack([p, p[:1]])
+        seg = np.linalg.norm(np.diff(q, axis=0), axis=1)
+        L = np.concatenate([[0], np.cumsum(seg)])
+        n = max(int(L[-1] / step), 16)
+        t = np.linspace(0, L[-1], n, endpoint=False)
+        u = np.interp(t, L, q[:, 0])
+        v = np.interp(t, L, q[:, 1])
+        u = ndimage.gaussian_filter1d(u, sigma / step, mode="wrap")
+        v = ndimage.gaussian_filter1d(v, sigma / step, mode="wrap")
+        return np.stack([u, v], 1).astype(np.float32)
+
+    @staticmethod
+    def load(path, res=0.03, min_area=60, keep=None, smooth=0.0):
         import json
         data = json.load(open(path))
         outers = [(np.array(c["pts"], np.float32), c) for c in data if not c["hole"] and c["area"] >= min_area]
         holes = [np.array(c["pts"], np.float32) for c in data if c["hole"]]
         if keep is not None:      # drop dark-but-not-see-through patches the tracer mistook for holes
             holes = [h for h in holes if keep(h.mean(0), np.ptp(h, axis=0))]
+        if smooth > 0:
+            outers = [(Traced._smooth(pts, smooth), c) for pts, c in outers]
+            holes = [Traced._smooth(h, smooth * 0.6) for h in holes]
         polys = []
         for pts, c in outers:
             hs = []

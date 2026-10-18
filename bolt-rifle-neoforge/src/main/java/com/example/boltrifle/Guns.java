@@ -104,7 +104,7 @@ public final class Guns {
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
 		hold(d, 22.4, 0.5);
-		aim(d, 2.0, 1.0, 0.30, 0.05);                  // no iron sights: looks along the rail
+		aim(d, 2.75, 4.1, 0.30, 0.12);                 // rail-mounted ghost-ring rear sight / blade front sight
 		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.cues = new Cue[][]{

@@ -4,8 +4,8 @@ from animlib import Anim, write, SMOOTH, SNAP, FALL, STEP, ZERO, ONE
 
 RES = sys.argv[1]
 HIDDEN = ("bolt_hand", "casing", "chamber_round", "muzzle_flash")
-LIFT = 75.0       # bolt handle rotation (+Z lifts the right-hand handle)
-BACK = 7.5        # bolt travel in px
+LIFT = -75.0      # bolt handle rotation: the handle sits at +x (shooter's right in game), so a negative Z rotation lifts it
+BACK = 5.6        # bolt travel in px
 anims = []
 
 

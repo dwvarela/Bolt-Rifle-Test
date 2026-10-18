@@ -182,14 +182,14 @@ def shade(matid, P, N, ao, wear, rng):
         nn = noise[sel]
         if kind in ("metal", "bright"):
             fine = vnoise(px * 6, py * 6, pz * 1.3, 3)
-            c = c * (1 + 0.05 * nn + 0.22 * (fine - 0.5))
+            c = c * (1 + 0.025 * nn + 0.14 * (fine - 0.5))
             bare = np.array([150, 150, 154]) if kind == "metal" else np.array([200, 202, 206])
             w = wear[sel][:, None]
-            c = c * (1 - 0.8 * w) + bare * 0.8 * w * (0.7 + 0.3 * vnoise(px * 10, py * 10, pz * 10, 5))
+            c = c * (1 - 0.45 * w) + bare * 0.45 * w * (0.7 + 0.3 * vnoise(px * 10, py * 10, pz * 10, 5))
         elif kind == "poly":
-            fine = vnoise(px * 9, py * 9, pz * 9, 8)
-            c = c * (1 + 0.055 * nn + 0.16 * (fine - 0.5))
-            c = c * (1 + 0.5 * wear[sel][:, None] * 0.6)
+            fine = vnoise(px * 3, py * 3, pz * 3, 8)
+            c = c * (1 + 0.012 * nn + 0.05 * (fine - 0.5))
+            c = c * (1 + 0.12 * wear[sel][:, None])
         elif kind == "rubber":
             c = c * (1 + 0.06 * nn + 0.2 * (vnoise(px * 7, py * 7, pz * 7, 4) - 0.5))
         elif kind == "wood":
@@ -320,12 +320,21 @@ def extract_mesh(vol, target_tris):
     d = vol.d
     if not (d < 0).any():
         return None
-    verts, faces, _, _ = measure.marching_cubes(d, level=0.0, spacing=(vol.h,) * 3)
+    lab, n = ndimage.label(d < 0, structure=np.ones((3, 3, 3)))        # drop floating specks (tracing noise), keep every real part
+    if n > 1:
+        sizes = ndimage.sum(np.ones_like(lab), lab, index=np.arange(1, n + 1))
+        small = np.isin(lab, 1 + np.where(sizes < 150)[0])
+        if small.any():
+            print("   removed %d floating specks" % int((sizes < 150).sum()), end="")
+            d = d.copy()
+            d[small] = vol.h
+            vol.d = d
+    verts, faces, _, _ = measure.marching_cubes(d, level=1e-4, spacing=(vol.h,) * 3)   # tiny offset: no exact-zero samples -> no sliver triangles to drop (dropping them left holes)
     verts = verts + vol.lo
     # drop degenerate triangles
     a, b, c = verts[faces[:, 0]], verts[faces[:, 1]], verts[faces[:, 2]]
     keep = np.linalg.norm(np.cross(b - a, c - a), axis=1) > 1e-10
-    faces = faces[keep]
+    print("   (%d zero-area tris kept)" % int((~keep).sum()), end="")
     print("   marching cubes: %d tris" % len(faces), end="")
     verts, faces = decimate(verts, faces, target_tris)
     print(" -> %d tris" % len(faces))
