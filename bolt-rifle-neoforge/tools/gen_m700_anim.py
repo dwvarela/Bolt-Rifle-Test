@@ -21,6 +21,14 @@ def bolt_cycle(a, lift0, lift1, back1, hold1, fwd1, down1):
     a.pos("bolt", hold1, [0, 0, BACK]).pos("bolt", fwd1, ZERO)
 
 
+def feed_round(a, t_in, t_up, t_push, t_seat, t_out):
+    """A cartridge rises out of the magazine into the open action (visible through the port), then rides forward into the chamber."""
+    a.show("chamber_round", t_in, t_out)
+    a.pos("chamber_round", t_in, [0, -2.2, 1.4]).pos("chamber_round", t_up, [0, -0.5, 1.4])
+    a.pos("chamber_round", t_push, [0, -0.5, 1.4]).pos("chamber_round", t_seat, [0, -0.5, -2.4])
+    a.pos("chamber_round", t_out, [0, -0.5, -2.4])
+
+
 # ---- idle: slow breathing, never perfectly still ----
 a = Anim("idle", 4.0, loop=True, hidden=HIDDEN)
 a.pos("rifle", 0.0, ZERO).pos("rifle", 2.0, [0, 0.08, 0.05]).pos("rifle", 4.0, ZERO)
@@ -41,6 +49,7 @@ a.rot("rifle", 0.0, ZERO).rot("rifle", 0.04, [-6.0, 0, 0.8], SNAP).rot("rifle", 
 a.rot("rifle", 0.6, [-0.4, 0, 0]).rot("rifle", 1.45, ZERO)
 bolt_cycle(a, lift0=0.5, lift1=0.72, back1=0.93, hold1=1.02, fwd1=1.18, down1=1.38)
 a.hand_swap(0.5, 1.4)
+feed_round(a, 0.97, 1.08, 1.2, 1.38, 1.42)
 a.show("casing", 0.9, 1.32)
 a.pos("casing", 0.9, ZERO, SNAP).pos("casing", 0.98, [0, 3.4, 2.6]).pos("casing", 1.08, [0, 4.4, 4.2], SMOOTH)
 a.pos("casing", 1.3, [0, -3.2, 8.0], FALL)
@@ -77,10 +86,9 @@ anims.append(a)
 a = Anim("reload_chamber", 4.0, hidden=HIDDEN)
 reload_mag(a)
 a.pos("rifle", 4.0, ZERO).rot("rifle", 4.0, ZERO).pos("left_hand", 4.0, ZERO).pos("magazine", 4.0, ZERO)
-bolt_cycle(a, lift0=2.92, lift1=3.1, back1=3.3, hold1=3.4, fwd1=3.58, down1=3.76)
-a.hand_swap(2.92, 3.8)
-a.show("chamber_round", 3.3, 3.6)
-a.pos("chamber_round", 3.28, [0, -1.2, 4.0]).pos("chamber_round", 3.38, [0, 0.0, 4.0]).pos("chamber_round", 3.58, [0, 0.0, -1.8])
+bolt_cycle(a, lift0=2.92, lift1=3.06, back1=3.2, hold1=3.56, fwd1=3.7, down1=3.84)
+a.hand_swap(2.92, 3.86)
+feed_round(a, 3.26, 3.4, 3.58, 3.74, 3.8)
 anims.append(a)
 
 write(RES, "bolt_rifle", "animation.bolt_rifle.", anims)

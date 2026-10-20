@@ -1,4 +1,13 @@
 {
+ "shot_heavy": {
+  "sounds": [
+   {
+    "name": "boltrifle:shot_heavy",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.shot_heavy"
+ },
  "shot": {
   "sounds": [
    {

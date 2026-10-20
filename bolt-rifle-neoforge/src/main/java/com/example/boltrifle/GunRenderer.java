@@ -95,7 +95,7 @@ public class GunRenderer extends GeoItemRenderer<GunItem> {
 				Attachment optic = Attachment.optic(stack), muzzle = Attachment.muzzle(stack);
 				double k = def.pxPerM / 100.0;
 				boolean firstPerson = this.renderPerspective == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND || this.renderPerspective == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
-				boolean lookingThrough = firstPerson && ClientEvents.aimProgress(partialTick) > 0.55f;      // the optic body must never block the view while aiming
+				boolean lookingThrough = firstPerson && optic != null && optic.mask && ClientEvents.aimProgress(partialTick) > 0.55f;      // magnified scopes are replaced by the on-screen scope view; red dots and holos stay visible (open window)
 				if (optic != null && def.optic != null && !lookingThrough) {
 					drawAttachment(optic, 0, def.optic[0], def.optic[1], k, poseStack, animatable, bufferSource, partialTick, packedLight, packedOverlay);
 				}

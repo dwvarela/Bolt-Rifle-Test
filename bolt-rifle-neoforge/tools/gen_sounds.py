@@ -49,9 +49,19 @@ def place(buf, snd, at):
     buf[i:j] += snd[: j - i]
 
 
+def compress(x, target=0.55, win=0.015):
+    """Heavy upward compression: lifts every part of the sound (tail included) to a similar high level."""
+    w = max(1, int(win * SR))
+    e = np.sqrt(np.convolve(x * x, np.ones(w) / w, mode="same")) + 1e-4
+    g = np.clip((target / e) ** 0.85, 0.0, 14.0)
+    g = np.convolve(g, np.ones(w) / w, mode="same")
+    return x * g
+
+
 def drive(x, k=2.4):
-    x = np.tanh(k * x) / np.tanh(k)
-    return x / max(1e-9, np.max(np.abs(x))) * 0.97
+    x = compress(x)
+    x = np.tanh(k * 2.2 * x)                 # saturate hard: dense, very loud waveform (as loud as digital audio can get)
+    return x / max(1e-9, np.max(np.abs(x))) * 0.99
 
 
 def reverb(x, taps):
@@ -62,16 +72,16 @@ def reverb(x, taps):
     return y
 
 
-def shot(low=1.0, length=1.3, crack=1.0):
-    n = length
-    b = np.zeros(int(n * SR))
-    place(b, hp(noise(0.12), 900) * env(0.12, 0.012) * 1.3 * crack, 0.0)          # supersonic crack
-    place(b, lp(noise(0.5), 1800) * env(0.5, 0.09) * 1.0, 0.0)                    # muzzle blast
-    f = 150 * low * np.exp(-t(0.45) / 0.10) + 40 * low
-    place(b, np.sin(2 * np.pi * np.cumsum(f) / SR) * env(0.45, 0.13) * 1.4, 0.0)  # body thump
-    place(b, lp(noise(1.2), 700) * env(1.2, 0.33) * 0.55, 0.02)                   # rolling tail
-    b = reverb(b, [(0.043, 0.35), (0.091, 0.25), (0.167, 0.15)])
-    return drive(b, 2.6)
+def shot(low=1.0, length=1.5, crack=1.0, body=1.0):
+    b = np.zeros(int(length * SR))
+    place(b, bp(noise(0.14), 1500, 9000) * env(0.14, 0.010) * 1.6 * crack, 0.0)                 # sharp supersonic crack
+    place(b, bp(noise(0.40), 300, 3500) * env(0.40, 0.10) * 1.4 * body, 0.0)                    # blast body (mid band: what the ear is most sensitive to)
+    f = 260 * low * np.exp(-t(0.55) / 0.07) + 55 * low
+    place(b, np.sin(2 * np.pi * np.cumsum(f) / SR) * env(0.55, 0.16) * 1.8, 0.0)                # chest-thump sweep
+    place(b, np.sin(2 * np.pi * 38 * low * t(0.9)) * env(0.9, 0.30) * 1.2, 0.0)                 # sub boom
+    place(b, lp(noise(1.4), 900) * env(1.4, 0.40) * 0.8, 0.03)                                  # rolling tail
+    b = reverb(b, [(0.037, 0.45), (0.083, 0.35), (0.151, 0.28), (0.233, 0.2), (0.35, 0.12)])    # reflections
+    return drive(b, 3.0)
 
 
 def clack(freq, dur=0.06, amp=1.0, grit=0.6):
@@ -88,8 +98,9 @@ def mix(parts, length):
 
 
 sounds = {
-    "shot": shot(1.0, 1.3, 1.0),
-    "shot_light": shot(1.6, 0.8, 1.2),
+    "shot_heavy": shot(0.8, 1.7, 1.0, 1.2),
+    "shot": shot(1.0, 1.4, 1.1, 1.0),
+    "shot_light": shot(1.5, 0.9, 1.3, 0.8),
     "click": mix([(clack(2600, 0.04, 1.0), 0.0), (clack(2000, 0.05, 0.8), 0.07)], 0.2),
     "click_dry": mix([(clack(1900, 0.05, 1.0), 0.0)], 0.12),
     "bolt_open": mix([(bp(noise(0.12), 800, 5000) * env(0.12, 0.05) * 0.7, 0.0), (clack(900, 0.09, 1.0), 0.1), (clack(1500, 0.05, 0.6), 0.16)], 0.35),

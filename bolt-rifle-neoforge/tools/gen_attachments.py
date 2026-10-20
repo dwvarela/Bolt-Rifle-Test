@@ -35,8 +35,8 @@ def red_dot():
     b.add(Cyl((0.9, ax, 0.4), (2.4, ax, 0.4), 0.55, rr=0.12), mat=mid("gunmetal"))                  # windage cap
     b.sub(cylz(0, ax, -4.5, -3.3, 1.5))
     b.sub(cylz(0, ax, 3.4, 4.5, 1.58))
-    b.add(cylz(0, ax, -3.5, -3.4, 1.5), mat=mid("lens"))                                             # glass
-    b.add(cylz(0, ax, 3.55, 3.65, 1.58), mat=mid("lens"))
+    pass   # open window: no glass disc, so the optic is see-through
+    pass   # open window: no glass disc, so the optic is see-through
     b.paint(box(-0.5, 0.5, ax + 1.2, ax + 2.6, -3.0, 0.2), "steel")
     return m
 
@@ -50,8 +50,8 @@ def holo():
     b.add(box(-2.45, 2.45, 5.9, 7.0, -4.6, 3.8, r=0.5), mat=mid("black"), k=0.3)                     # battery / roof hump
     b.sub(box(-2.3, 2.3, ax - 1.75, ax + 1.75, 0.4, 6.4))                                            # rear window opening
     b.sub(box(-2.3, 2.3, ax - 1.75, ax + 1.75, -6.2, -3.9))                                          # front window opening
-    b.add(box(-2.28, 2.28, ax - 1.7, ax + 1.7, 0.3, 0.42), mat=mid("lens"))                          # inner glass
-    b.add(box(-2.28, 2.28, ax - 1.7, ax + 1.7, -5.0, -4.88), mat=mid("lens"))
+    pass   # open window: no glass disc, so the optic is see-through
+    pass   # open window: no glass disc, so the optic is see-through
     for sx in (-1, 1):
         b.add(Cyl((sx * 2.8, 2.6, -1.2), (sx * 3.3, 2.6, -1.2), 0.55, rr=0.1), mat=mid("gunmetal"))   # brightness knobs
         b.add(box(sx * 2.9 - 0.12, sx * 2.9 + 0.12, 4.9, 5.7, 1.2, 3.1, r=0.05), mat=mid("gunmetal"))
@@ -73,7 +73,7 @@ def acog():
     b.add(cylz(0, ax, -9.0, -5.4, 2.42, rr=0.35), mat=mid("black"), k=0.15)                         # objective
     b.add(cylz(0, ax, -9.05, -8.3, 2.5, rr=0.3), mat=mid("rubber"))                                  # lens cap ring
     b.sub(cylz(0, ax, -9.2, -8.2, 2.05))
-    b.add(cylz(0, ax, -8.4, -8.3, 2.05), mat=mid("lens"))
+    pass   # open window: no glass disc, so the optic is see-through
     b.add(box(-0.85, 0.85, ax + 1.5, ax + 2.9, -5.2, 2.2, r=0.35), mat=mid("black"), k=0.2)         # fibre housing
     b.sub(box(-0.45, 0.45, ax + 2.2, ax + 3.2, -4.6, 1.6))                                           # fibre slot
     b.add(box(-0.7, 0.7, ax + 1.9, ax + 3.3, 2.2, 3.4, r=0.15), mat=mid("black"))                    # rear V housing
@@ -93,7 +93,7 @@ def scope():
     b.add(Cyl((0, ax, -8.0), (0, ax, -12.6), 1.6, 2.5, rr=0.3), mat=mid("black"), k=0.2)            # objective bell
     b.add(cylz(0, ax, -12.8, -12.2, 2.62, rr=0.3), mat=mid("steel"))
     b.sub(cylz(0, ax, -13.2, -11.8, 2.2))
-    b.add(cylz(0, ax, -12.0, -11.9, 2.2), mat=mid("lens"))
+    pass   # open window: no glass disc, so the optic is see-through
     b.add(Cyl((0, ax, 8.0), (0, ax, 12.4), 1.6, 2.15, rr=0.3), mat=mid("black"), k=0.2)             # eyepiece
     b.add(cylz(0, ax, 11.4, 12.9, 2.2, rr=0.35), mat=mid("rubber"))
     b.add(cylz(0, ax, 8.6, 11.4, 2.2, rr=0.2), mat=mid("black"))                                     # power ring

@@ -59,6 +59,7 @@ def build():
     for z in (-4.2, -1.4, 2.0, 4.0):                                      # base screws
         rc.add(Cyl((-0.62, 1.3, z), (-0.72, 1.3, z), 0.14), mat=stl)
     rc.sub(box(-1.5, 1.5, 0.78, 1.18, -1.3, 2.6, r=0.15))                 # ejection port opening / slot under the rail
+    rc.sub(cylz(0, 0.0, -3.3, 3.9, 0.80))                                   # hollow action: the bolt rides in it and the cartridge is visible through the port
     rc.sub(box(-1.5, -0.3, 0.1, 1.2, -3.3, 3.2, r=0.15))                 # ejection port (right side of the rifle = -x in the model file)
     rc.add(box(-0.95, -0.55, 0.0, 0.55, 4.0, 4.9, r=0.1), mat=stl)       # safety lever, right rear of the receiver
     # ------------------------------------------------------------------ barrel (sporter taper), recessed crown
