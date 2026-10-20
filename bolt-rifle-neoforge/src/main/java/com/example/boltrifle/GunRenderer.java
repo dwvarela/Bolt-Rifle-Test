@@ -94,7 +94,9 @@ public class GunRenderer extends GeoItemRenderer<GunItem> {
 				RenderUtil.prepMatrixForBone(poseStack, bone);      // attachments follow the gun's own recoil animation
 				Attachment optic = Attachment.optic(stack), muzzle = Attachment.muzzle(stack);
 				double k = def.pxPerM / 100.0;
-				if (optic != null && def.optic != null) {
+				boolean firstPerson = this.renderPerspective == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND || this.renderPerspective == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+				boolean lookingThrough = firstPerson && ClientEvents.aimProgress(partialTick) > 0.55f;      // the optic body must never block the view while aiming
+				if (optic != null && def.optic != null && !lookingThrough) {
 					drawAttachment(optic, 0, def.optic[0], def.optic[1], k, poseStack, animatable, bufferSource, partialTick, packedLight, packedOverlay);
 				}
 				if (muzzle != null) {

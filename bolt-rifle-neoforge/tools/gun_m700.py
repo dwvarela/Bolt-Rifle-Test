@@ -57,10 +57,10 @@ def build():
         rc.add(box(-0.62, 0.62, RAIL_TOP - 0.3, RAIL_TOP, z, z + 0.5, r=0.03), mat=blu)
         z += 0.8
     for z in (-4.2, -1.4, 2.0, 4.0):                                      # base screws
-        rc.add(Cyl((0.62, 1.3, z), (0.72, 1.3, z), 0.14), mat=stl)
+        rc.add(Cyl((-0.62, 1.3, z), (-0.72, 1.3, z), 0.14), mat=stl)
     rc.sub(box(-1.5, 1.5, 0.78, 1.18, -1.3, 2.6, r=0.15))                 # ejection port opening / slot under the rail
-    rc.sub(box(0.3, 1.5, 0.1, 1.2, -3.3, 3.2, r=0.15))                  # ejection port (right side)
-    rc.add(box(0.55, 0.95, 0.0, 0.55, 4.0, 4.9, r=0.1), mat=stl)         # safety lever, right rear of the receiver
+    rc.sub(box(-1.5, -0.3, 0.1, 1.2, -3.3, 3.2, r=0.15))                 # ejection port (right side of the rifle = -x in the model file)
+    rc.add(box(-0.95, -0.55, 0.0, 0.55, 4.0, 4.9, r=0.1), mat=stl)       # safety lever, right rear of the receiver
     # ------------------------------------------------------------------ barrel (sporter taper), recessed crown
     ba = m.mesh("barrel", "rifle", (0, 0, 0), tris=2600)
     ba.add(Cyl((0, 0, -33.7), (0, 0, -17.0), 0.58, 0.60), mat=blu)
@@ -75,10 +75,10 @@ def build():
     bo.add(cylz(0, 0.5, -1.0, -0.4, 0.2), mat=stl)
     # ------------------------------------------------------------------ bolt handle (right side): stem, swept-down arm, ball knob
     bh = m.mesh("bolt_handle", "bolt", (0, 0, 5.0), tris=900)
-    bh.add(Cyl((0.9, 0.1, 4.1), (1.9, -0.1, 4.2), 0.26), mat=stl)       # stem out of the bolt
-    bh.add(Cyl((1.9, -0.1, 4.2), (2.5, -0.95, 4.4), 0.24), mat=stl)     # arm swept down
-    bh.add(Ell((2.6, -1.2, 4.5), (0.5, 0.5, 0.5)), mat=mid("black"))     # ball knob
-    m.hand_bolt("bolt_handle", 2.6, -1.2, 4.5, side=1)
+    bh.add(Cyl((-0.9, 0.1, 4.1), (-1.9, -0.1, 4.2), 0.26), mat=stl)       # stem out of the bolt
+    bh.add(Cyl((-1.9, -0.1, 4.2), (-2.5, -0.95, 4.4), 0.24), mat=stl)     # arm swept down
+    bh.add(Ell((-2.6, -1.2, 4.5), (0.5, 0.5, 0.5)), mat=mid("black"))     # ball knob
+    m.hand_bolt("bolt_handle", -2.6, -1.2, 4.5, side=-1)
     # ------------------------------------------------------------------ magazine (floor plate flush with the stock; drops away on reload)
     mg = m.mesh("magazine", "rifle", (0, -2.0, 0.5), tris=500)
     mg.add(box(-0.85, 0.85, -2.45, -1.0, -1.7, 3.3, r=0.08), mat=mid("black"))
@@ -87,21 +87,20 @@ def build():
     # rear ghost-ring sight at the very back of the rail, blade front sight at the very front (Optics-2 reference set)
     cy = 2.75
     m.bone("irons_rear", "rifle", (0, 0, 0))
-    m.cube("irons_rear", "black", -0.70, 1.15, 3.3, 0.70, 2.12, 4.6)                       # base
-    m.cube("irons_rear", "steel", 0.62, 1.15, 3.3, 0.70, 1.78, 4.6)
-    m.cube("irons_rear", "black", -0.14, 2.12, 3.95, 0.14, 2.35, 4.35)                       # stem
-    for i in range(8):                                                                      # aperture ring (octagon)
-        m.cube("irons_rear", "black", -0.17, cy + 0.27, 3.85, 0.17, cy + 0.45, 4.35, rot=[0, 0, i * 45], pivot=[0, cy, 4.1])
-    m.cube("irons_rear", "steel", -0.5, 2.0, 3.4, -0.3, 2.14, 3.6)                          # screw heads
-    m.cube("irons_rear", "steel", 0.3, 2.0, 3.4, 0.5, 2.14, 3.6)
+    m.cube("irons_rear", "black", -0.55, 1.70, 3.4, 0.55, 2.10, 4.6)                        # low saddle base on the rail
+    m.cube("irons_rear", "black", -0.12, 2.10, 3.98, 0.12, 2.30, 4.22)                      # thin post
+    for i in range(8):                                                                      # thin aperture ring (octagon, ~0.1 wall)
+        m.cube("irons_rear", "black", -0.19, cy + 0.42, 3.98, 0.19, cy + 0.52, 4.22, rot=[0, 0, i * 45], pivot=[0, cy, 4.1])
+    m.cube("irons_rear", "steel", -0.42, 1.98, 3.5, -0.28, 2.12, 3.66)                      # windage screw heads
+    m.cube("irons_rear", "steel", 0.28, 1.98, 3.5, 0.42, 2.12, 3.66)
     m.bone("irons_front", "rifle", (0, 0, 0))
-    m.cube("irons_front", "black", -0.70, 1.15, -5.0, 0.70, 2.0, -3.7)                      # base
-    m.cube("irons_front", "steel", 0.62, 1.15, -5.0, 0.70, 1.78, -3.7)
-    m.cube("irons_front", "black", -0.10, 2.0, -4.9, 0.10, 2.72, -4.5)                       # blade
-    m.cube("irons_front", "black", -0.10, 2.0, -4.5, 0.10, 2.3, -3.9)                        # blade ramp
+    m.cube("irons_front", "black", -0.55, 1.70, -5.0, 0.55, 1.95, -3.9)                     # low base
+    m.cube("irons_front", "black", -0.07, 1.95, -4.95, 0.07, 2.72, -4.75)                   # thin blade
+    m.cube("irons_front", "black", -0.07, 1.95, -4.75, 0.07, 2.42, -4.35)                   # ramp steps
+    m.cube("irons_front", "black", -0.07, 1.95, -4.35, 0.07, 2.12, -3.95)
     # ------------------------------------------------------------------ muzzle flash, spent case, chambering round
     m.muzzle_flash(-33.9)
-    m.casing(1.5, 0.4, 0.5)
+    m.casing(-1.5, 0.4, 0.5)
     m.bone("chamber_round", "rifle", (0, 0.4, -3))
     m.bar("chamber_round", "brass", 0, 0.5, -3.2, 0.4, 0.45)
     m.cube("chamber_round", "brass", -0.3, 0.2, -4.4, 0.3, 0.8, -3.2)

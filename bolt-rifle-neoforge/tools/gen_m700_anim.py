@@ -4,7 +4,7 @@ from animlib import Anim, write, SMOOTH, SNAP, FALL, STEP, ZERO, ONE
 
 RES = sys.argv[1]
 HIDDEN = ("bolt_hand", "casing", "chamber_round", "muzzle_flash")
-LIFT = -75.0      # bolt handle rotation: the handle sits at +x (shooter's right in game), so a negative Z rotation lifts it
+LIFT = 75.0       # handle sits at -x (shooter's right in game); +z rotation lifts it
 BACK = 5.6        # bolt travel in px
 anims = []
 
@@ -50,17 +50,18 @@ anims.append(a)
 
 def reload_mag(a):
     """Magazine swap: 0 -> 2.9 s."""
-    hand = [(0.0, [0, 0, 0]), (0.14, [3.4, -1.5, 4.0]), (0.3, [3.4, -2.5, 15.0]), (0.45, [0, -2.5, 15.0]), (0.62, [0, -3.6, 15.0]),
-            (0.95, [0, -13.0, 15.0]), (1.1, [0, -16.0, 15.0]), (1.36, [0, -16.0, 15.0]),
-            (1.65, [0, -13.5, 15.0]), (2.05, [0, -6.0, 15.0]), (2.22, [0, -2.5, 15.0]),
-            (2.5, [0, -2.5, 15.0]), (2.62, [3.4, -2.5, 12.0]), (2.78, [3.4, -1.0, 3.0]), (2.9, [0, 0, 0])]
+    # the support hand cups the magazine floor plate: its palm top sits flush under the plate (mag y + 0.7) the whole time it holds it
+    hand = [(0.0, [0, 0, 0]), (0.16, [3.0, -1.2, 5.0]), (0.32, [2.2, -1.6, 15.0]), (0.46, [0, 0.7, 15.0]),
+            (0.62, [0, -0.3, 15.0]), (0.95, [0, -9.8, 15.0]), (1.1, [0, -14.0, 15.0]), (1.36, [0, -14.0, 15.0]),
+            (1.65, [0, -10.8, 15.0]), (2.05, [0, -2.8, 15.0]), (2.22, [0, 0.9, 15.0]),
+            (2.4, [0, 0.7, 15.0]), (2.56, [2.4, -1.6, 13.0]), (2.74, [3.0, -1.0, 4.0]), (2.9, [0, 0, 0])]
     for t, v in hand:
         a.pos("left_hand", t, v)
     a.pos("magazine", 0.0, ZERO).pos("magazine", 0.45, ZERO).pos("magazine", 0.62, [0, -1.0, 0])
-    a.pos("magazine", 0.95, [0, -10.5, 0], FALL)
+    a.pos("magazine", 0.95, [0, -10.5, 0])
     a.show("magazine", 0.0).key("magazine", "scale", 0.96, ONE, STEP).key("magazine", "scale", 0.97, ZERO, STEP)
     a.key("magazine", "scale", 1.34, ZERO, STEP).key("magazine", "scale", 1.36, ONE, STEP)
-    a.pos("magazine", 1.36, [0, -13.5, 0]).pos("magazine", 1.65, [0, -11.0, 0]).pos("magazine", 2.05, [0, -3.5, 0])
+    a.pos("magazine", 1.36, [0, -14.7, 0]).pos("magazine", 1.65, [0, -11.5, 0]).pos("magazine", 2.05, [0, -3.5, 0])
     a.pos("magazine", 2.22, [0, 0.2, 0], SNAP).pos("magazine", 2.32, ZERO).pos("magazine", 2.9, ZERO)
     # weight shift and cant while the support hand is busy
     a.pos("rifle", 0.0, ZERO).pos("rifle", 0.35, [0, -0.4, 0.3]).pos("rifle", 2.4, [0, -0.4, 0.3]).pos("rifle", 2.9, ZERO)

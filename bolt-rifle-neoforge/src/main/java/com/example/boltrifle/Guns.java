@@ -82,8 +82,11 @@ public final class Guns {
 	private static void aim(GunDef d, double sy, double sz, double s, double relief) {
 		s *= SCALE;
 		d.aimSy = sy; d.aimSz = sz; d.aimS = s; d.aimRelief = relief;
-		d.ads = new GunDef.Xf(s, -0.71 + 0.5 * s, 0.86625 - 0.5 - s * (sy / 16 - 0.5),
-				0.87 - relief - 0.5 - s * (sz / 16 - 0.5), 0, 0, 0);
+		// First-person hand origin is (+0.56, -0.52, -0.72) in camera space and the model point q lands at hand + t + s*q.
+		// So x = -0.56 puts the bore axis exactly on the screen centre, y puts the sight line on it, and z holds the rear sight
+		// (0.215 + relief) blocks in front of the eye.
+		double dist = 0.215 + relief;
+		d.ads = new GunDef.Xf(s, -0.56, 0.52 - s * (sy / 16 + 0.01), 0.72 - dist - s * (sz / 16), 0, 0, 0);
 	}
 
 	/** Attachment mounting: model px per real metre, optic rail {top y, centre z} (null = none) and barrel tip z. */
@@ -103,8 +106,8 @@ public final class Guns {
 		d.spreadAds = 0.10f;
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
-		hold(d, 22.4, 0.5);
-		aim(d, 2.75, 4.1, 0.30, 0.12);                 // rail-mounted ghost-ring rear sight / blade front sight
+		hold(d, 22.4, 0.55);                           // drawn 10% larger than before
+		aim(d, 2.75, 4.1, 0.33, 0.10);                 // rail-mounted ghost-ring rear sight / blade front sight
 		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.cues = new Cue[][]{

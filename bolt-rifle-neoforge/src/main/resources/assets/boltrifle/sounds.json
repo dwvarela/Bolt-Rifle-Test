@@ -1,0 +1,92 @@
+{
+ "shot": {
+  "sounds": [
+   {
+    "name": "boltrifle:shot",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.shot"
+ },
+ "shot_light": {
+  "sounds": [
+   {
+    "name": "boltrifle:shot_light",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.shot_light"
+ },
+ "click": {
+  "sounds": [
+   {
+    "name": "boltrifle:click",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.click"
+ },
+ "click_dry": {
+  "sounds": [
+   {
+    "name": "boltrifle:click_dry",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.click_dry"
+ },
+ "bolt_open": {
+  "sounds": [
+   {
+    "name": "boltrifle:bolt_open",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.bolt_open"
+ },
+ "bolt_close": {
+  "sounds": [
+   {
+    "name": "boltrifle:bolt_close",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.bolt_close"
+ },
+ "mag_out": {
+  "sounds": [
+   {
+    "name": "boltrifle:mag_out",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.mag_out"
+ },
+ "mag_in": {
+  "sounds": [
+   {
+    "name": "boltrifle:mag_in",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.mag_in"
+ },
+ "rack": {
+  "sounds": [
+   {
+    "name": "boltrifle:rack",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.rack"
+ },
+ "shell": {
+  "sounds": [
+   {
+    "name": "boltrifle:shell",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.shell"
+ }
+}

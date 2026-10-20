@@ -38,5 +38,15 @@
   "item.boltrifle.scope": "1-6x Variable Scope",
   "item.boltrifle.flash_hider": "Flash Hider",
   "item.boltrifle.muzzle_brake": "Muzzle Brake",
-  "item.boltrifle.suppressor": "Suppressor"
+  "item.boltrifle.suppressor": "Suppressor",
+  "boltrifle.sound.shot": "Gunshot",
+  "boltrifle.sound.shot_light": "Gunshot",
+  "boltrifle.sound.click": "Click",
+  "boltrifle.sound.click_dry": "Dry click",
+  "boltrifle.sound.bolt_open": "Bolt opens",
+  "boltrifle.sound.bolt_close": "Bolt closes",
+  "boltrifle.sound.mag_out": "Magazine released",
+  "boltrifle.sound.mag_in": "Magazine inserted",
+  "boltrifle.sound.rack": "Action racked",
+  "boltrifle.sound.shell": "Casing lands"
 }

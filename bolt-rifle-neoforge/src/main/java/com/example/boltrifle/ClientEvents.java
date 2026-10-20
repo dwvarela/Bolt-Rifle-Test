@@ -284,6 +284,21 @@ public final class ClientEvents {
 		return true;
 	}
 
+	/** Vanilla walk bob and the hand-lag when turning swing a held rifle around a lot: while holding a gun they are mostly removed (fully while aiming). */
+	private static void calmViewmodel(LocalPlayer player, boolean holding) {
+		if (player == null || !holding) {
+			return;
+		}
+		float k = aim > 0.05f ? 0.0f : 0.2f;
+		player.bob *= k;
+		player.oBob *= k;
+		float lag = aim > 0.05f ? 0.0f : 0.15f;
+		player.xBob = player.getXRot() + (player.xBob - player.getXRot()) * lag;
+		player.yBob = player.getYRot() + (player.yBob - player.getYRot()) * lag;
+		player.xBobO = player.xBob;
+		player.yBobO = player.yBob;
+	}
+
 	/** Camera climbs fast then settles, and a third of the climb comes back down (like real muzzle recovery). */
 	private static void applyRecoil(LocalPlayer player) {
 		if (player == null) {

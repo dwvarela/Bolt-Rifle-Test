@@ -136,8 +136,25 @@ public class GunItem extends Item implements GeoItem {
 		triggerAnim(player, GeoItem.getOrAssignId(stack, level), CONTROLLER, anim);
 	}
 
+	/** Vanilla placeholder sounds used in the cue tables -> the loud custom gun sounds. */
+	private static SoundEvent custom(SoundEvent s) {
+		String n = s == SoundEvents.LEVER_CLICK ? "click"
+				: s == SoundEvents.DISPENSER_FAIL ? "click_dry"
+				: s == SoundEvents.IRON_TRAPDOOR_OPEN ? "bolt_open"
+				: s == SoundEvents.IRON_TRAPDOOR_CLOSE ? "bolt_close"
+				: s == SoundEvents.CROSSBOW_LOADING_START.value() ? "mag_out"
+				: s == SoundEvents.CROSSBOW_LOADING_MIDDLE.value() ? "mag_in"
+				: s == SoundEvents.CROSSBOW_LOADING_END.value() ? "rack"
+				: s == SoundEvents.AMETHYST_BLOCK_HIT ? "shell" : null;
+		return n == null ? s : BoltRifleMod.SND.get(n).get();
+	}
+
 	private static void play(Level level, Entity e, SoundEvent sound, float volume, float pitch) {
-		level.playSound(null, e.getX(), e.getY(), e.getZ(), sound, SoundSource.PLAYERS, volume,
+		SoundEvent c = custom(sound);
+		if (c != sound) {
+			volume = 1.0f;                       // custom handling sounds are mastered at full scale
+		}
+		level.playSound(null, e.getX(), e.getY(), e.getZ(), c, SoundSource.PLAYERS, volume,
 				Math.max(0.5f, Math.min(2.0f, pitch)));
 	}
 
@@ -295,9 +312,9 @@ public class GunItem extends Item implements GeoItem {
 
 		Attachment muzzle = Attachment.muzzle(stack);
 		float loud = def.boom * (muzzle == null ? 1.0f : muzzle.boom);
-		play(level, player, SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 3.0f * loud, 0.55f * def.boomPitch);
-		play(level, player, SoundEvents.FIREWORK_ROCKET_BLAST, 2.0f * loud, 0.5f * def.boomPitch);
-		play(level, player, SoundEvents.CROSSBOW_SHOOT, 1.0f * loud, 0.5f * def.boomPitch);
+		SoundEvent shotSound = BoltRifleMod.SND.get(def.boomPitch > 1.15f ? "shot_light" : "shot").get();
+		level.playSound(null, player.getX(), player.getY(), player.getZ(), shotSound, SoundSource.PLAYERS,
+				Math.min(1.0f, 3.0f * loud), Math.max(0.5f, Math.min(2.0f, def.boomPitch)));     // one loud full-scale shot sound
 		shoot(level, player, round, aiming, muzzle);
 		wear(player, stack, mismatch ? GunConfig.UNSAFE_WEAR.get() : 1);
 	}
