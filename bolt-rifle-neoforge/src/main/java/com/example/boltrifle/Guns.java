@@ -106,8 +106,8 @@ public final class Guns {
 		d.spreadAds = 0.10f;
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
-		hold(d, 22.4, 0.55);                           // drawn 10% larger than before
-		aim(d, 2.75, 4.1, 0.33, 0.10);                 // rail-mounted ghost-ring rear sight / blade front sight
+		hold(d, 22.4, 0.6325);                         // 15% larger again (0.55 -> 0.6325)
+		aim(d, 2.75, 4.1, 0.3795, 0.10);                 // rail-mounted ghost-ring rear sight / blade front sight
 		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.cues = new Cue[][]{
@@ -117,16 +117,16 @@ public final class Guns {
 						new Cue(19, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
 						new Cue(22, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
 						new Cue(28, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
-				{ // reload: release, mag out, mag in, seat
-						new Cue(9, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-						new Cue(19, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
-						new Cue(44, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
-						new Cue(46, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f)},
+				{ // reload: release click, mag out, new mag seated, floor-plate slap
+						new Cue(8, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
+						new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+						new Cue(37, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
+						new Cue(42, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f)},
 				{ // reload + chamber
-						new Cue(9, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-						new Cue(19, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
-						new Cue(44, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
-						new Cue(46, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f),
+						new Cue(8, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
+						new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+						new Cue(37, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
+						new Cue(42, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f),
 						new Cue(60, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
 						new Cue(64, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
 						new Cue(70, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),

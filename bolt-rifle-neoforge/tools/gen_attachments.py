@@ -33,6 +33,7 @@ def red_dot():
     b.add(box(-0.8, 0.8, ax + 1.2, ax + 2.1, -0.8, 1.6, r=0.3), mat=mid("black"), k=0.2)            # turret block
     b.add(Cyl((0, ax + 1.5, 0.4), (0, ax + 2.4, 0.4), 0.62, rr=0.12), mat=mid("gunmetal"))          # elevation cap
     b.add(Cyl((0.9, ax, 0.4), (2.4, ax, 0.4), 0.55, rr=0.12), mat=mid("gunmetal"))                  # windage cap
+    b.sub(cylz(0, ax, -4.6, 4.6, 1.38))                                                              # through-bore: you look straight through the tube
     b.sub(cylz(0, ax, -4.5, -3.3, 1.5))
     b.sub(cylz(0, ax, 3.4, 4.5, 1.58))
     pass   # open window: no glass disc, so the optic is see-through
@@ -48,6 +49,7 @@ def holo():
     clamp_rail(b, 0.0, 3.4, 1.0)
     b.add(box(-2.9, 2.9, 0.9, 6.5, -5.7, 5.7, r=0.9), mat=mid("black"), k=0.3)                       # housing
     b.add(box(-2.45, 2.45, 5.9, 7.0, -4.6, 3.8, r=0.5), mat=mid("black"), k=0.3)                     # battery / roof hump
+    b.sub(box(-2.3, 2.3, ax - 1.75, ax + 1.75, -6.4, 6.4))                                           # one open window straight through the housing
     b.sub(box(-2.3, 2.3, ax - 1.75, ax + 1.75, 0.4, 6.4))                                            # rear window opening
     b.sub(box(-2.3, 2.3, ax - 1.75, ax + 1.75, -6.2, -3.9))                                          # front window opening
     pass   # open window: no glass disc, so the optic is see-through

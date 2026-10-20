@@ -26,6 +26,15 @@
   ],
   "subtitle": "boltrifle.sound.shot_light"
  },
+ "shot_supp": {
+  "sounds": [
+   {
+    "name": "boltrifle:shot_supp",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.shot_supp"
+ },
  "click": {
   "sounds": [
    {

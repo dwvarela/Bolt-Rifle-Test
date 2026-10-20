@@ -149,14 +149,11 @@ public class GunItem extends Item implements GeoItem {
 		return n == null ? s : BoltRifleMod.SND.get(n).get();
 	}
 
-	/** Minecraft caps one sound at gain 1.0, so the sounds are mastered at full scale and a second copy is layered on top (heard range is also widened). */
+	/** The custom sounds are mastered loud and clean (one copy each, no stacking); a volume above 1 only carries them farther. */
 	private static void play(Level level, Entity e, SoundEvent sound, float volume, float pitch) {
 		SoundEvent c = custom(sound);
-		boolean mine = c != sound;
-		float vol = mine ? 3.0f : volume;             // gain stays clamped at 1.0, but a volume above 1 carries the sound much farther
-		for (int i = 0; i < (mine ? 2 : 1); i++) {
-			level.playSound(null, e.getX(), e.getY(), e.getZ(), c, SoundSource.PLAYERS, vol, Math.max(0.5f, Math.min(2.0f, pitch)));
-		}
+		float vol = c != sound ? 3.0f : volume;
+		level.playSound(null, e.getX(), e.getY(), e.getZ(), c, SoundSource.PLAYERS, vol, Math.max(0.5f, Math.min(2.0f, pitch)));
 	}
 
 	private static void hint(Player player, Component text) {
@@ -313,12 +310,9 @@ public class GunItem extends Item implements GeoItem {
 
 		Attachment muzzle = Attachment.muzzle(stack);
 		float loud = def.boom * (muzzle == null ? 1.0f : muzzle.boom);
-		SoundEvent shotSound = BoltRifleMod.SND.get(def.boomPitch < 1.07f ? "shot_heavy" : def.boomPitch < 1.2f ? "shot" : "shot_light").get();
-		boolean quiet = loud < 0.5f;                              // suppressed: stays quiet
-		float shotVol = quiet ? loud * 1.5f : Math.min(3.0f, 4.5f * loud);      // >1 = carries farther; gain itself is capped at 1 by the game
-		for (int i = 0; i < (quiet ? 1 : 3); i++) {              // three coherent layers of the full-scale sample
-			level.playSound(null, player.getX(), player.getY(), player.getZ(), shotSound, SoundSource.PLAYERS, shotVol, 1.0f);
-		}
+		boolean quiet = loud < 0.5f;                              // suppressed
+		SoundEvent shotSound = BoltRifleMod.SND.get(quiet ? "shot_supp" : def.boomPitch < 1.07f ? "shot_heavy" : def.boomPitch < 1.2f ? "shot" : "shot_light").get();
+		level.playSound(null, player.getX(), player.getY(), player.getZ(), shotSound, SoundSource.PLAYERS, quiet ? 1.0f : 3.0f, 1.0f);
 		shoot(level, player, round, aiming, muzzle);
 		wear(player, stack, mismatch ? GunConfig.UNSAFE_WEAR.get() : 1);
 	}
