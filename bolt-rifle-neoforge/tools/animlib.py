@@ -41,14 +41,13 @@ class Anim:
             self.key(bone, "scale", t1, ONE, SMOOTH).key(bone, "scale", t1 + fade, ZERO, SMOOTH)
         return self
 
-    def hand_swap(self, t_to_bolt, t_to_grip, fade=0.12):
-        """Grip hand eases out while the bolt hand eases in (and back)."""
-        self.key("right_hand", "scale", 0.0, ONE).key("right_hand", "scale", t_to_bolt - fade, ONE)
-        self.key("right_hand", "scale", t_to_bolt, ZERO).key("right_hand", "scale", t_to_grip, ZERO)
-        self.key("right_hand", "scale", t_to_grip + fade, ONE)
-        self.key("bolt_hand", "scale", 0.0, ZERO).key("bolt_hand", "scale", t_to_bolt - fade, ZERO)
-        self.key("bolt_hand", "scale", t_to_bolt, ONE).key("bolt_hand", "scale", t_to_grip, ONE)
-        self.key("bolt_hand", "scale", t_to_grip + fade, ZERO)
+    def hand_swap(self, t_to_bolt, t_to_grip, fade=0.0):
+        """Grip hand and bolt hand trade places instantly (STEP keys): a hand is never scaled, so it never visibly shrinks."""
+        e = 0.01                                             # a one-frame jump: nothing is ever visibly scaled
+        for bone, a0, a1 in (("right_hand", ONE, ZERO), ("bolt_hand", ZERO, ONE)):
+            self.key(bone, "scale", 0.0, a0, STEP)
+            self.key(bone, "scale", t_to_bolt - e, a0, STEP).key(bone, "scale", t_to_bolt, a1, STEP)
+            self.key(bone, "scale", t_to_grip - e, a1, STEP).key(bone, "scale", t_to_grip, a0, STEP)
         return self
 
     def to_json(self):

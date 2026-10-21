@@ -14,63 +14,123 @@ RAIL_Z0, RAIL_Z1 = -5.0, 4.6
 
 
 def cap(a, b, r0, r1=None):
-    """Rounded finger / limb segment."""
+    """Rounded limb segment."""
     r1 = r0 if r1 is None else r1
-    return Cyl(a, b, r0, r1, rr=min(r0, r1) * 0.95)
+    return Cyl(a, b, r0, r1, rr=min(r0, r1) * 0.97)
 
 
-def finger(h, pts, radii, mat, k=0.12):
-    for (a, b), (r0, r1) in zip(zip(pts, pts[1:]), zip(radii, radii[1:])):
-        h.add(cap(a, b, r0, r1), mat=mat, k=k)
-        h.add(Ell(b, (r1 * 1.08, r1 * 1.08, r1 * 1.08)), mat=mat, k=k)       # knuckle / joint
+def _rot(v, axis, deg):
+    import numpy as np
+    v, axis = np.array(v, float), np.array(axis, float)
+    axis = axis / np.linalg.norm(axis)
+    t = np.radians(deg)
+    return v * np.cos(t) + np.cross(axis, v) * np.sin(t) + axis * np.dot(axis, v) * (1 - np.cos(t))
 
 
-def sleeve(h, a, b, r_glove, r_sleeve, glove_len=0.45):
-    """Glove cuff and rolled olive sleeve running back along a -> b."""
+def digit(h, base, d0, bend_axis, curls, lens, radii, mat, k=0.4):
+    """A finger / thumb as three phalanges with anatomically sized lengths, bending about bend_axis by the cumulative curls (deg).
+    Radii taper from knuckle to tip; the segments blend smoothly (no ball joints)."""
+    import numpy as np
+    p = np.array(base, float)
+    ang = 0.0
+    pts = [p.copy()]
+    for c, L in zip(curls, lens):
+        ang += c
+        p = p + _rot(d0, bend_axis, ang) * L * 0.92
+        pts.append(p.copy())
+    for i in range(3):
+        h.add(cap(tuple(pts[i]), tuple(pts[i + 1]), radii[i], radii[i + 1]), mat=mat, k=k)
+    return pts
+
+
+def sleeve(h, a, b, r_glove, r_sleeve, glove_len=0.35):
+    """Glove cuff and a rolled olive sleeve running back along a -> b (the arm leaves the picture quickly)."""
     import numpy as np
     a, b = np.array(a, float), np.array(b, float)
     w = (b - a) / np.linalg.norm(b - a)
     c1 = a + w * glove_len * np.linalg.norm(b - a)
-    h.add(cap(a, c1, r_glove, r_glove * 1.12), mat=mid("glove"), k=0.15)
-    h.add(Cyl(c1 - w * 0.15, c1 + w * 0.2, r_glove * 1.2, rr=0.05), mat=mid("black"))             # cuff strap
-    h.add(Cyl(c1 + w * 0.25, b, r_sleeve, r_sleeve * 1.1, rr=0.12), mat=mid("olive"), k=0.1)     # sleeve
+    h.add(cap(a, c1, r_glove, r_glove * 1.08), mat=mid("glove"), k=0.2)
+    h.add(Cyl(c1 - w * 0.1, b, r_sleeve, r_sleeve * 1.06, rr=0.15), mat=mid("olive"), k=0.1)
+
+
+def glove(h, wrist, v, n, tdir, mat, curls, thumb_pts, sleeve_to, scale=1.0, index_curls=None, index_pts=None):
+    """A thin leather-style glove after the reference photos: flat palm slab with a thenar pad, four tapering fingers that touch side by
+    side (no gaps, no ball joints), a thumb that grows out of the thenar, a snug cuff and a sleeve.  Frame: v wrist->fingers, n out of the
+    palm, thumb on the +u side.  All sizes are one rigid hand (nothing is ever scaled while animating)."""
+    import numpy as np
+    W = np.array(wrist, float)
+    v = np.array(v, float); v /= np.linalg.norm(v)
+    n = np.array(n, float); n -= v * np.dot(n, v); n /= np.linalg.norm(n)
+    u = np.cross(v, n)
+    if np.dot(u, np.array(tdir, float)) < 0:
+        u = -u
+    S = scale
+
+    def P(p):
+        return tuple(W + S * (u * p[0] + v * p[1] + n * p[2]))
+
+    def E(c, r, rot_axis=None):
+        e = Ell(P(c), tuple(x * S for x in r))
+        M = np.stack([u, v, n], axis=1)           # local axes -> world
+        e.R = M
+        return e
+
+    h.add(E((0, 2.3, 0.0), (1.95, 2.45, 0.80)), mat=mat)                         # palm + back of the hand
+    h.add(E((0, 0.5, 0.0), (1.55, 1.7, 0.78)), mat=mat, k=0.5)                    # narrowing towards the wrist
+    h.add(E((1.05, 1.5, 0.42), (0.95, 1.7, 0.62)), mat=mat, k=0.5)               # thenar pad
+    h.add(E((-1.15, 2.7, 0.3), (0.75, 1.6, 0.55)), mat=mat, k=0.5)               # hypothenar edge
+    spec = [(1.42, 4.55, 0.52, (2.0, 1.2, 1.0)), (0.48, 4.75, 0.54, (2.25, 1.3, 1.05)),
+            (-0.47, 4.55, 0.52, (2.05, 1.2, 1.0)), (-1.38, 4.1, 0.47, (1.6, 0.95, 0.85))]
+    for i, (fu, fv, r, lens) in enumerate(spec):
+        cu = curls if (i or index_curls is None) else index_curls
+        pts = [np.array([fu, fv, 0.05])]
+        ang = 0.0
+        for c, L in zip(cu, lens):
+            ang += np.radians(c)
+            d = np.array([0.0, np.cos(ang), np.sin(ang)])
+            pts.append(pts[-1] + d * L * 0.93)
+        rr = (r * 1.04, r * 0.97, r * 0.92, r * 0.86)
+        Q = P
+        if i == 0 and index_pts:                      # trigger finger: explicit world-space path, rooted deep inside the palm
+            pts = [np.array(q, float) for q in index_pts]
+            Q = lambda q: tuple(q)
+            rr = (r * 1.2, r * 1.08, r * 1.0, r * 0.93, r * 0.86)
+        for j in range(len(pts) - 1):
+            h.add(Cyl(Q(pts[j]), Q(pts[j + 1]), rr[j] * S, rr[j + 1] * S), mat=mat, k=0.25)
+        h.add(Ell(Q(pts[-1]), (rr[-1] * S,) * 3), mat=mat, k=0.25)                  # rounded fingertip
+    tp = [np.array(t, float) for t in thumb_pts]
+    tr = (0.70, 0.60, 0.50)
+    for j in range(len(tp) - 1):
+        h.add(Cyl(P(tp[j]), P(tp[j + 1]), tr[j] * S, tr[j + 1] * S if j + 1 < len(tr) else 0.5 * S), mat=mat, k=0.35)
+    h.add(Ell(P(tp[-1]), (0.5 * S,) * 3), mat=mat, k=0.3)
+    # cuff (glove) + sleeve (olive) heading to the elbow
+    a = np.array(P((0, -0.2, 0)))
+    b = np.array(sleeve_to, float)
+    w = (b - a) / np.linalg.norm(b - a)
+    c1 = a + w * 1.7
+    h.add(Cyl(tuple(a), tuple(c1), 1.2 * S, 1.3 * S, rr=0.2), mat=mat, k=0.4)
+    h.add(Cyl(tuple(c1 - w * 0.2), tuple(b), 1.32 * S, 1.4 * S, rr=0.2), mat=mid("olive"), k=0.1)
 
 
 def hands(m):
-    g, bk = mid("glove"), mid("black")
-    # ---------------------------------------------------------------- support hand: palm up under the forend, fingers up the right side, thumb along the left
-    L = m.mesh("left_hand", "rifle", (0, -3.8, -14.0), tris=2600)
-    z0, py = -14.0, -2.25                                    # palm centre sits right under the forend (its underside is at y ~ -1.7)
-    L.add(Ell((0.0, py, z0), (1.3, 0.55, 2.2)), mat=g)
-    for zc, r in zip((z0 - 1.65, z0 - 0.55, z0 + 0.55, z0 + 1.6), (0.46, 0.46, 0.44, 0.40)):
-        finger(L, [(-0.9, py + 0.05, zc), (-1.55, py + 0.0, zc), (-1.68, py + 0.95, zc), (-1.5, py + 1.65, zc - 0.05)], [r, r, r * 0.95, r * 0.85], g)
-        L.add(Ell((-1.0, py - 0.4, zc), (0.5, 0.2, 0.45)), mat=bk, k=0.1)                         # hard knuckle plate
-    finger(L, [(0.9, py + 0.1, z0 - 0.2), (1.45, py + 0.55, z0 - 1.6), (1.62, py + 1.05, z0 - 2.7)], [0.55, 0.5, 0.42], g)   # thumb along the left side
-    L.add(Ell((0.2, py - 0.1, z0 + 2.2), (0.85, 0.5, 0.9)), mat=g, k=0.2)                        # heel of the hand
-    sleeve(L, (0.3, py - 0.2, z0 + 2.4), (3.4, py - 2.6, z0 + 15.0), 0.82, 1.18)
-    # ---------------------------------------------------------------- firing hand on the grip: back of the hand on the right, fingers wrap the front, index on the trigger, thumb over the wrist
-    R = m.mesh("right_hand", "rifle", (0, -4.3, 8.6), tris=3200)
-    R.add(Ell((-1.5, -3.1, 11.0), (0.55, 2.1, 1.7)), mat=g)                                       # back of the hand / palm
-    R.add(Ell((-1.2, -5.0, 11.6), (0.65, 0.9, 1.3)), mat=g, k=0.2)                                # heel
-    finger(R, [(-1.45, -2.1, 10.3), (-1.5, -2.35, 8.7), (-1.2, -2.95, 7.1), (-0.35, -3.3, 5.85)], [0.46, 0.44, 0.42, 0.36], g)   # index to the trigger
-    for y, r in ((-3.6, 0.45), (-4.5, 0.43), (-5.3, 0.38)):                                          # three fingers around the front of the grip
-        finger(R, [(-1.45, y, 10.6), (-1.45, y, 9.2), (-0.7, y, 8.85), (0.6, y, 8.85), (1.35, y, 9.55)], [r, r, r, r * 0.95, r * 0.85], g)
-    finger(R, [(-1.3, -1.3, 12.1), (-0.8, -0.3, 11.5), (0.4, -0.2, 10.8), (1.3, -0.7, 10.2)], [0.55, 0.5, 0.45, 0.38], g)   # thumb wraps over the top of the wrist
-    for y in (-2.7, -3.7, -4.6):
-        R.add(Ell((-1.6, y, 10.9), (0.3, 0.4, 0.5)), mat=bk, k=0.1)                              # knuckle plates
-    sleeve(R, (-1.8, -3.0, 12.4), (-4.4, -6.4, 25.0), 0.85, 1.22)
-    # ---------------------------------------------------------------- bolt hand: wraps the handle knob (child of the handle)
+    g = mid("glove")
+    # support hand: palm up under the forend, fingers curl up its right side, thumb forward
+    L = m.mesh("left_hand", "rifle", (0, -3.8, -14.0), tris=7000)
+    glove(L, (3.2, -2.35, -14.0), (-1, 0, -0.12), (0, 1, 0), (0, 0, -1), g, (60, 40, 35),
+          [(1.3, 0.9, 0.2), (2.0, 2.0, 0.7), (2.0, 3.1, 1.4)], (6.2, -7.4, -4.0))
+    # firing hand on the grip: palm on the right side, fingers round the front of the grip, index on the trigger
+    R = m.mesh("right_hand", "rifle", (0, -4.3, 8.6), tris=7000)
+    glove(R, (-1.45, -2.3, 13.4), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (85, 70, 50),
+          [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -6.5, 24.4), index_pts=[(-1.45, -1.9, 10.6), (-1.4, -2.25, 8.7), (-1.15, -2.7, 7.4), (-0.85, -3.05, 6.3), (-0.65, -3.3, 5.5)])
+    # bolt hand: palm over the knob, fingers wrap round it, thumb on the far side (child of the handle)
     kx, ky, kz = -2.6, -1.2, 4.5
-    B = m.mesh("bolt_hand", "bolt_handle", (kx, ky, kz), tris=2600)
-    B.add(Ell((kx - 0.45, ky + 1.0, kz + 0.9), (0.9, 0.85, 1.9)), mat=g)                         # palm over the knob
-    for zc, r in zip((kz - 0.6, kz + 0.35, kz + 1.3, kz + 2.2), (0.42, 0.42, 0.40, 0.36)):
-        finger(B, [(kx - 0.5, ky + 0.85, zc), (kx - 0.62, ky + 0.0, zc), (kx - 0.2, ky - 0.75, zc), (kx + 0.45, ky - 0.5, zc)], [r, r, r * 0.95, r * 0.85], g)
-    finger(B, [(kx + 0.1, ky + 0.8, kz + 2.4), (kx + 0.3, ky + 0.85, kz + 0.6), (kx + 0.15, ky + 0.55, kz - 0.8)], [0.5, 0.46, 0.38], g)   # thumb over the stem
-    sleeve(B, (kx - 0.7, ky + 1.3, kz + 2.8), (kx - 2.4, ky - 1.8, kz + 13.0), 0.85, 1.2)
+    B = m.mesh("bolt_hand", "bolt_handle", (kx, ky, kz), tris=7000)
+    glove(B, (kx - 0.1, ky + 1.6, kz + 4.3), (0.0, -0.18, -0.98), (0, -1, 0), (1, 0, 0), g, (55, 60, 40),
+          [(1.3, 0.8, 0.3), (2.0, 1.8, 0.9), (1.7, 2.8, 1.8)], (kx - 1.0, ky - 3.0, kz + 13.0))
 
 
 def build():
-    m = MModel(ID, lo=(-6.0, -9.0, -34.6), hi=(5.0, 3.0, 28.0), h=float(os.environ.get("H", "0.10")), seed=5, tx=9)
+    m = MModel(ID, lo=(-7.0, -11.0, -34.6), hi=(7.0, 3.0, 28.0), h=float(os.environ.get("H", "0.10")), seed=5, tx=9)
     sil = Traced.load(SIL, res=0.025, keep=lambda c, size: False, smooth=0.4)          # outer outline only (guard opening is built below)
     full = Traced.load(SIL, res=0.025, keep=lambda c, size: abs(c[0] - 5.6) < 1.0 and abs(c[1] + 3.4) < 1.0, smooth=0.08)   # + trigger-guard opening
 
@@ -98,8 +158,8 @@ def build():
     path = [(4.6, -2.3), (4.6, -3.75), (5.0, -4.25), (6.15, -4.25), (6.55, -3.75), (6.6, -2.3)]
     for (z0, y0), (z1, y1) in zip(path, path[1:]):
         st.add(Cyl((0, y0, z0), (0, y1, z1), 0.21), mat=gd, k=0.08)
-    st.add(Cyl((0, -2.3, 5.45), (0, -3.5, 5.15), 0.12), mat=mid("steel"), k=0.05)      # trigger blade
-    st.add(Cyl((0, -3.5, 5.15), (0, -3.75, 5.45), 0.12), mat=mid("steel"), k=0.05)     # trigger curl
+    st.add(Cyl((0, -2.3, 5.65), (0, -2.95, 6.0), 0.12), mat=mid("steel"), k=0.05)      # trigger blade: bulges to the rear (photo), concave to the front
+    st.add(Cyl((0, -2.95, 6.0), (0, -3.55, 5.85), 0.12), mat=mid("steel"), k=0.05)     # lower curl comes back forward
     for z, y in ((-13.6, -1.4), (20.3, -6.4)):                             # sling studs
         st.add(Cyl((0, y, z), (0, y - 0.95, z), 0.17), mat=stl)
     # ------------------------------------------------------------------ receiver, rail base
