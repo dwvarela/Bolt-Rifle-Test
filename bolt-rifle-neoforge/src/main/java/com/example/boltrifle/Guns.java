@@ -106,17 +106,17 @@ public final class Guns {
 		d.spreadAds = 0.10f;
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
-		hold(d, 22.4, 0.759);                          // a further 20% larger (0.6325 -> 0.759)
-		aim(d, 2.75, 4.1, 0.4554, 0.10);                 // rail-mounted ghost-ring rear sight / blade front sight
+		hold(d, 22.4, 0.911);                          // 20% larger again (0.759 -> 0.911)
+		aim(d, 2.75, 4.1, 0.5465, 0.10);                 // rail-mounted ghost-ring rear sight / blade front sight
 		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.cues = new Cue[][]{
 				{},
 				{ // fire: handle up, bolt back, bolt forward, handle down
-						new Cue(10, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
-						new Cue(19, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
+						new Cue(8, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
+						new Cue(16, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
 						new Cue(22, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
-						new Cue(28, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
+						new Cue(24, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
 				{ // reload: release click, mag out, new mag seated, floor-plate slap
 						new Cue(6, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
 						new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
@@ -127,10 +127,10 @@ public final class Guns {
 						new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
 						new Cue(35, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
 						new Cue(39, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f),
-						new Cue(60, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
-						new Cue(64, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
-						new Cue(70, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
-						new Cue(76, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
+						new Cue(58, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
+						new Cue(66, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
+						new Cue(72, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
+						new Cue(74, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
 				{new Cue(0, SoundEvents.LEVER_CLICK, 0.9f, 0.7f)},
 				{}
 		};
@@ -180,8 +180,8 @@ public final class Guns {
 		d.spreadHip = 3.0f; d.spreadAds = 0.12f;
 		d.recoilPitch = 2.1f; d.recoilYaw = 0.5f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;       // iron sights; optics come from attachments
-		hold(d, 23.6, 0.5);
-		aim(d, 1.95, 4.4, 0.30, 0.12);
+		hold(d, 23.6, 0.6);                            // M14 +20%
+		aim(d, 1.95, 4.4, 0.36, 0.09);
 		mount(d, 54, new double[]{1.38, -9.0}, -36.8);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;

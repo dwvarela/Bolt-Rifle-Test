@@ -196,6 +196,7 @@ public final class ClientEvents {
 			float speed = lastDef != null ? lastDef.aimSpeed : 0.16f;
 			aim += Mth.clamp(target - aim, -speed, speed);
 			applyRecoil(player);
+			calmViewmodel(player, holding);
 
 			applySensitivity(mc);
 		}
@@ -289,10 +290,10 @@ public final class ClientEvents {
 		if (player == null || !holding) {
 			return;
 		}
-		float k = aim > 0.05f ? 0.0f : 0.2f;
+		float k = aim > 0.02f ? 0.0f : 0.06f;
 		player.bob *= k;
 		player.oBob *= k;
-		float lag = aim > 0.05f ? 0.0f : 0.15f;
+		float lag = aim > 0.02f ? 0.0f : 0.04f;
 		player.xBob = player.getXRot() + (player.xBob - player.getXRot()) * lag;
 		player.yBob = player.getYRot() + (player.yBob - player.getYRot()) * lag;
 		player.xBobO = player.xBob;

@@ -2,7 +2,15 @@
  "shot_heavy": {
   "sounds": [
    {
-    "name": "boltrifle:shot_heavy",
+    "name": "boltrifle:shot_heavy_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_heavy_v2",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_heavy_v3",
     "stream": false
    }
   ],
@@ -11,7 +19,15 @@
  "shot": {
   "sounds": [
    {
-    "name": "boltrifle:shot",
+    "name": "boltrifle:shot_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_v2",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_v3",
     "stream": false
    }
   ],
@@ -20,7 +36,15 @@
  "shot_light": {
   "sounds": [
    {
-    "name": "boltrifle:shot_light",
+    "name": "boltrifle:shot_light_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_light_v2",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_light_v3",
     "stream": false
    }
   ],
@@ -29,7 +53,15 @@
  "shot_heavy_supp": {
   "sounds": [
    {
-    "name": "boltrifle:shot_heavy_supp",
+    "name": "boltrifle:shot_heavy_supp_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_heavy_supp_v2",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_heavy_supp_v3",
     "stream": false
    }
   ],
@@ -38,7 +70,15 @@
  "shot_supp": {
   "sounds": [
    {
-    "name": "boltrifle:shot_supp",
+    "name": "boltrifle:shot_supp_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_supp_v2",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_supp_v3",
     "stream": false
    }
   ],
@@ -47,7 +87,15 @@
  "shot_light_supp": {
   "sounds": [
    {
-    "name": "boltrifle:shot_light_supp",
+    "name": "boltrifle:shot_light_supp_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_light_supp_v2",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shot_light_supp_v3",
     "stream": false
    }
   ],
@@ -56,7 +104,11 @@
  "click": {
   "sounds": [
    {
-    "name": "boltrifle:click",
+    "name": "boltrifle:click_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:click_v2",
     "stream": false
    }
   ],
@@ -65,7 +117,11 @@
  "click_dry": {
   "sounds": [
    {
-    "name": "boltrifle:click_dry",
+    "name": "boltrifle:click_dry_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:click_dry_v2",
     "stream": false
    }
   ],
@@ -74,7 +130,11 @@
  "bolt_open": {
   "sounds": [
    {
-    "name": "boltrifle:bolt_open",
+    "name": "boltrifle:bolt_open_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:bolt_open_v2",
     "stream": false
    }
   ],
@@ -83,7 +143,11 @@
  "bolt_close": {
   "sounds": [
    {
-    "name": "boltrifle:bolt_close",
+    "name": "boltrifle:bolt_close_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:bolt_close_v2",
     "stream": false
    }
   ],
@@ -92,7 +156,11 @@
  "mag_out": {
   "sounds": [
    {
-    "name": "boltrifle:mag_out",
+    "name": "boltrifle:mag_out_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:mag_out_v2",
     "stream": false
    }
   ],
@@ -101,7 +169,11 @@
  "mag_in": {
   "sounds": [
    {
-    "name": "boltrifle:mag_in",
+    "name": "boltrifle:mag_in_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:mag_in_v2",
     "stream": false
    }
   ],
@@ -110,7 +182,11 @@
  "rack": {
   "sounds": [
    {
-    "name": "boltrifle:rack",
+    "name": "boltrifle:rack_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:rack_v2",
     "stream": false
    }
   ],
@@ -119,7 +195,11 @@
  "shell": {
   "sounds": [
    {
-    "name": "boltrifle:shell",
+    "name": "boltrifle:shell_v1",
+    "stream": false
+   },
+   {
+    "name": "boltrifle:shell_v2",
     "stream": false
    }
   ],

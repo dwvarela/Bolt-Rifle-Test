@@ -106,6 +106,10 @@ public class GunRenderer extends GeoItemRenderer<GunItem> {
 		if (bone.getScaleX() == 0.0f && bone.getScaleY() == 0.0f && bone.getScaleZ() == 0.0f) {
 			return;                                       // animation-hidden bone (spare hand, casing, flash...): skip it and its children entirely
 		}
+		if (!isReRender && bone.getName().equals("buttstock") && (this.renderPerspective == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+				|| this.renderPerspective == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) && ClientEvents.aimProgress(partialTick) > 0.4f) {
+			return;                                       // while aiming the rear stock sits right at the eye: hide it so it never clips into view
+		}
 		ItemStack stack = getCurrentItemStack();
 		if (stack != null && bone.getName().startsWith("irons_") && def.optic != null && Attachment.optic(stack) != null) {
 			return;                                       // rail iron sights come off while an optic is mounted

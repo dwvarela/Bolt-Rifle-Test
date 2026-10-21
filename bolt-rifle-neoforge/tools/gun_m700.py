@@ -147,21 +147,23 @@ def build():
 
     syn, blu, rub, stl = mid("synth"), mid("bluing"), mid("rubber"), mid("steel")
     # ------------------------------------------------------------------ stock + trigger guard
-    st = m.mesh("stock", "rifle", (0, 0, 0), tris=3000)
+    st = m.mesh("stock", "rifle", (0, 0, 0), tris=2000)
     side(st, syn, 1.12, 0.55, -15.2, -5.2, -3.0, 0.10)                   # forend (the barrel sits in the channel)
     side(st, syn, 1.18, 0.45, -5.2, 3.5, -2.6, 0.35)                      # action section
     side(st, syn, 1.10, 0.45, 3.5, 7.2, -2.6, 0.05)                       # stock flanks behind the receiver: a trough the bolt rides in
-    side(st, syn, 0.95, 0.5, 7.2, 22.3, -9.0, 1.0)                        # wrist, comb and buttstock
-    side(st, rub, 1.12, 0.5, 22.3, 23.45, -9.0, 1.0)                      # recoil pad
+    bs = m.mesh("buttstock", "rifle", (0, 0, 0), tris=1500)               # own bone: hidden while aiming so the comb never fills the view
+    side(bs, syn, 0.95, 0.5, 7.2, 22.3, -9.0, 1.0)                        # wrist, comb and buttstock
+    side(bs, rub, 1.12, 0.5, 22.3, 23.45, -9.0, 1.0)                      # recoil pad
     st.sub(cylz(0, 0.0, 3.8, 9.0, 0.75))                                  # raceway so the retracted bolt never touches the stock
+    bs.sub(cylz(0, 0.0, 3.8, 9.0, 0.75))
     gd = mid("bluing")                                                     # trigger guard bow and trigger (explicit, so the opening stays clean)
     path = [(4.6, -2.3), (4.6, -3.75), (5.0, -4.25), (6.15, -4.25), (6.55, -3.75), (6.6, -2.3)]
     for (z0, y0), (z1, y1) in zip(path, path[1:]):
         st.add(Cyl((0, y0, z0), (0, y1, z1), 0.21), mat=gd, k=0.08)
     st.add(Cyl((0, -2.3, 5.65), (0, -2.95, 6.0), 0.12), mat=mid("steel"), k=0.05)      # trigger blade: bulges to the rear (photo), concave to the front
     st.add(Cyl((0, -2.95, 6.0), (0, -3.55, 5.85), 0.12), mat=mid("steel"), k=0.05)     # lower curl comes back forward
-    for z, y in ((-13.6, -1.4), (20.3, -6.4)):                             # sling studs
-        st.add(Cyl((0, y, z), (0, y - 0.95, z), 0.17), mat=stl)
+    for z, y, vol in ((-13.6, -1.4, st), (20.3, -6.4, bs)):                # sling studs
+        vol.add(Cyl((0, y, z), (0, y - 0.95, z), 0.17), mat=stl)
     # ------------------------------------------------------------------ receiver, rail base
     rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=1700)
     rc.add(cylz(0, 0, -5.2, 3.9, 1.08, rr=0.05), mat=blu)                 # receiver (ends at its rear face; the bolt shroud is free behind it)
