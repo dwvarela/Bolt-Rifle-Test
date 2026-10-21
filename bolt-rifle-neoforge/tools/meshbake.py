@@ -25,6 +25,7 @@ MAT_EXTRA = {
 }
 ALL_MATS = dict(MATS)
 ALL_MATS.update(MAT_EXTRA)
+ALL_MATS["glove"] = ((70, 68, 60), "cloth")            # charcoal-olive tactical gloves (meshes only)
 
 
 def mid(name):
@@ -204,7 +205,7 @@ def shade(matid, P, N, ao, wear, rng):
         elif kind == "brass":
             c = c * (0.85 + 0.35 * vnoise(px * 5, py * 5, pz * 5, 1)) * (1 + 0.03 * nn)
         elif kind == "cloth":
-            c = c * (1 + 0.07 * nn + 0.1 * (vnoise(px * 14, py * 14, pz * 14, 3) - 0.5))
+            c = c * (1 + 0.02 * nn + 0.05 * (vnoise(px * 5, py * 5, pz * 5, 3) - 0.5))
         elif kind == "lens":
             c = c * (0.8 + 0.4 * (1 - np.abs(N[sel, 2:3])))
         elif kind == "glow":

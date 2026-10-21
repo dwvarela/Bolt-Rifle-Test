@@ -58,23 +58,35 @@ anims.append(a)
 
 
 def reload_mag(a):
-    """Magazine swap: 0 -> 2.9 s."""
-    # the support hand cups the magazine floor plate: its palm top sits flush under the plate (mag y + 0.7) the whole time it holds it
-    hand = [(0.0, [0, 0, 0]), (0.16, [3.0, -1.2, 5.0]), (0.32, [2.2, -1.6, 15.0]), (0.46, [0, 0.7, 15.0]),
-            (0.62, [0, -0.3, 15.0]), (0.95, [0, -9.8, 15.0]), (1.1, [0, -14.0, 15.0]), (1.36, [0, -14.0, 15.0]),
-            (1.65, [0, -10.8, 15.0]), (2.05, [0, -2.8, 15.0]), (2.22, [0, 0.9, 15.0]),
-            (2.4, [0, 0.7, 15.0]), (2.56, [2.4, -1.6, 13.0]), (2.74, [3.0, -1.0, 4.0]), (2.9, [0, 0, 0])]
+    """Cinematic magazine swap, 0 -> 2.9 s: the rifle rolls toward the support hand, mag released and dropped, the hand dips to the
+    belt for a fresh mag, brings it up, seats it, slaps the floor plate, then everything settles back."""
+    # support hand: palm top flush under the floor plate while it holds a mag (hand y = mag y - 0.9)
+    hand = [(0.0, [0, 0, 0]), (0.10, [2.5, -2.5, 6.0]), (0.26, [1.2, -2.2, 15.0]), (0.30, [0, -0.9, 15.0]), (0.34, [0, -1.6, 15.0]),
+            (0.72, [0, -11.4, 15.0]), (0.80, [1.5, -12.6, 14.0]), (1.00, [4.2, -15.5, 10.0]), (1.12, [4.4, -16.0, 10.0]),
+            (1.20, [1.6, -12.0, 14.0]), (1.40, [0.9, -9.0, 15.0]), (1.65, [0.2, -4.3, 15.0]), (1.80, [0, -0.7, 15.0]),
+            (1.90, [0, -1.6, 15.0]), (1.97, [0, -0.4, 15.0]), (2.08, [0, -1.2, 15.0]), (2.30, [1.6, -2.0, 12.0]),
+            (2.60, [1.2, -1.0, 4.0]), (2.90, [0, 0, 0])]
     for t, v in hand:
         a.pos("left_hand", t, v)
-    a.pos("magazine", 0.0, ZERO).pos("magazine", 0.45, ZERO).pos("magazine", 0.62, [0, -1.0, 0])
-    a.pos("magazine", 0.95, [0, -10.5, 0])
-    a.show("magazine", 0.0).key("magazine", "scale", 0.96, ONE, STEP).key("magazine", "scale", 0.97, ZERO, STEP)
-    a.key("magazine", "scale", 1.34, ZERO, STEP).key("magazine", "scale", 1.36, ONE, STEP)
-    a.pos("magazine", 1.36, [0, -14.7, 0]).pos("magazine", 1.65, [0, -11.5, 0]).pos("magazine", 2.05, [0, -3.5, 0])
-    a.pos("magazine", 2.22, [0, 0.2, 0], SNAP).pos("magazine", 2.32, ZERO).pos("magazine", 2.9, ZERO)
-    # weight shift and cant while the support hand is busy
-    a.pos("rifle", 0.0, ZERO).pos("rifle", 0.35, [0, -0.4, 0.3]).pos("rifle", 2.4, [0, -0.4, 0.3]).pos("rifle", 2.9, ZERO)
-    a.rot("rifle", 0.0, ZERO).rot("rifle", 0.5, [0.8, 0, -6.0]).rot("rifle", 2.3, [0.8, 0, -6.0]).rot("rifle", 2.9, ZERO)
+    # the hand turns slightly with the mag (wrist roll) and flicks it away
+    for t, v in ((0.0, [0, 0, 0]), (0.26, [0, 0, 0]), (0.72, [-8, 0, 6]), (1.0, [-25, 0, 14]), (1.2, [-20, 0, 10]), (1.65, [-6, 0, 3]),
+                 (1.8, [0, 0, 0]), (2.3, [0, 0, 0]), (2.9, [0, 0, 0])):
+        a.rot("left_hand", t, v)
+    # old magazine: click out, pulled down, dropped; new one appears in the hand, rises, seats
+    a.pos("magazine", 0.0, ZERO).pos("magazine", 0.30, ZERO).pos("magazine", 0.34, [0, -0.7, 0]).pos("magazine", 0.72, [0, -10.5, 0])
+    a.pos("magazine", 0.98, [0, -34.0, 0], FALL)
+    a.show("magazine", 0.0).key("magazine", "scale", 0.97, ONE, STEP).key("magazine", "scale", 0.98, ZERO, STEP)
+    a.key("magazine", "scale", 1.17, ZERO, STEP).key("magazine", "scale", 1.18, ONE, STEP)
+    a.pos("magazine", 1.18, [0, -11.1, 0]).pos("magazine", 1.40, [0, -8.1, 0]).pos("magazine", 1.65, [0, -3.4, 0])
+    a.pos("magazine", 1.80, [0, 0.2, 0], SNAP).pos("magazine", 1.86, ZERO).pos("magazine", 2.9, ZERO)
+    # rifle: rolls toward the support hand and lifts the muzzle, tugs when the mag comes out, bumps when it seats, slaps down, settles
+    for t, v in ((0.0, ZERO), (0.28, [0.5, -0.9, 1.6]), (1.70, [0.5, -0.9, 1.6]), (1.80, [0.5, -0.9, 2.1]), (1.86, [0.5, -1.0, 1.6]),
+                 (1.97, [0.5, -1.35, 1.6]), (2.08, [0.5, -0.9, 1.6]), (2.9, ZERO)):
+        a.pos("rifle", t, v)
+    for t, v in ((0.0, ZERO), (0.28, [-9.0, 5.0, -20.0]), (0.34, [-9.5, 5.0, -20.5]), (0.72, [-11.0, 6.0, -22.0]), (0.9, [-10.0, 5.5, -21.0]),
+                 (1.2, [-9.0, 5.0, -20.0]), (1.65, [-8.0, 4.5, -19.5]), (1.80, [-5.5, 4.0, -19.0]), (1.97, [-9.5, 5.0, -20.0]), (2.08, [-9.0, 5.0, -20.0]),
+                 (2.9, ZERO)):
+        a.rot("rifle", t, v)
 
 
 a = Anim("reload", 2.9, hidden=HIDDEN)

@@ -13,8 +13,64 @@ RAIL_TOP, RAIL_Z = 1.78, -0.2       # optic mount: top of the rail, centre of th
 RAIL_Z0, RAIL_Z1 = -5.0, 4.6
 
 
+def cap(a, b, r0, r1=None):
+    """Rounded finger / limb segment."""
+    r1 = r0 if r1 is None else r1
+    return Cyl(a, b, r0, r1, rr=min(r0, r1) * 0.95)
+
+
+def finger(h, pts, radii, mat, k=0.12):
+    for (a, b), (r0, r1) in zip(zip(pts, pts[1:]), zip(radii, radii[1:])):
+        h.add(cap(a, b, r0, r1), mat=mat, k=k)
+        h.add(Ell(b, (r1 * 1.08, r1 * 1.08, r1 * 1.08)), mat=mat, k=k)       # knuckle / joint
+
+
+def sleeve(h, a, b, r_glove, r_sleeve, glove_len=0.45):
+    """Glove cuff and rolled olive sleeve running back along a -> b."""
+    import numpy as np
+    a, b = np.array(a, float), np.array(b, float)
+    w = (b - a) / np.linalg.norm(b - a)
+    c1 = a + w * glove_len * np.linalg.norm(b - a)
+    h.add(cap(a, c1, r_glove, r_glove * 1.12), mat=mid("glove"), k=0.15)
+    h.add(Cyl(c1 - w * 0.15, c1 + w * 0.2, r_glove * 1.2, rr=0.05), mat=mid("black"))             # cuff strap
+    h.add(Cyl(c1 + w * 0.25, b, r_sleeve, r_sleeve * 1.1, rr=0.12), mat=mid("olive"), k=0.1)     # sleeve
+
+
+def hands(m):
+    g, bk = mid("glove"), mid("black")
+    # ---------------------------------------------------------------- support hand: palm up under the forend, fingers up the right side, thumb along the left
+    L = m.mesh("left_hand", "rifle", (0, -3.8, -14.0), tris=2600)
+    z0, py = -14.0, -2.25                                    # palm centre sits right under the forend (its underside is at y ~ -1.7)
+    L.add(Ell((0.0, py, z0), (1.3, 0.55, 2.2)), mat=g)
+    for zc, r in zip((z0 - 1.65, z0 - 0.55, z0 + 0.55, z0 + 1.6), (0.46, 0.46, 0.44, 0.40)):
+        finger(L, [(-0.9, py + 0.05, zc), (-1.55, py + 0.0, zc), (-1.68, py + 0.95, zc), (-1.5, py + 1.65, zc - 0.05)], [r, r, r * 0.95, r * 0.85], g)
+        L.add(Ell((-1.0, py - 0.4, zc), (0.5, 0.2, 0.45)), mat=bk, k=0.1)                         # hard knuckle plate
+    finger(L, [(0.9, py + 0.1, z0 - 0.2), (1.45, py + 0.55, z0 - 1.6), (1.62, py + 1.05, z0 - 2.7)], [0.55, 0.5, 0.42], g)   # thumb along the left side
+    L.add(Ell((0.2, py - 0.1, z0 + 2.2), (0.85, 0.5, 0.9)), mat=g, k=0.2)                        # heel of the hand
+    sleeve(L, (0.3, py - 0.2, z0 + 2.4), (3.4, py - 2.6, z0 + 15.0), 0.82, 1.18)
+    # ---------------------------------------------------------------- firing hand on the grip: back of the hand on the right, fingers wrap the front, index on the trigger, thumb over the wrist
+    R = m.mesh("right_hand", "rifle", (0, -4.3, 8.6), tris=3200)
+    R.add(Ell((-1.5, -3.1, 11.0), (0.55, 2.1, 1.7)), mat=g)                                       # back of the hand / palm
+    R.add(Ell((-1.2, -5.0, 11.6), (0.65, 0.9, 1.3)), mat=g, k=0.2)                                # heel
+    finger(R, [(-1.45, -2.1, 10.3), (-1.5, -2.35, 8.7), (-1.2, -2.95, 7.1), (-0.35, -3.3, 5.85)], [0.46, 0.44, 0.42, 0.36], g)   # index to the trigger
+    for y, r in ((-3.6, 0.45), (-4.5, 0.43), (-5.3, 0.38)):                                          # three fingers around the front of the grip
+        finger(R, [(-1.45, y, 10.6), (-1.45, y, 9.2), (-0.7, y, 8.85), (0.6, y, 8.85), (1.35, y, 9.55)], [r, r, r, r * 0.95, r * 0.85], g)
+    finger(R, [(-1.3, -1.3, 12.1), (-0.8, -0.3, 11.5), (0.4, -0.2, 10.8), (1.3, -0.7, 10.2)], [0.55, 0.5, 0.45, 0.38], g)   # thumb wraps over the top of the wrist
+    for y in (-2.7, -3.7, -4.6):
+        R.add(Ell((-1.6, y, 10.9), (0.3, 0.4, 0.5)), mat=bk, k=0.1)                              # knuckle plates
+    sleeve(R, (-1.8, -3.0, 12.4), (-4.4, -6.4, 25.0), 0.85, 1.22)
+    # ---------------------------------------------------------------- bolt hand: wraps the handle knob (child of the handle)
+    kx, ky, kz = -2.6, -1.2, 4.5
+    B = m.mesh("bolt_hand", "bolt_handle", (kx, ky, kz), tris=2600)
+    B.add(Ell((kx - 0.45, ky + 1.0, kz + 0.9), (0.9, 0.85, 1.9)), mat=g)                         # palm over the knob
+    for zc, r in zip((kz - 0.6, kz + 0.35, kz + 1.3, kz + 2.2), (0.42, 0.42, 0.40, 0.36)):
+        finger(B, [(kx - 0.5, ky + 0.85, zc), (kx - 0.62, ky + 0.0, zc), (kx - 0.2, ky - 0.75, zc), (kx + 0.45, ky - 0.5, zc)], [r, r, r * 0.95, r * 0.85], g)
+    finger(B, [(kx + 0.1, ky + 0.8, kz + 2.4), (kx + 0.3, ky + 0.85, kz + 0.6), (kx + 0.15, ky + 0.55, kz - 0.8)], [0.5, 0.46, 0.38], g)   # thumb over the stem
+    sleeve(B, (kx - 0.7, ky + 1.3, kz + 2.8), (kx - 2.4, ky - 1.8, kz + 13.0), 0.85, 1.2)
+
+
 def build():
-    m = MModel(ID, lo=(-3.4, -9.0, -34.6), hi=(3.2, 3.0, 24.4), h=0.10, seed=5, tx=9)
+    m = MModel(ID, lo=(-6.0, -9.0, -34.6), hi=(5.0, 3.0, 28.0), h=float(os.environ.get("H", "0.10")), seed=5, tx=9)
     sil = Traced.load(SIL, res=0.025, keep=lambda c, size: False, smooth=0.4)          # outer outline only (guard opening is built below)
     full = Traced.load(SIL, res=0.025, keep=lambda c, size: abs(c[0] - 5.6) < 1.0 and abs(c[1] + 3.4) < 1.0, smooth=0.08)   # + trigger-guard opening
 
@@ -79,7 +135,6 @@ def build():
     bh.add(Cyl((-0.9, 0.1, 4.1), (-1.9, -0.1, 4.2), 0.26), mat=stl)       # stem out of the bolt
     bh.add(Cyl((-1.9, -0.1, 4.2), (-2.5, -0.95, 4.4), 0.24), mat=stl)     # arm swept down
     bh.add(Ell((-2.6, -1.2, 4.5), (0.5, 0.5, 0.5)), mat=mid("black"))     # ball knob
-    m.hand_bolt("bolt_handle", -2.6, -1.2, 4.5, side=-1)
     # ------------------------------------------------------------------ magazine (floor plate flush with the stock; drops away on reload)
     mg = m.mesh("magazine", "rifle", (0, -2.0, 0.5), tris=500)
     mg.add(box(-0.85, 0.85, -2.45, -1.0, -1.7, 3.3, r=0.08), mat=mid("black"))
@@ -88,23 +143,24 @@ def build():
     # rear ghost-ring sight at the very back of the rail, blade front sight at the very front (Optics-2 reference set)
     cy = 2.75
     m.bone("irons_rear", "rifle", (0, 0, 0))
-    m.cube("irons_rear", "black", -0.55, 1.70, 3.4, 0.55, 2.10, 4.6)                        # low saddle base on the rail
-    m.cube("irons_rear", "black", -0.12, 2.10, 3.98, 0.12, 2.30, 4.22)                      # thin post
-    for i in range(8):                                                                      # thin aperture ring (octagon, ~0.1 wall)
-        m.cube("irons_rear", "black", -0.19, cy + 0.42, 3.98, 0.19, cy + 0.52, 4.22, rot=[0, 0, i * 45], pivot=[0, cy, 4.1])
-    m.cube("irons_rear", "steel", -0.42, 1.98, 3.5, -0.28, 2.12, 3.66)                      # windage screw heads
-    m.cube("irons_rear", "steel", 0.28, 1.98, 3.5, 0.42, 2.12, 3.66)
+    m.cube("irons_rear", "black", -0.42, 1.74, 3.5, 0.42, 2.0, 4.55)                        # low base clamped on the rail
+    m.cube("irons_rear", "black", -0.10, 2.0, 3.98, 0.10, 2.36, 4.2)                        # slim post
+    for sx in (-1, 1):                                                                      # protective ears
+        m.cube("irons_rear", "black", sx * 0.40 - 0.045, 2.0, 3.98, sx * 0.40 + 0.045, cy + 0.12, 4.2)
+    for i in range(8):                                                                      # fine aperture ring (octagon, ~0.07 wall)
+        m.cube("irons_rear", "black", -0.15, cy + 0.36, 3.99, 0.15, cy + 0.43, 4.19, rot=[0, 0, i * 45], pivot=[0, cy, 4.09])
+    m.cube("irons_rear", "steel", -0.34, 1.92, 3.58, -0.22, 2.04, 3.7)                      # windage screw heads
+    m.cube("irons_rear", "steel", 0.22, 1.92, 3.58, 0.34, 2.04, 3.7)
     m.bone("irons_front", "rifle", (0, 0, 0))
-    m.cube("irons_front", "black", -0.55, 1.70, -5.0, 0.55, 1.95, -3.9)                     # low base
-    m.cube("irons_front", "black", -0.07, 1.95, -4.95, 0.07, 2.72, -4.75)                   # thin blade
-    m.cube("irons_front", "black", -0.07, 1.95, -4.75, 0.07, 2.42, -4.35)                   # ramp steps
-    m.cube("irons_front", "black", -0.07, 1.95, -4.35, 0.07, 2.12, -3.95)
+    m.cube("irons_front", "black", -0.42, 1.74, -4.98, 0.42, 1.92, -4.0)                    # low base
+    m.cube("irons_front", "black", -0.045, 1.92, -4.95, 0.045, 2.72, -4.8)                  # thin blade
+    m.cube("irons_front", "black", -0.045, 1.92, -4.8, 0.045, 2.4, -4.45)                   # ramp steps
+    m.cube("irons_front", "black", -0.045, 1.92, -4.45, 0.045, 2.1, -4.1)
     # ------------------------------------------------------------------ muzzle flash, spent case, chambering round
     m.muzzle_flash(-33.9)
     m.casing(-1.5, 0.4, 0.5)
     m.bone("chamber_round", "rifle", (0, 0.4, -3))
     m.bar("chamber_round", "brass", 0, 0.5, -3.2, 0.4, 0.45)
     m.cube("chamber_round", "brass", -0.3, 0.2, -4.4, 0.3, 0.8, -3.2)
-    m.hand_left(-3.8, -14.0)
-    m.hand_right(-4.3, 8.6, -3.3)
+    hands(m)
     return m, None
