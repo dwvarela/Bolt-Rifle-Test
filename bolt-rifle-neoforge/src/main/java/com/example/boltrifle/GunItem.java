@@ -311,8 +311,10 @@ public class GunItem extends Item implements GeoItem {
 		Attachment muzzle = Attachment.muzzle(stack);
 		float loud = def.boom * (muzzle == null ? 1.0f : muzzle.boom);
 		boolean quiet = loud < 0.5f;                              // suppressed
-		SoundEvent shotSound = BoltRifleMod.SND.get(quiet ? "shot_supp" : def.boomPitch < 1.07f ? "shot_heavy" : def.boomPitch < 1.2f ? "shot" : "shot_light").get();
-		level.playSound(null, player.getX(), player.getY(), player.getZ(), shotSound, SoundSource.PLAYERS, quiet ? 1.0f : 3.0f, 1.0f);
+		String fam = def.boomPitch < 1.07f ? "shot_heavy" : def.boomPitch < 1.2f ? "shot" : "shot_light";
+		// suppressed: the same shot, 40% quieter (the _supp samples are mastered at 0.6 amplitude; game gain clamps at 1.0, so the sample carries it)
+		SoundEvent shotSound = BoltRifleMod.SND.get(quiet ? fam + "_supp" : fam).get();
+		level.playSound(null, player.getX(), player.getY(), player.getZ(), shotSound, SoundSource.PLAYERS, quiet ? 1.8f : 3.0f, 1.0f);
 		shoot(level, player, round, aiming, muzzle);
 		wear(player, stack, mismatch ? GunConfig.UNSAFE_WEAR.get() : 1);
 	}

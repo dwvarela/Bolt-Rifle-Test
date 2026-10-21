@@ -115,16 +115,16 @@ def glove(h, wrist, v, n, tdir, mat, curls, thumb_pts, sleeve_to, scale=1.0, ind
 def hands(m):
     g = mid("glove")
     # support hand: palm up under the forend, fingers curl up its right side, thumb forward
-    L = m.mesh("left_hand", "rifle", (0, -3.8, -14.0), tris=7000)
-    glove(L, (3.2, -2.35, -14.0), (-1, 0, -0.12), (0, 1, 0), (0, 0, -1), g, (60, 40, 35),
-          [(1.3, 0.9, 0.2), (2.0, 2.0, 0.7), (2.0, 3.1, 1.4)], (6.2, -7.4, -4.0))
+    L = m.mesh("left_hand", "rifle", (0, -3.3, -8.5), tris=1800)
+    glove(L, (0.46, -2.5, -6.25), (-0.2, 0.0, -0.98), (-0.45, 0.89, 0.0), (1, 0.3, 0), g, (22, 32, 28),
+          [(1.3, 0.9, 0.2), (2.0, 2.0, 0.7), (2.0, 3.1, 1.4)], (3.5, -9.0, 1.0))
     # firing hand on the grip: palm on the right side, fingers round the front of the grip, index on the trigger
-    R = m.mesh("right_hand", "rifle", (0, -4.3, 8.6), tris=7000)
+    R = m.mesh("right_hand", "rifle", (0, -4.3, 8.6), tris=1800)
     glove(R, (-1.45, -2.3, 13.4), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (85, 70, 50),
           [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -6.5, 24.4), index_pts=[(-1.45, -1.9, 10.6), (-1.4, -2.25, 8.7), (-1.15, -2.7, 7.4), (-0.85, -3.05, 6.3), (-0.65, -3.3, 5.5)])
     # bolt hand: palm over the knob, fingers wrap round it, thumb on the far side (child of the handle)
     kx, ky, kz = -2.6, -1.2, 4.5
-    B = m.mesh("bolt_hand", "bolt_handle", (kx, ky, kz), tris=7000)
+    B = m.mesh("bolt_hand", "bolt_handle", (kx, ky, kz), tris=1800)
     glove(B, (kx - 0.1, ky + 1.6, kz + 4.3), (0.0, -0.18, -0.98), (0, -1, 0), (1, 0, 0), g, (55, 60, 40),
           [(1.3, 0.8, 0.3), (2.0, 1.8, 0.9), (1.7, 2.8, 1.8)], (kx - 1.0, ky - 3.0, kz + 13.0))
 
@@ -147,7 +147,7 @@ def build():
 
     syn, blu, rub, stl = mid("synth"), mid("bluing"), mid("rubber"), mid("steel")
     # ------------------------------------------------------------------ stock + trigger guard
-    st = m.mesh("stock", "rifle", (0, 0, 0), tris=12000)
+    st = m.mesh("stock", "rifle", (0, 0, 0), tris=3000)
     side(st, syn, 1.12, 0.55, -15.2, -5.2, -3.0, 0.10)                   # forend (the barrel sits in the channel)
     side(st, syn, 1.18, 0.45, -5.2, 3.5, -2.6, 0.35)                      # action section
     side(st, syn, 1.10, 0.45, 3.5, 7.2, -2.6, 0.05)                       # stock flanks behind the receiver: a trough the bolt rides in
@@ -163,7 +163,7 @@ def build():
     for z, y in ((-13.6, -1.4), (20.3, -6.4)):                             # sling studs
         st.add(Cyl((0, y, z), (0, y - 0.95, z), 0.17), mat=stl)
     # ------------------------------------------------------------------ receiver, rail base
-    rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=5500)
+    rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=1700)
     rc.add(cylz(0, 0, -5.2, 3.9, 1.08, rr=0.05), mat=blu)                 # receiver (ends at its rear face; the bolt shroud is free behind it)
     rc.add(cylz(0, 0, -6.1, -5.1, 0.98), mat=blu)                         # barrel shoulder
     rc.add(box(-1.0, 1.0, -1.7, -0.8, -5.3, -4.0, r=0.12), mat=blu)       # recoil lug
@@ -179,19 +179,19 @@ def build():
     rc.sub(box(-1.5, -0.3, 0.1, 1.2, -3.3, 3.2, r=0.15))                 # ejection port (right side of the rifle = -x in the model file)
     rc.add(box(-0.95, -0.55, 0.0, 0.55, 4.0, 4.9, r=0.1), mat=stl)       # safety lever, right rear of the receiver
     # ------------------------------------------------------------------ barrel (sporter taper), recessed crown
-    ba = m.mesh("barrel", "rifle", (0, 0, 0), tris=2600)
+    ba = m.mesh("barrel", "rifle", (0, 0, 0), tris=700)
     ba.add(Cyl((0, 0, -33.7), (0, 0, -17.0), 0.58, 0.60), mat=blu)
     ba.add(Cyl((0, 0, -17.0), (0, 0, -5.0), 0.60, 0.95), mat=blu)
     ba.sub(cylz(0, 0, -33.8, -33.2, 0.25))                                # crown recess / bore
     # ------------------------------------------------------------------ bolt: body shows in the port, rear shroud sticks out behind the receiver
-    bo = m.mesh("bolt", "rifle", (0, 0, 0), tris=1800)
+    bo = m.mesh("bolt", "rifle", (0, 0, 0), tris=600)
     bo.add(cylz(0, 0.0, -3.2, 3.9, 0.66), mat=stl)                        # bolt body
     bo.add(cylz(0, 0.0, 3.9, 4.5, 0.76, rr=0.08), mat=blu)                # collar at the handle root
     bo.add(cylz(0, 0.0, 4.5, 5.6, 0.62, rr=0.06), mat=blu)                # bolt shroud
     bo.add(cylz(0, 0.0, 5.6, 5.95, 0.48, rr=0.08), mat=stl)               # cocking piece / end cap
     bo.add(cylz(0, 0.5, -1.0, -0.4, 0.2), mat=stl)
     # ------------------------------------------------------------------ bolt handle (right side): stem, swept-down arm, ball knob
-    bh = m.mesh("bolt_handle", "bolt", (0, 0, 5.0), tris=900)
+    bh = m.mesh("bolt_handle", "bolt", (0, 0, 5.0), tris=400)
     bh.add(Cyl((-0.9, 0.1, 4.1), (-1.9, -0.1, 4.2), 0.26), mat=stl)       # stem out of the bolt
     bh.add(Cyl((-1.9, -0.1, 4.2), (-2.5, -0.95, 4.4), 0.24), mat=stl)     # arm swept down
     bh.add(Ell((-2.6, -1.2, 4.5), (0.5, 0.5, 0.5)), mat=mid("black"))     # ball knob

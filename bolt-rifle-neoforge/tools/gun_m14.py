@@ -31,7 +31,7 @@ def build():
         vol.add(Clip(Ext(sil, "zy", -hw, hw, r=r), z0=z0, z1=z1, y0=y0, y1=y1), mat=mat, k=k)
 
     # ------------------------------------------------------------------ chassis: handguard, grip, buffer tube, stock, magazine well
-    ch = m.mesh("chassis", "rifle", (0, 0, 0), tris=19000)
+    ch = m.mesh("chassis", "rifle", (0, 0, 0), tris=5500)
     alu, blk, poly = mid("alu"), mid("black"), mid("poly")
     side(ch, alu, 1.45, 0.45, -21.7, -3.5, -2.62, 1.12)           # slotted handguard body (slots come from the traced outline)
     side(ch, alu, 0.55, 0.05, -21.7, -3.5, 1.05, 1.45)            # top Picatinny rail (teeth come from the traced outline)
@@ -57,7 +57,7 @@ def build():
     ch.add(Ell((-0.62, -2.1, 19.8), (0.3, 0.42, 0.95)), mat=alu)  # oval adjustment lever
     ch.paint(box(-1.3, 1.3, -6.9, -2.9, 7.6, 10.7), "black")      # grip texture panel
     # ------------------------------------------------------------------ receiver + rear aperture sight
-    rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=3600)
+    rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=1400)
     gm = mid("gunmetal")
     side(rc, gm, 1.1, 0.3, -3.7, 6.7, -3.0, 1.02)
     rc.add(box(-0.95, 0.95, 0.9, 1.5, 2.0, 5.9, r=0.1), mat=gm)                   # sight base
@@ -70,7 +70,7 @@ def build():
     rc.add(box(-0.5, 0.5, 1.2, 2.0, 2.4, 3.6, r=0.1), mat=gm)                      # sight cover
     rc.sub(box(-1.4, -1.0, -2.6, -0.4, -2.6, 3.0))                                  # ejection port groove (right side)
     # ------------------------------------------------------------------ barrel, birdcage flash hider, gas cylinder, front sight
-    ba = m.mesh("barrel", "rifle", (0, 0, 0), tris=2800)
+    ba = m.mesh("barrel", "rifle", (0, 0, 0), tris=800)
     stl = mid("gunmetal")
     ba.add(cylz(0, 0, -36.3, -21.0, 0.45, rr=0.05), mat=mid("steel"))
     ba.add(cylz(0, 0, -36.6, -32.5, 0.6, rr=0.08), mat=stl)                         # slotted birdcage

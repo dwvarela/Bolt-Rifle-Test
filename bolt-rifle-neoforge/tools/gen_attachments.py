@@ -24,7 +24,7 @@ def clamp_rail(b, zc, half_len, top, w=1.55, mat="black"):
 def red_dot():
     m = dim("att_red_dot", (-3.5, -0.2, -6.0), (3.5, 7.0, 6.0), 11)
     ax = 3.4
-    b = m.mesh("body", "rifle", (0, 0, 0), tris=5200)
+    b = m.mesh("body", "rifle", (0, 0, 0), tris=1500)
     clamp_rail(b, 0.2, 3.2, 1.7)
     b.add(box(-1.0, 1.0, 1.4, 2.3, -3.2, 3.4, r=0.3), mat=mid("black"), k=0.2)                      # riser
     b.add(cylz(0, ax, -4.2, 4.2, 1.72, rr=0.3), mat=mid("black"), k=0.15)                           # sleeve
@@ -45,7 +45,7 @@ def red_dot():
 def holo():
     m = dim("att_holo", (-3.6, -0.2, -6.8), (3.6, 8.0, 6.8), 12)
     ax = 3.7
-    b = m.mesh("body", "rifle", (0, 0, 0), tris=6000)
+    b = m.mesh("body", "rifle", (0, 0, 0), tris=1800)
     clamp_rail(b, 0.0, 3.4, 1.0)
     b.add(box(-2.9, 2.9, 0.9, 6.5, -5.7, 5.7, r=0.9), mat=mid("black"), k=0.3)                       # housing
     b.add(box(-2.45, 2.45, 5.9, 7.0, -4.6, 3.8, r=0.5), mat=mid("black"), k=0.3)                     # battery / roof hump
@@ -65,7 +65,7 @@ def holo():
 def acog():
     m = dim("att_acog", (-3.2, -0.2, -9.4), (3.2, 7.6, 9.4), 13)
     ax = 3.3
-    b = m.mesh("body", "rifle", (0, 0, 0), tris=8500)
+    b = m.mesh("body", "rifle", (0, 0, 0), tris=2500)
     b.add(box(-1.6, 1.6, 0.0, 1.9, -4.4, 4.2, r=0.3), mat=mid("black"), k=0.2)                      # base
     clamp_rail(b, 0.0, 3.0, 1.2)
     b.add(Cyl((0, ax, 8.4), (0, ax, 3.6), 1.7, 1.95, rr=0.3), mat=mid("black"), k=0.15)             # eyepiece taper
@@ -90,7 +90,7 @@ def acog():
 def scope():
     m = dim("att_scope", (-3.2, -0.2, -13.6), (3.2, 8.6, 13.6), 14)
     ax = 4.0
-    b = m.mesh("body", "rifle", (0, 0, 0), tris=9000)
+    b = m.mesh("body", "rifle", (0, 0, 0), tris=2500)
     b.add(cylz(0, ax, -9.0, 9.0, 1.55, rr=0.2), mat=mid("black"), k=0.15)                           # tube
     b.add(Cyl((0, ax, -8.0), (0, ax, -12.6), 1.6, 2.5, rr=0.3), mat=mid("black"), k=0.2)            # objective bell
     b.add(cylz(0, ax, -12.8, -12.2, 2.62, rr=0.3), mat=mid("steel"))
@@ -116,7 +116,7 @@ def scope():
 
 def flash_hider():
     m = dim("att_flash_hider", (-1.8, -1.8, -9.6), (1.8, 1.8, 0.4), 15, h=0.06)
-    b = m.mesh("body", "rifle", (0, 0, 0), tris=5400)
+    b = m.mesh("body", "rifle", (0, 0, 0), tris=1200)
     b.add(cylz(0, 0, -1.6, 0, 1.12, rr=0.1), mat=mid("black"))
     b.add(cylz(0, 0, -9.0, -1.4, 1.02, rr=0.12), mat=mid("black"), k=0.1)
     b.add(cylz(0, 0, -9.0, -8.1, 1.16, rr=0.1), mat=mid("black"))                                    # crown ring
@@ -129,7 +129,7 @@ def flash_hider():
 
 def brake():
     m = dim("att_muzzle_brake", (-1.8, -1.8, -8.6), (1.8, 1.8, 0.4), 16, h=0.06)
-    b = m.mesh("body", "rifle", (0, 0, 0), tris=6000)
+    b = m.mesh("body", "rifle", (0, 0, 0), tris=1400)
     b.add(cylz(0, 0, -1.2, 0, 1.28, rr=0.1), mat=mid("black"))
     b.add(cylz(0, 0, -8.0, -1.0, 1.2, rr=0.2), mat=mid("black"), k=0.1)
     b.sub(cylz(0, 0, -8.4, 0.2, 0.44))
@@ -143,7 +143,7 @@ def brake():
 
 def suppressor():
     m = dim("att_suppressor", (-2.8, -2.8, -20.8), (2.8, 2.8, 0.4), 17, h=0.1)
-    b = m.mesh("body", "rifle", (0, 0, 0), tris=7500)
+    b = m.mesh("body", "rifle", (0, 0, 0), tris=1800)
     b.add(cylz(0, 0, -3.0, 0, 1.45, rr=0.15), mat=mid("gunmetal"))                                   # mount collar
     b.add(Cyl((0, 0, -3.5), (0, 0, -5.2), 1.45, 2.1, rr=0.1), mat=mid("black"), k=0.2)               # taper
     b.add(cylz(0, 0, -19.2, -5.0, 2.12, rr=0.35), mat=mid("black"), k=0.1)                            # tube

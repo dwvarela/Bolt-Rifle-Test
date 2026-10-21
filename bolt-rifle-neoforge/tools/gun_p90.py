@@ -27,7 +27,7 @@ def build():
     thumb = [P(*p) for p in [(415, 515), (424, 488), (452, 467), (500, 460), (550, 468), (588, 492), (596, 530),
                              (584, 556), (540, 566), (480, 562), (440, 550), (418, 534)]]
     sil = Sil([(outer, [guard, thumb])], res=0.03)
-    body = m.mesh("body", "rifle", (0, 0, 0), tris=14000)
+    body = m.mesh("body", "rifle", (0, 0, 0), tris=4000)
     body.add(Ext(sil, "zy", -1.3, 1.3, r=1.15), mat=mid("p90"))                       # round-section grip loop / lower body
     body.add(Clip(Ext(sil, "zy", -HW, HW, r=0.5), z0=4.6), mat=mid("p90"))            # wider, crisp-edged stock block
     # front hood (rail housing) with side windows
@@ -71,7 +71,7 @@ def build():
     body.paint(box(-2, 2, -1.4, -1.25, 5.8, 13.4), "black")
 
     # ---------------------------------------------------------------- barrel + ported brake
-    bar = m.mesh("barrel", "rifle", (0, 0, 0), tris=2200)
+    bar = m.mesh("barrel", "rifle", (0, 0, 0), tris=700)
     bar.add(cylz(0, 0, -16.0, -11.0, 0.5), mat=mid("steel"))
     bar.add(cylz(0, 0, -16.0, -13.3, 0.74, rr=0.1), mat=mid("steel"))
     bar.add(cylz(0, 0, -13.5, -12.9, 0.86, rr=0.1), mat=mid("gunmetal"))
@@ -80,13 +80,13 @@ def build():
     bar.sub(cylz(0, 0, -16.2, -15.4, 0.32))
 
     # ---------------------------------------------------------------- twin charging handles
-    ch = m.mesh("charge", "rifle", (0, 0.2, -10.5), tris=1200)
+    ch = m.mesh("charge", "rifle", (0, 0.2, -10.5), tris=400)
     for sx in (-1, 1):
         ch.add(box(sx * 1.45 - 0.0, sx * 2.7, -0.7, 0.8, -11.6, -9.4, r=0.3), mat=mid("gunmetal"))
         ch.add(box(sx * 2.3, sx * 2.8, -0.9, 1.0, -11.8, -9.2, r=0.2), mat=mid("black"))
 
     # ---------------------------------------------------------------- amber translucent magazine
-    mg = m.mesh("magazine", "rifle", (0, 1.8, 0.0), tris=3000)
+    mg = m.mesh("magazine", "rifle", (0, 1.8, 0.0), tris=900)
     mg.add(box(-1.3, 1.3, 1.05, 2.75, -11.4, 5.8, r=0.35), mat=mid("amber"))
     mg.add(box(-0.42, 0.42, 2.6, 2.95, -10.9, 5.2, r=0.15), mat=mid("amber"))          # raised centre rib
     for i in range(34):                                                             # transverse ribbing either side of the rib

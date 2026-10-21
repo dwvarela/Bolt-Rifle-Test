@@ -134,7 +134,7 @@ public class BoltRifleMod {
 	public static final Map<String, DeferredHolder<net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundEvent>> SND = new LinkedHashMap<>();
 
 	static {
-		for (String n : new String[]{"shot_heavy", "shot", "shot_light", "shot_supp", "click", "click_dry", "bolt_open", "bolt_close", "mag_out", "mag_in", "rack", "shell"}) {
+		for (String n : new String[]{"shot_heavy", "shot", "shot_light", "shot_heavy_supp", "shot_supp", "shot_light_supp", "click", "click_dry", "bolt_open", "bolt_close", "mag_out", "mag_in", "rack", "shell"}) {
 			SND.put(n, SOUNDS.register(n, () -> net.minecraft.sounds.SoundEvent.createVariableRangeEvent(
 					net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(MOD_ID, n))));
 		}
@@ -148,7 +148,7 @@ public class BoltRifleMod {
 		COMPONENTS.register(modEventBus);
 		TABS.register(modEventBus);
 		modEventBus.addListener(Net::register);
-		container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "boltrifle-client-v4.toml");
+		container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "boltrifle-client-v5.toml");
 		container.registerConfig(ModConfig.Type.SERVER, GunConfig.SPEC);
 	}
 }

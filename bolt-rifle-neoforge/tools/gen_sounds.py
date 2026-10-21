@@ -1,17 +1,20 @@
 """Synthesises the gun sounds -> assets/boltrifle/sounds/*.ogg + sounds.json.  Usage: gen_sounds.py <resources_dir>
-Everything is built from filtered NOISE (no pure tones, no hard clipping): a gunshot is a broadband explosive transient
-(crack + blast + low rumble) followed by reflections; mechanical sounds are short noise ticks, thuds and scrapes."""
+Cinematic (Battlefield / Call of Duty style) but CLEAN: every sound is built from layered filtered noise, a pitch-dropping sub thump and a
+synthetic room impulse response, then mastered with a look-ahead limiter (no hard clipping, no tanh squashing, no upward compression), so
+nothing crackles or glitches.  Peaks sit at -1.5 dBFS; the loudness comes from dense, well-shaped layers, not from distortion."""
 import sys, os, json, subprocess, wave
 import numpy as np
+from scipy import signal
+from scipy.ndimage import minimum_filter1d, uniform_filter1d, maximum_filter1d
 
 SR = 44100
-rng = np.random.default_rng(11)
+rng = np.random.default_rng(7)
 RES = sys.argv[1]
 OUT = os.path.join(RES, "assets", "boltrifle", "sounds")
 os.makedirs(OUT, exist_ok=True)
 
 
-def t(n):
+def tt(n):
     return np.arange(int(n * SR)) / SR
 
 
@@ -19,27 +22,26 @@ def noise(n):
     return rng.standard_normal(int(n * SR))
 
 
-def lp(x, fc, order=2):
-    a = 1 - np.exp(-2 * np.pi * fc / SR)
-    for _ in range(order):
-        y = np.empty_like(x); s = 0.0
-        for i, v in enumerate(x):
-            s += a * (v - s); y[i] = s
-        x = y
-    return x
+def _sos(kind, f, order):
+    f = np.asarray(f, float)
+    return signal.butter(order, float(f) / (SR / 2) if f.ndim == 0 else list(f / (SR / 2)), btype=kind, output="sos")
 
 
-def hp(x, fc):
-    return x - lp(x, fc, 1)
+def lpf(x, fc, order=2):
+    return signal.sosfilt(_sos("low", min(fc, SR * 0.45), order), x)
 
 
-def bp(x, lo, hi):
-    return hp(lp(x, hi), lo)
+def hpf(x, fc, order=2):
+    return signal.sosfilt(_sos("high", fc, order), x)
 
 
-def env(n, tau, attack=0.0003):
-    tt = t(n)
-    return np.exp(-tt / tau) * np.minimum(1, tt / attack)
+def bpf(x, lo, hi, order=2):
+    return signal.sosfilt(_sos("band", [lo, min(hi, SR * 0.45)], order), x)
+
+
+def env(n, tau, attack=0.0005):
+    t = tt(n)
+    return np.exp(-t / tau) * (1 - np.exp(-t / max(attack, 1e-5)))
 
 
 def place(buf, snd, at, g=1.0):
@@ -50,87 +52,125 @@ def place(buf, snd, at, g=1.0):
     buf[i:j] += g * snd[: j - i]
 
 
-def master(x, peak=0.95, squash=0.5, tail_fade=0.05, drive=1.0):
-    """Gentle upward compression (keeps the tail audible) + soft limiting, then normalise."""
-    w = int(0.02 * SR)
-    e = np.sqrt(np.convolve(x * x, np.ones(w) / w, mode="same")) + 1e-3
-    g = (0.3 / e) ** squash
-    g = np.convolve(np.clip(g, 0, 12), np.ones(w) / w, mode="same")
-    x = x * g
-    x = np.tanh(drive * x / max(1e-9, np.percentile(np.abs(x), 99.5)))
-    n = int(tail_fade * SR)
-    x[-n:] *= np.linspace(1, 0, n)
-    return x / max(1e-9, np.max(np.abs(x))) * peak
+def limiter(x, thr=0.84, look=0.004):
+    """Look-ahead peak limiter: smooth gain reduction, never clips."""
+    L = max(1, int(look * SR))
+    peak = maximum_filter1d(np.abs(x), 2 * L + 1)
+    g = np.minimum(1.0, thr / np.maximum(peak, 1e-9))
+    g = minimum_filter1d(g, 2 * L + 1)
+    g = uniform_filter1d(g, 2 * L + 1)
+    return x * g
 
 
-def shot(length=1.8, low=1.0, crack_hi=9000, tail=1.0, blast_lo=100):
+def room(x, t60=1.2, pre=0.012, bright=1.0, wet=0.5):
+    """Synthetic outdoor/room reverb: three decaying noise bands (airy highs die first, the low boom lingers)."""
+    n = int((t60 + pre) * SR)
+    ir = np.zeros(n)
+    t = np.arange(n) / SR
+    for fc, tau, gain in ((6000 * bright, t60 * 0.07, 0.35), (1800, t60 * 0.16, 0.7), (500, t60 * 0.32, 1.0)):
+        ir += gain * lpf(rng.standard_normal(n), fc, 1) * np.exp(-np.maximum(t - pre, 0) / tau)
+    ir[: int(pre * SR)] = 0
+    ir /= np.sqrt(np.sum(ir ** 2)) + 1e-9
+    wetsig = signal.fftconvolve(x, ir)[: len(x)]
+    wetsig *= np.sqrt(np.sum(x ** 2)) / (np.sqrt(np.sum(wetsig ** 2)) + 1e-9)
+    return x * (1 - 0.3 * wet) + wet * wetsig
+
+
+def finish(x, loud=2.0, thr=0.84, fade=0.04, hi=15000):
+    x = lpf(x, hi, 2)
+    x = x - np.mean(x)
+    x = x / (np.percentile(np.abs(x), 99.0) + 1e-9) * 0.35 * loud
+    x = limiter(x, thr)
+    n = int(fade * SR)
+    x[-n:] *= np.linspace(1, 0, n) ** 2
+    return x
+
+
+def sub_thump(dur, f0, f1, tau, amp):
+    t = tt(dur)
+    f = f1 + (f0 - f1) * np.exp(-t / 0.035)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    return np.sin(ph) * env(dur, tau, 0.002) * amp
+
+
+def shot(length, f0, f1, crack, tail, t60, boom=1.0):
     b = np.zeros(int(length * SR))
-    place(b, hp(noise(0.08), 1200) * env(0.08, 0.005), 0.0, 1.0)                                      # supersonic crack
-    place(b, bp(noise(0.12), 400, crack_hi) * env(0.12, 0.018), 0.0, 1.1)                              # sharp edge of the blast
-    blast = bp(noise(0.6), blast_lo, 2600) * env(0.6, 0.055)
-    rumble = lp(noise(0.9), 170 / low, 2) * env(0.9, 0.16) * 3.0
-    place(b, blast, 0.0, 1.3)
-    place(b, rumble, 0.0, 1.0)
-    body = blast + rumble[: len(blast)]
-    for d, g, fc in ((0.045, 0.45, 2200), (0.11, 0.34, 1700), (0.21, 0.25, 1300), (0.36, 0.17, 1000), (0.58, 0.10, 800)):   # terrain reflections
-        place(b, lp(body, fc, 1) * np.linspace(1, 0.5, len(body)), d, g * tail)
-    place(b, lp(noise(1.5), 600) * env(1.5, 0.45) * 0.6, 0.05, tail)                                 # distant rolling tail
-    return master(b, 0.97, 0.85, 0.05, 1.7)
+    place(b, hpf(noise(0.06), 1500) * env(0.06, 0.0028, 0.0001), 0.0, 1.9 * crack)                 # supersonic crack
+    place(b, bpf(noise(0.12), 900, 7500) * env(0.12, 0.008, 0.0002), 0.0, 1.5 * crack)             # sharp edge of the blast
+    place(b, bpf(noise(0.5), 140, 3200) * env(0.5, 0.05, 0.0008), 0.0, 2.0)                         # the blast itself
+    place(b, bpf(noise(0.3), 380, 1700) * env(0.3, 0.075, 0.001), 0.001, 1.3)                      # mid bark
+    place(b, sub_thump(0.7, f0, f1, 0.16, 0.9 * boom), 0.0, 1.0)                                    # chest-thumping boom
+    place(b, lpf(noise(0.9), 260, 2) * env(0.9, 0.28, 0.003) * 1.1 * boom, 0.003, 0.9)             # low rumble
+    dry = b
+    wet = room(dry, t60=t60, pre=0.014, wet=1.0)
+    out = dry * 0.75 + wet * 0.7 * tail
+    return finish(out, loud=2.1, thr=0.86, fade=0.12)
 
 
-def shot_suppressed(length=0.7):
-    b = np.zeros(int(length * SR))
-    place(b, lp(noise(0.25), 2400) * env(0.25, 0.028), 0.0, 1.0)                                      # "phut": gas escaping
-    place(b, lp(noise(0.3), 420) * env(0.3, 0.06), 0.0, 1.4)                                          # soft thump
-    place(b, bp(noise(0.03), 2500, 7000) * env(0.03, 0.004), 0.0, 0.25)                               # tiny residual crack
-    place(b, bp(noise(0.02), 1500, 5000) * env(0.02, 0.003), 0.085, 0.5)                              # action clatter
-    place(b, lp(noise(0.5), 700) * env(0.5, 0.12), 0.03, 0.35)
-    return master(b, 0.6, 0.5, 0.05, 1.2)
+# ------------------------------------------------------------------------- mechanical handling sounds
+def metal_hit(f, tau=0.012, amp=1.0, dur=0.12, low=420):
+    """A real-sounding metal impact: noise transient + a few quickly damped resonant modes + a body thud."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = bpf(noise(dur), f * 0.6, f * 3.2) * env(dur, 0.0022, 0.00008) * 1.4
+    for m, g, ts in ((1.0, 0.30, tau), (1.62, 0.20, tau * 0.7), (2.71, 0.12, tau * 0.5), (4.1, 0.07, tau * 0.35)):
+        x += g * np.sin(2 * np.pi * f * m * t + rng.uniform(0, 6.28)) * np.exp(-t / ts)
+    x += lpf(noise(dur), low, 2) * env(dur, 0.014, 0.0004) * 1.6
+    return x * amp
 
 
-def tick(f0, dur=0.03, tau=0.004):
-    return bp(noise(dur), f0, f0 * 2.4) * env(dur, tau, 0.0002)
-
-
-def thud(fc, dur=0.12, tau=0.025):
-    return lp(noise(dur), fc, 2) * env(dur, tau, 0.0004) * 2.2
-
-
-def slide(dur, lo=1400, hi=6500):
+def scrape(dur, lo=1200, hi=6500, amp=0.5, swell=1.4):
     n = noise(dur)
-    r = np.sin(np.linspace(0, np.pi, len(n))) ** 1.5
-    return bp(n, lo, hi) * r * 0.5
+    r = np.sin(np.linspace(0, np.pi, len(n))) ** swell
+    return bpf(n, lo, hi) * r * amp * (0.7 + 0.3 * np.sin(np.linspace(0, 40, len(n))))
 
 
-def mix(parts, length, peak=0.9):
+def mech(parts, length, loud=1.9, t60=0.22, wet=0.35):
     b = np.zeros(int(length * SR))
     for snd, at, g in parts:
         place(b, snd, at, g)
-    return master(b, peak, 0.6, 0.03, 1.5)
+    return finish(room(b, t60=t60, pre=0.004, wet=wet), loud=loud, thr=0.82, fade=0.03)
 
 
-sounds = {
-    "shot_heavy": shot(2.0, 0.85, 8000, 1.1, 80),
-    "shot": shot(1.7, 1.0, 9000, 1.0, 100),
-    "shot_light": shot(1.1, 1.3, 11000, 0.8, 140),
-    "shot_supp": shot_suppressed(),
-    "click": mix([(tick(3000), 0.0, 1.0), (thud(700), 0.0, 0.5), (tick(2400), 0.07, 0.8), (thud(600), 0.07, 0.35)], 0.2, 0.8),
-    "click_dry": mix([(tick(2600), 0.0, 1.0), (thud(520), 0.0, 0.6)], 0.12, 0.75),
-    "bolt_open": mix([(slide(0.09), 0.0, 0.6), (tick(2800), 0.09, 1.0), (thud(900), 0.09, 1.0), (tick(3600), 0.15, 0.6)], 0.34, 0.85),
-    "bolt_close": mix([(slide(0.08), 0.0, 0.5), (thud(480, 0.14, 0.03), 0.08, 1.4), (tick(2500), 0.08, 1.0), (tick(3800), 0.125, 0.55)], 0.34, 0.9),
-    "mag_out": mix([(tick(1800), 0.0, 1.0), (thud(420, 0.14, 0.03), 0.0, 1.0), (slide(0.07, 900, 4500), 0.04, 0.6)], 0.28, 0.85),
-    "mag_in": mix([(slide(0.1, 900, 4500), 0.0, 0.55), (thud(460, 0.14, 0.03), 0.1, 1.3), (tick(3000), 0.105, 0.9), (tick(2200), 0.16, 0.5)], 0.3, 0.88),
-    "rack": mix([(tick(2400), 0.0, 1.0), (thud(800), 0.0, 0.8), (slide(0.14, 1200, 5500), 0.05, 0.55), (thud(600, 0.14, 0.03), 0.24, 1.2), (tick(2800), 0.24, 0.8)], 0.44, 0.88),
-    "shell": mix([(bp(noise(0.12), 4200, 8500) * env(0.12, 0.03), 0.0, 1.0), (bp(noise(0.1), 4000, 8000) * env(0.1, 0.025), 0.11, 0.6), (bp(noise(0.08), 4500, 8500) * env(0.08, 0.02), 0.19, 0.35)], 0.36, 0.7),
-}
+def make_sounds():
+    s = {}
+    s["shot_heavy"] = shot(2.4, 95, 38, 1.0, 1.0, 1.7, boom=1.15)
+    s["shot"] = shot(2.0, 115, 46, 1.0, 0.9, 1.4, boom=1.0)
+    s["shot_light"] = shot(1.5, 150, 62, 1.1, 0.8, 1.0, boom=0.8)
+    for k in ("shot_heavy", "shot", "shot_light"):                     # suppressed = the same shot, exactly 40% quieter (mild high-cut)
+        s[k + "_supp" if k != "shot" else "shot_supp"] = lpf(s[k], 9500, 2) * 0.6
+    s["click"] = mech([(metal_hit(3100, 0.008, 1.0), 0.0, 1.0), (metal_hit(2500, 0.010, 0.8), 0.075, 0.9)], 0.25, 2.0)
+    s["click_dry"] = mech([(metal_hit(2700, 0.009, 1.0), 0.0, 1.0), (lpf(noise(0.03), 900) * env(0.03, 0.006), 0.012, 0.6)], 0.16, 2.0)
+    s["bolt_open"] = mech([(metal_hit(2300, 0.010, 0.8), 0.0, 0.8), (scrape(0.10, 1500, 5500, 0.45), 0.03, 1.0),
+                           (metal_hit(1700, 0.016, 1.0, 0.16, 360), 0.14, 1.2), (metal_hit(3400, 0.007, 0.5), 0.152, 0.6)], 0.42, 2.0)
+    s["bolt_close"] = mech([(scrape(0.09, 1300, 5200, 0.4), 0.0, 1.0), (metal_hit(1500, 0.018, 1.0, 0.18, 330), 0.085, 1.4),
+                            (metal_hit(2800, 0.008, 0.7), 0.1, 0.8), (metal_hit(2200, 0.009, 0.6), 0.17, 0.7)], 0.45, 2.0)
+    s["mag_out"] = mech([(metal_hit(2000, 0.008, 0.9), 0.0, 1.0), (scrape(0.09, 900, 4200, 0.5), 0.02, 0.9),
+                         (metal_hit(1200, 0.014, 0.7, 0.16, 300), 0.1, 0.8)], 0.34, 2.0)
+    s["mag_in"] = mech([(scrape(0.12, 900, 4200, 0.4), 0.0, 0.9), (metal_hit(1400, 0.016, 1.0, 0.18, 320), 0.115, 1.5),
+                        (metal_hit(2600, 0.008, 0.7), 0.125, 0.8), (metal_hit(1900, 0.010, 0.5), 0.2, 0.5)], 0.4, 2.0)
+    s["rack"] = mech([(metal_hit(2200, 0.010, 0.9), 0.0, 1.0), (scrape(0.16, 1200, 5600, 0.5), 0.04, 1.0),
+                      (metal_hit(1500, 0.018, 1.0, 0.18, 330), 0.25, 1.4), (metal_hit(3000, 0.007, 0.6), 0.255, 0.7)], 0.5, 2.0)
+    brass = np.zeros(int(0.5 * SR))
+    for at, f, g in ((0.0, 5200, 1.0), (0.11, 4700, 0.6), (0.19, 5600, 0.35), (0.25, 5000, 0.2)):
+        tn = np.arange(int(0.2 * SR)) / SR
+        h = np.sin(2 * np.pi * f * tn) * np.exp(-tn / 0.03) * 0.5 + np.sin(2 * np.pi * f * 1.52 * tn) * np.exp(-tn / 0.018) * 0.3
+        h += bpf(noise(0.2), 3000, 9000) * env(0.2, 0.01, 0.0001) * 0.7
+        place(brass, h, at, g)
+    s["shell"] = finish(room(brass, 0.25, 0.004, 1.2, 0.3), loud=1.5, thr=0.8, fade=0.05)
+    return s
+
+
+sounds = make_sounds()
 events = {}
 for name, x in sounds.items():
+    assert np.max(np.abs(x)) <= 1.0
     wav = os.path.join(OUT, name + ".wav")
     with wave.open(wav, "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
-        w.writeframes((np.clip(x, -1, 1) * 32767).astype("<i2").tobytes())
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-c:a", "libvorbis", "-q:a", "7", os.path.join(OUT, name + ".ogg")], check=True)
+        w.writeframes((np.clip(x, -1, 1) * 32000).astype("<i2").tobytes())
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", wav, "-af", "volume=-0.5dB", "-c:a", "libvorbis", "-q:a", "8", os.path.join(OUT, name + ".ogg")], check=True)
     os.remove(wav)
     events[name] = {"sounds": [{"name": "boltrifle:" + name, "stream": False}], "subtitle": "boltrifle.sound." + name}
+    print(f"{name:16s} peak {20*np.log10(np.max(np.abs(x))+1e-9):6.1f} dB  rms300ms {20*np.log10(np.sqrt(np.mean(x[:int(.3*SR)]**2))+1e-9):6.1f} dB")
 json.dump(events, open(os.path.join(RES, "assets", "boltrifle", "sounds.json"), "w"), indent=1)
-print("sounds:", list(sounds))

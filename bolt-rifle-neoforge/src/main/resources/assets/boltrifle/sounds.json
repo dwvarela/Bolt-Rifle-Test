@@ -26,6 +26,15 @@
   ],
   "subtitle": "boltrifle.sound.shot_light"
  },
+ "shot_heavy_supp": {
+  "sounds": [
+   {
+    "name": "boltrifle:shot_heavy_supp",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.shot_heavy_supp"
+ },
  "shot_supp": {
   "sounds": [
    {
@@ -34,6 +43,15 @@
    }
   ],
   "subtitle": "boltrifle.sound.shot_supp"
+ },
+ "shot_light_supp": {
+  "sounds": [
+   {
+    "name": "boltrifle:shot_light_supp",
+    "stream": false
+   }
+  ],
+  "subtitle": "boltrifle.sound.shot_light_supp"
  },
  "click": {
   "sounds": [

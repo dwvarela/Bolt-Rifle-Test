@@ -106,8 +106,8 @@ public final class Guns {
 		d.spreadAds = 0.10f;
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
-		hold(d, 22.4, 0.6325);                         // 15% larger again (0.55 -> 0.6325)
-		aim(d, 2.75, 4.1, 0.3795, 0.10);                 // rail-mounted ghost-ring rear sight / blade front sight
+		hold(d, 22.4, 0.759);                          // a further 20% larger (0.6325 -> 0.759)
+		aim(d, 2.75, 4.1, 0.4554, 0.10);                 // rail-mounted ghost-ring rear sight / blade front sight
 		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.cues = new Cue[][]{

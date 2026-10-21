@@ -50,12 +50,40 @@ class Anim:
             self.key(bone, "scale", t_to_grip - e, a1, STEP).key(bone, "scale", t_to_grip, a0, STEP)
         return self
 
+    @staticmethod
+    def _flow(frames, dt=1.0 / 30.0):
+        """Runs of consecutive SMOOTH segments are resampled along a monotone cubic through the keys (continuous velocity, no
+        stop at every keyframe - that stop-start was what made the motion feel clunky); impact keys (SNAP/FALL/STEP) stay as written."""
+        import numpy as np
+        from scipy.interpolate import PchipInterpolator
+        ks = sorted(frames.items())
+        out = {}
+        i = 0
+        while i < len(ks):
+            j = i
+            while j < len(ks) - 1 and ks[j][1][1] == SMOOTH:
+                j += 1
+            if j - i >= 2:                                    # >= 2 smooth segments in a row: flow through them
+                ts = np.array([k[0] for k in ks[i:j + 1]])
+                vs = np.array([k[1][0] for k in ks[i:j + 1]], float)
+                f = PchipInterpolator(ts, vs, axis=0)
+                n = max(2, int(round((ts[-1] - ts[0]) / dt)))
+                for tt in np.linspace(ts[0], ts[-1], n + 1)[:-1]:
+                    out[round(float(tt), 3)] = ([round(float(x), 4) for x in f(tt)], STEP)
+                out[round(ks[j][0], 3)] = ks[j][1]            # the run's last key keeps its own easing (impact etc.)
+                i = j + 1
+            else:
+                out[round(ks[i][0], 3)] = ks[i][1]
+                i += 1
+        return out
+
     def to_json(self):
         bones = {}
         for b, chans in self.bones.items():
             bones[b] = {}
             for c, frames in chans.items():
-                bones[b][c] = {f"{t:.3f}": {"vector": v, "easing": e} for t, (v, e) in sorted(frames.items())}
+                fr = self._flow(frames) if c in ("position", "rotation") else frames
+                bones[b][c] = {f"{t:.3f}": {"vector": v, "easing": e} for t, (v, e) in sorted(fr.items())}
         d = {"animation_length": self.length, "bones": bones}
         if self.loop:
             d["loop"] = True
