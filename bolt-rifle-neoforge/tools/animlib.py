@@ -103,6 +103,15 @@ def write(res_dir, model_name, prefix, anims, geo_path=None):
         json.dump(out, f, indent=1)
     geo_path = geo_path or os.path.join(res_dir, f"assets/boltrifle/geo/item/{model_name}.geo.json")
     names = {b["name"] for b in json.load(open(geo_path))["minecraft:geometry"][0]["bones"]}
+    # ---- HARD RULE (see CLAUDE.md): exactly two hands, never shown/hidden/scaled; magazines never vanish or re-appear in view ----
+    hands = sorted(n for n in names if "hand" in n.lower() and n not in ("bolt_handle", "handguard", "charging_handle"))
+    assert set(hands) <= {"left_hand", "right_hand"}, ("HARD RULE: more than two hands in the model", hands)
+    for a in anims:
+        for b, chans in a.bones.items():
+            if "hand" in b.lower() and b not in ("bolt_handle", "handguard", "charging_handle"):
+                assert "scale" not in chans, ("HARD RULE: a hand must never be scaled / hidden / shown", a.name, b)
+            if b.startswith("mag") or b.startswith("drop_mag"):
+                assert "scale" not in chans, ("HARD RULE: a magazine must never disappear / re-appear", a.name, b)
     for a in anims:
         for b, chans in a.bones.items():
             assert b in names, (a.name, "unknown bone", b)

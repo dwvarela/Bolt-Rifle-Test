@@ -8,10 +8,6 @@
    {
     "name": "boltrifle:shot_heavy_v2",
     "stream": false
-   },
-   {
-    "name": "boltrifle:shot_heavy_v3",
-    "stream": false
    }
   ],
   "subtitle": "boltrifle.sound.shot_heavy"
@@ -24,10 +20,6 @@
    },
    {
     "name": "boltrifle:shot_v2",
-    "stream": false
-   },
-   {
-    "name": "boltrifle:shot_v3",
     "stream": false
    }
   ],
@@ -42,10 +34,6 @@
    {
     "name": "boltrifle:shot_light_v2",
     "stream": false
-   },
-   {
-    "name": "boltrifle:shot_light_v3",
-    "stream": false
    }
   ],
   "subtitle": "boltrifle.sound.shot_light"
@@ -58,10 +46,6 @@
    },
    {
     "name": "boltrifle:shot_heavy_supp_v2",
-    "stream": false
-   },
-   {
-    "name": "boltrifle:shot_heavy_supp_v3",
     "stream": false
    }
   ],
@@ -76,10 +60,6 @@
    {
     "name": "boltrifle:shot_supp_v2",
     "stream": false
-   },
-   {
-    "name": "boltrifle:shot_supp_v3",
-    "stream": false
    }
   ],
   "subtitle": "boltrifle.sound.shot_supp"
@@ -92,10 +72,6 @@
    },
    {
     "name": "boltrifle:shot_light_supp_v2",
-    "stream": false
-   },
-   {
-    "name": "boltrifle:shot_light_supp_v3",
     "stream": false
    }
   ],
