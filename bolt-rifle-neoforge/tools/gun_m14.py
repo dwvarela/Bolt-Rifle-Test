@@ -73,7 +73,7 @@ def build():
         rc.add(Cyl((sx * 0.85, 1.15, 4.7), (sx * 1.45, 1.15, 4.7), 0.52, rr=0.1), mat=gm)   # windage / elevation knobs
         rc.paint(Cyl((sx * 1.3, 1.15, 4.7), (sx * 1.5, 1.15, 4.7), 0.3), "black")
     rc.add(box(-0.5, 0.5, 1.2, 1.55, 2.4, 3.6, r=0.1), mat=gm)                     # low sight cover (never in the sight line)
-    rc.sub(box(-1.4, -1.0, -2.6, -0.4, -2.6, 3.0))                                  # ejection port groove (right side)
+    rc.sub(box(-1.5, -0.7, -0.25, 0.65, -2.6, 6.4))                                  # operating-rod slot in the right wall (the handle slides in it)
     # ------------------------------------------------------------------ barrel, birdcage flash hider, gas cylinder, front sight
     ba = m.mesh("barrel", "rifle", (0, 0, 0), tris=800)
     stl = mid("gunmetal")
@@ -94,26 +94,31 @@ def build():
     mg.paint(box(-1.2, 1.2, -6.2, -5.9, -3.2, 1.1), "black")
     mg.paint(box(-1.2, 1.2, -4.5, -4.3, -3.2, 1.1), "black")
 
-    m.bone("bolt", "rifle", (0, 0, 0))
-    m.cube("bolt", "steel", -1.0, -0.3, -2.9, -0.9, 0.55, -0.7)
-    m.cube("bolt", "steel", -0.88, 0.0, -0.7, 0.88, 0.6, 1.5)
-    m.cube("bolt", "steel", -1.95, -0.6, -22.0, -1.3, -0.1, -4.0)                    # op rod
-    m.bone("bolt_handle", "bolt", (-1.1, 0.3, -1.0))
-    m.cube("bolt_handle", "steel", -2.0, -0.15, -1.5, -0.9, 0.65, -0.5)
-    m.cube("bolt_handle", "steel", -2.6, -0.5, -1.9, -1.9, 1.0, -0.1)
-    m.cube("bolt_handle", "black", -2.9, -0.6, -2.0, -2.55, 1.1, 0.0)
-    m.hand_bolt("bolt_handle", -2.7, 0.3, -1.0)
+    # ------------------------------------------------------------------ bolt, operating rod and its handle (all smooth parts, no slapped-on cubes)
+    stlm, blk = mid("steel"), mid("black")
+    bo = m.mesh("bolt", "rifle", (0, 0, 0), tris=700)
+    bo.add(box(-0.8, 0.8, 0.05, 0.78, -2.9, 1.5, r=0.12), mat=stlm)                       # bolt body riding in the receiver
+    bo.add(box(-0.55, 0.55, 0.7, 0.9, -1.4, 0.4, r=0.08), mat=stlm)                      # raised lug on top of the bolt (ejection window side)
+    bo.add(box(-1.45, -0.9, -0.2, 0.55, -4.2, -0.6, r=0.14), mat=stlm)                    # carrier arm through the receiver slot to the rod
+    bo.add(Cyl((-1.55, -0.2, -22.0), (-1.55, -0.2, -4.2), 0.33, rr=0.3), mat=stlm)        # operating rod running up under the gas cylinder
+    bo.add(box(-1.95, -1.15, -0.55, 0.15, -6.5, -4.2, r=0.14), mat=stlm)                  # rod head / spring-guide block
+    bh = m.mesh("bolt_handle", "bolt", (-1.1, 0.3, -1.0), tris=300)
+    bh.add(box(-1.0, -1.75, -0.15, 0.62, -1.95, -0.65, r=0.16), mat=stlm)                 # handle lug growing out of the carrier arm
+    bh.add(box(-1.65, -2.2, -0.3, 0.75, -2.0, -0.5, r=0.14), mat=blk)                      # flat serrated thumb button at the tip
+    m.casing(-0.7, 1.0, -1.0)
+    m.bone("chamber_round", "rifle", (0, 0, -4.5))
+    m.bar("chamber_round", "brass", 0, 0, -6.1, -3.4, 0.42)
+    m.bar("chamber_round", "steel", 0, 0, -7.0, -6.1, 0.3)
     m.muzzle_flash(-36.8, length=5.5, width=3.6)
-    m.casing(-1.1, 0.5, -1.0)
     m.hand_left(-4.0, -14.5)
     m.hand_right(-6.0, 8.8, -3.6)
 
     cfg = dict(
         name=ID, hand_l=(-4.0, -14.5), mag_grip=(-6.8, -0.95), mag_drop=9.0, mag_rock=10,
-        charge_hand="right", handle=(-2.7, 0.3, -1.0), bolt_travel=6.5, hold_open=True,
+        charge_hand="right", hand_r=(-6.0, 8.8), handle=(-2.7, 0.3, -1.0), bolt_travel=6.5, hold_open=True,
         release_mode="handle",
         fire_len=0.32, cycle=0.12, kick_z=2.8, kick_pitch=4.0, kick_yaw=0.8, flash=1.25,
-        reload_len=2.3, charge_len=0.95, release_len=0.7, eject=(-1.1, 0.5, 0.9),
+        reload_len=2.3, charge_len=0.95, release_len=0.7, eject=(-0.9, 1.4, 0.8), round=(4.5, -2.0),
         sight=(SY, SZ), butt=23.6,
     )
     return m, cfg

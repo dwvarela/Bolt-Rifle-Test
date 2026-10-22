@@ -148,7 +148,7 @@ public class BoltRifleMod {
 		COMPONENTS.register(modEventBus);
 		TABS.register(modEventBus);
 		modEventBus.addListener(Net::register);
-		container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "boltrifle-client-v6.toml");
+		container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "boltrifle-client-v7.toml");
 		container.registerConfig(ModConfig.Type.SERVER, GunConfig.SPEC);
 	}
 }

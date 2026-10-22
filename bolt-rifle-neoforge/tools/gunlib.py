@@ -158,12 +158,11 @@ class Model:
         self.cube(b, "black", min(xo, xo - 0.2 * sg), y0 + 0.2, zc - w + 0.08, max(xo, xo - 0.2 * sg), y0 + 0.8 + lens[1], zc + w - 0.08)
 
     def _forearm(self, b, y, z, x=0.0):
-        """Wrist, tactical-glove cuff and a rolled olive sleeve running back toward the camera."""
+        """Wrist and tactical-glove cuff / gauntlet running back toward the camera (no sleeve)."""
         self.rbox(b, "glove", x - 1.15, y - 3.4, z + 1.4, x + 1.15, y - 0.6, z + 4.6, c=0.45)
         self.cube(b, "black", x - 1.22, y - 3.5, z + 3.2, x + 1.22, y - 0.5, z + 3.8)              # cuff strap
         self.cube(b, "stainless", x - 0.3, y - 2.2, z + 3.7, x + 0.3, y - 1.6, z + 3.85)            # velcro tab
-        self.rbox(b, "olive", x - 1.55, y - 4.0, z + 4.4, x + 1.55, y - 0.2, z + 10.0, c=0.6)        # sleeve
-        self.cube(b, "black", x - 1.6, y - 4.0, z + 4.4, x + 1.6, y - 0.2, z + 4.75)                 # sleeve hem
+        self.rbox(b, "glove", x - 1.3, y - 3.7, z + 4.4, x + 1.3, y - 0.4, z + 8.0, c=0.5)           # glove gauntlet (no sleeve)
 
     def hand_left(self, y, z):
         """Support hand under the forend: palm below, four fingers curling up the right side, thumb along the left."""
@@ -192,20 +191,6 @@ class Model:
         self.rbox("right_hand", "glove", 1.0, y + 0.3, z - 1.6, 2.1, y + 2.0, z + 1.6, c=0.3)           # thumb base
         self.rbox("right_hand", "glove", 0.8, y + 1.6, z - 3.4, 1.8, y + 2.6, z - 0.8, c=0.25)          # thumb tip along the frame
         self._forearm("right_hand", y, z + 0.8)
-
-    def hand_bolt(self, parent, x, y, z, side=-1):
-        """Glove that grabs the right-hand charging handle (child of the handle so it moves with it).
-        side=-1: handle at negative x (the convention of the older guns); side=+1: mirrored (handle at positive x)."""
-        m = -side                                     # +1 for the original layout, -1 mirrored about the handle
-        self.bone("bolt_hand", parent, (x, y, z))
-        xa, xb = sorted((x - 2.0 * m, x + 1.2 * m))
-        self.rbox("bolt_hand", "glove", xa, y - 1.3, z - 1.6, xb, y + 1.2, z + 1.8, c=0.4)
-        for i in range(3):
-            xa, xb = sorted((x - 2.5 * m, x - 1.8 * m))
-            self.cube("bolt_hand", "glove", xa, y - 1.2 + i * 0.85, z - 1.9, xb, y - 0.5 + i * 0.85, z + 0.2)
-        xa, xb = sorted((x - 1.6 * m, x + 0.8 * m))
-        self.cube("bolt_hand", "glove", xa, y - 0.9, z - 2.6, xb, y + 0.5, z - 1.5)                      # thumb
-        self._forearm("bolt_hand", y, z, x=x - 0.4 * m)
 
     def chain(self, b, mat, x0, x1, start_y, start_z, seg_len, depth, n, bend_deg, thick_taper=0.0):
         """Curved column (magazine body): n segments hanging from (start_y, start_z), each leaning a bit

@@ -2940,48 +2940,6 @@
      }
     },
     "magazine": {
-     "scale": {
-      "0.000": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "easeInOutSine"
-      },
-      "0.893": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "linear"
-      },
-      "0.903": {
-       "vector": [
-        0,
-        0,
-        0
-       ],
-       "easing": "linear"
-      },
-      "1.082": {
-       "vector": [
-        0,
-        0,
-        0
-       ],
-       "easing": "linear"
-      },
-      "1.102": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "linear"
-      }
-     },
      "position": {
       "0.000": {
        "vector": [
@@ -5195,48 +5153,6 @@
      }
     },
     "magazine": {
-     "scale": {
-      "0.000": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "easeInOutSine"
-      },
-      "0.893": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "linear"
-      },
-      "0.903": {
-       "vector": [
-        0,
-        0,
-        0
-       ],
-       "easing": "linear"
-      },
-      "1.082": {
-       "vector": [
-        0,
-        0,
-        0
-       ],
-       "easing": "linear"
-      },
-      "1.102": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "linear"
-      }
-     },
      "position": {
       "0.000": {
        "vector": [
@@ -8006,48 +7922,6 @@
      }
     },
     "magazine": {
-     "scale": {
-      "0.000": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "easeInOutSine"
-      },
-      "0.893": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "linear"
-      },
-      "0.903": {
-       "vector": [
-        0,
-        0,
-        0
-       ],
-       "easing": "linear"
-      },
-      "1.082": {
-       "vector": [
-        0,
-        0,
-        0
-       ],
-       "easing": "linear"
-      },
-      "1.102": {
-       "vector": [
-        1,
-        1,
-        1
-       ],
-       "easing": "linear"
-      }
-     },
      "position": {
       "0.000": {
        "vector": [

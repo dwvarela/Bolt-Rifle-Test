@@ -70,7 +70,6 @@ def build():
     m.cube("bolt_handle", "steel", -2.0, 0.55, -1.7, -0.9, 1.35, -0.7)
     m.cube("bolt_handle", "steel", -2.6, 0.2, -2.1, -1.9, 1.7, -0.3)
     m.cube("bolt_handle", "black", -2.9, 0.1, -2.2, -2.55, 1.8, -0.2)
-    m.hand_bolt("bolt_handle", -2.7, 1.0, -1.2)
 
     # ---------------------------------------------------------------- detachable 10-round box magazine
     m.bone("magazine", "rifle", (0, -4.4, -6.0))
@@ -87,7 +86,7 @@ def build():
 
     cfg = dict(
         name=ID, hand_l=(-4.6, -14.0), mag_grip=(-8.4, -5.0), mag_drop=8.0, mag_rock=12,
-        charge_hand="right", handle=(-2.7, 1.0, -1.2), bolt_travel=6.5, hold_open=True,
+        charge_hand="right", hand_r=(-6.2, 6.0), handle=(-2.7, 1.0, -1.2), bolt_travel=6.5, hold_open=True,
         release_mode="handle",
         fire_len=0.3, cycle=0.11, kick_z=2.6, kick_pitch=3.8, kick_yaw=0.9, flash=1.2,
         reload_len=2.2, charge_len=0.95, release_len=0.7, eject=(-1.0, 1.0, 0.9),

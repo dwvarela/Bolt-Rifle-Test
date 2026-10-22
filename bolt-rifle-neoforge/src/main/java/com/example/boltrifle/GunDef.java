@@ -49,6 +49,8 @@ public final class GunDef {
 	public double muzzleZ = -20;
 	/** Iron-sight aim parameters used by Guns.aim (model px, scaled size, eye relief) so optics can shift the aim point. */
 	public double aimSy, aimSz, aimS, aimRelief;
+	/** Rear-stock hinge (model px along z) and drop angle (radians) while aiming in first person; 0 = no hinge. */
+	public double stockHingeZ, stockDrop;
 
 	public Xf hip = new Xf(0.36, -0.20, 0.14, -0.134, 0, 0, 0);
 	public Xf ads = new Xf(0.30, -0.56, 0.43, 0.37, 0, 0, 0);

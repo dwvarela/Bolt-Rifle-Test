@@ -23,10 +23,7 @@ def flash(a, size):
 
 
 def hidden_bones(c):
-    h = ["casing", "muzzle_flash"]
-    if c["charge_hand"] == "right":
-        h.append("bolt_hand")
-    return tuple(h)
+    return ("casing", "muzzle_flash") + (("chamber_round",) if c.get("round") else ())
 
 
 def fire(c, last):
@@ -101,8 +98,7 @@ def mag_swap(a, c, D, end_hand):
     a.pos("left_hand", t(0.95), back, SMOOTH)
     a.pos("left_hand", t(0.995), end_hand, SMOOTH)
     # old magazine: with the hand until it is pulled clear, then gone
-    a.show("magazine", 0.0).key("magazine", "scale", t(F_OUT), ONE, STEP).key("magazine", "scale", t(F_OUT) + 0.01, ZERO, STEP)
-    a.key("magazine", "scale", t(F_POUCH) - 0.02, ZERO, STEP).key("magazine", "scale", t(F_POUCH), ONE, STEP)
+    # the magazine rides in the support hand all the way down out of view and back up (never hidden / shown)
     a.pos("magazine", 0.0, ZERO).pos("magazine", t(F_RELEASE), ZERO)
     a.pos("magazine", t(F_PULL), pull, FALL).pos("magazine", t(F_OUT), sub(out, d), FALL)
     a.pos("magazine", t(F_POUCH), sub(pouch, d)).pos("magazine", t(F_APPROACH), sub(app, d))
@@ -144,17 +140,41 @@ def charge_left(a, c, t0, tr, start=None):
     return t0 + 0.8
 
 
+def feed(a, c, tA, tB):
+    """The next round lifts out of the magazine (hidden inside the receiver while it appears) and rides forward into the chamber with the bolt."""
+    if not c.get("round"):
+        return
+    dz, dy = c["round"]
+    a.show("chamber_round", tA, tB + 0.05, fade=0.02)
+    a.pos("chamber_round", tA, v(0, dy, dz), SMOOTH).pos("chamber_round", tA + 0.07, v(0, 0, dz), SMOOTH)
+    a.pos("chamber_round", tB, ZERO, SNAP).pos("chamber_round", tB + 0.05, ZERO)
+
+
 def charge_right(a, c, t0, tr, start_open=False):
-    """Right hand lets go of the grip, works the handle, and returns."""
+    """The (one) right hand lets go of the grip, travels to the handle, works it and travels back (HARD RULE: no extra hand)."""
+    hy, hz = c["hand_r"]
+    hx, hyy, hzz = c["handle"]
+    off = v(hx - 0.25, hyy - (hy - 0.2), hzz + 0.1 - (hz + 1.15))
+    zz = lambda p, dz: v(p[0], p[1], p[2] + dz)
+    arc = v(off[0] - 1.2, off[1] + 1.0, off[2] * 0.5)
     t1, t2 = t0 + 0.12, t0 + (0.44 if not start_open else 0.3)
-    a.hand_swap(t0 + 0.05, t2 + 0.1)
+    a.pos("right_hand", t0, ZERO, SMOOTH)
+    a.pos("right_hand", t0 + 0.07, arc, SMOOTH)
     if start_open:
         a.pos("bolt", t0, v(0, 0, tr))
+        a.pos("right_hand", t0 + 0.14, zz(off, tr), SMOOTH)
         a.pos("bolt", t1 + 0.1, v(0, 0, tr + 0.8), SMOOTH).pos("bolt", t2 - 0.02, v(0, 0, tr + 0.8))
+        a.pos("right_hand", t1 + 0.1, zz(off, tr + 0.8), SMOOTH).pos("right_hand", t2 - 0.02, zz(off, tr + 0.8))
         a.pos("bolt", t2 + 0.05, ZERO, SNAP)
+        a.pos("right_hand", t2 + 0.05, off, SNAP)
     else:
+        a.pos("right_hand", t1, off, SMOOTH)
         a.pos("bolt", t1, ZERO).pos("bolt", t1 + 0.15, v(0, 0, tr), SNAP).pos("bolt", t1 + 0.22, v(0, 0, tr))
+        a.pos("right_hand", t1 + 0.15, zz(off, tr), SNAP).pos("right_hand", t1 + 0.22, zz(off, tr))
         a.pos("bolt", t2 + 0.04, ZERO, SNAP)
+        a.pos("right_hand", t2 + 0.04, off, SNAP)
+    a.pos("right_hand", t2 + 0.1, arc, SMOOTH).pos("right_hand", t2 + 0.2, ZERO, SMOOTH)
+    feed(a, c, (t1 + 0.12) if start_open else (t1 + 0.2), t2 + (0.05 if start_open else 0.04))
     return t2 + 0.2
 
 
@@ -170,8 +190,6 @@ def reload(c, kind):
     tr = c["bolt_travel"]
     if kind == "reload":
         mag_swap(a, c, D, ZERO)
-        if c["charge_hand"] == "right":
-            a.key("right_hand", "scale", 0.0, ONE)
         return a
     def drop_return(D):                       # the hand goes on from the magazine instead of back to the forend
         pos = a.bones["left_hand"]["position"]

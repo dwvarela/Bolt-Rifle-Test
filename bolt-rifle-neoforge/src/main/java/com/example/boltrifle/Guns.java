@@ -43,17 +43,14 @@ public final class Guns {
 		java.util.List<Cue> mag = new java.util.ArrayList<>(java.util.List.of(
 				c(t * 0.27, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
 				c(t * 0.40, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
-				c(t * 0.80, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
-				c(t * 0.86, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f)));
+				c(t * 0.80, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f)));
 		java.util.List<Cue> chamber = new java.util.ArrayList<>(mag);
 		double back = kind.equals("left") ? 0.34 : 0.29, fwd = kind.equals("left") ? 0.46 : 0.50;
-		chamber.add(c(t + back * 20, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f));
-		chamber.add(c(t + fwd * 20, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f));
-		chamber.add(c(t + fwd * 20 + 2, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f));
+		chamber.add(c(t + back * 20, SoundEvents.IRON_TRAPDOOR_OPEN, 0.9f, 1.0f));
+		chamber.add(c(t + fwd * 20, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.0f));
 		java.util.List<Cue> release = new java.util.ArrayList<>(mag);
 		double rel = handleRelease ? 0.37 : 0.24;
-		release.add(c(t + rel * 20, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f));
-		release.add(c(t + rel * 20 + 2, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f));
+		release.add(c(t + rel * 20, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.0f));
 		return new Cue[][]{
 				{},
 				{new Cue(6, SoundEvents.AMETHYST_BLOCK_HIT, 0.35f, 2.0f)},      // spent case hits the ground
@@ -65,12 +62,12 @@ public final class Guns {
 	}
 
 	/** Held at the hip/shoulder: the bore stays at the same spot on screen whatever the model scale; butt = rear of the gun (px). */
-	/** All guns are drawn 10% smaller than their authored size. */
-	private static final double SCALE = 0.9;
+	/** Global draw scale (all guns +10% over the previous 0.9). */
+	private static final double SCALE = 0.99;
 
 	private static void hold(GunDef d, double butt, double s) {
 		s *= SCALE;
-		d.hip = new GunDef.Xf(s, -0.38 + 0.5 * s, -0.04 + 0.5 * s, 0.37 - butt * s / 16, 0, 0, 0);
+		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s, -0.05 + 0.5 * s, 0.50 - butt * s / 16, 0, 0, 0);   // held closer to the shooter (CoD/BF style)
 		d.third = new GunDef.Xf(0.36 * s / 0.36, 0, 0, 0, 90, 0, 0);
 	}
 
@@ -101,36 +98,32 @@ public final class Guns {
 		d.durability = 1800;
 		d.interval = 32;                  // the whole bolt cycle
 		d.reloadTicks = 58;
-		d.reloadChamberTicks = 80;
+		d.reloadChamberTicks = 82;
 		d.spreadHip = 2.8f;
 		d.spreadAds = 0.10f;
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
 		hold(d, 22.4, 0.911);                          // 20% larger again (0.759 -> 0.911)
-		aim(d, 2.75, 4.1, 0.5465, 0.10);                 // rail-mounted ghost-ring rear sight / blade front sight
+		aim(d, 2.75, 4.1, 0.5465, 0.10);
+		d.stockHingeZ = 7.2; d.stockDrop = 0.25;                 // rail-mounted ghost-ring rear sight / blade front sight
 		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.cues = new Cue[][]{
 				{},
-				{ // fire: handle up, bolt back, bolt forward, handle down
-						new Cue(8, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
-						new Cue(16, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
-						new Cue(22, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
-						new Cue(24, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
-				{ // reload: release click, mag out, new mag seated, floor-plate slap
-						new Cue(6, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-						new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
-						new Cue(35, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
-						new Cue(39, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f)},
+				{ // fire: handle up + bolt drawn back, bolt forward + handle down, case on the ground
+						new Cue(9, SoundEvents.IRON_TRAPDOOR_OPEN, 0.9f, 1.0f),
+						new Cue(22, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.0f),
+						new Cue(26, SoundEvents.AMETHYST_BLOCK_HIT, 0.35f, 1.0f)},
+				{ // reload: release click, mag out, new mag seated
+						new Cue(6, SoundEvents.LEVER_CLICK, 0.8f, 1.0f),
+						new Cue(10, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.0f),
+						new Cue(34, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.0f)},
 				{ // reload + chamber
-						new Cue(6, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-						new Cue(13, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
-						new Cue(35, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
-						new Cue(39, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.3f),
-						new Cue(58, SoundEvents.IRON_TRAPDOOR_OPEN, 0.7f, 1.7f),
-						new Cue(66, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 0.9f),
-						new Cue(72, SoundEvents.CROSSBOW_LOADING_END.value(), 0.9f, 0.8f),
-						new Cue(74, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.7f, 1.6f)},
+						new Cue(6, SoundEvents.LEVER_CLICK, 0.8f, 1.0f),
+						new Cue(10, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.0f),
+						new Cue(34, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.0f),
+						new Cue(59, SoundEvents.IRON_TRAPDOOR_OPEN, 0.9f, 1.0f),
+						new Cue(76, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.0f)},
 				{new Cue(0, SoundEvents.LEVER_CLICK, 0.9f, 0.7f)},
 				{}
 		};
@@ -182,6 +175,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;       // iron sights; optics come from attachments
 		hold(d, 23.6, 0.6);                            // M14 +20%
 		aim(d, 1.95, 4.4, 0.36, 0.09);
+		d.stockHingeZ = 12.4; d.stockDrop = 0.30;
 		mount(d, 54, new double[]{1.38, -9.0}, -36.8);
 		d.cues = rifleCues(2.3, "right", true);
 		return d;
@@ -271,7 +265,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.1;
 		d.boom = 0.65f; d.boomPitch = 1.45f;
 		d.aimSpeed = 0.24f;
-		d.hip = new GunDef.Xf(0.43 * SCALE, -0.285 - 0.5 * 0.043, 0.375 - 0.5 * 0.043, 0.031, 0, 0, 0);
+		d.hip = new GunDef.Xf(0.43 * SCALE, -0.285 - 0.5 * 0.043, 0.375 - 0.5 * 0.043, 0.13, 0, 0, 0);
 		d.third = new GunDef.Xf(0.43 * SCALE, 0, 0, 0, 90, 0, 0);
 		aim(d, 1.62, 3.8, 0.30, 0.10);
 		mount(d, 63, null, -6.6);

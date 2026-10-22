@@ -107,9 +107,8 @@ def glove(h, wrist, v, n, tdir, mat, curls, thumb_pts, sleeve_to, scale=1.0, ind
     a = np.array(P((0, -0.2, 0)))
     b = np.array(sleeve_to, float)
     w = (b - a) / np.linalg.norm(b - a)
-    c1 = a + w * 1.7
-    h.add(Cyl(tuple(a), tuple(c1), 1.2 * S, 1.3 * S, rr=0.2), mat=mat, k=0.4)
-    h.add(Cyl(tuple(c1 - w * 0.2), tuple(b), 1.32 * S, 1.4 * S, rr=0.2), mat=mid("olive"), k=0.1)
+    c1 = a + w * 3.4                                   # glove cuff only (no sleeve): the wrist runs out of view
+    h.add(Cyl(tuple(a), tuple(c1), 1.2 * S, 1.34 * S, rr=0.2), mat=mat, k=0.4)
 
 
 def hands(m):
@@ -122,11 +121,6 @@ def hands(m):
     R = m.mesh("right_hand", "rifle", (0, -4.3, 8.6), tris=1800)
     glove(R, (-1.45, -2.3, 13.4), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (85, 70, 50),
           [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -6.5, 24.4), index_pts=[(-1.45, -1.9, 10.6), (-1.4, -2.25, 8.7), (-1.15, -2.7, 7.4), (-0.85, -3.05, 6.3), (-0.65, -3.3, 5.5)])
-    # bolt hand: palm over the knob, fingers wrap round it, thumb on the far side (child of the handle)
-    kx, ky, kz = -2.6, -1.2, 4.5
-    B = m.mesh("bolt_hand", "bolt_handle", (kx, ky, kz), tris=1800)
-    glove(B, (kx - 0.1, ky + 1.6, kz + 4.3), (0.0, -0.18, -0.98), (0, -1, 0), (1, 0, 0), g, (55, 60, 40),
-          [(1.3, 0.8, 0.3), (2.0, 1.8, 0.9), (1.7, 2.8, 1.8)], (kx - 1.0, ky - 3.0, kz + 13.0))
 
 
 def build():

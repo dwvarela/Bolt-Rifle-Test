@@ -88,7 +88,6 @@ def build():
     m.cube("bolt_handle", "steel", -2.1, 0.55, -1.5, -0.9, 1.3, -0.5)
     m.cube("bolt_handle", "steel", -2.8, 0.1, -1.9, -2.0, 1.8, -0.1)             # knob (flat paddle)
     m.cube("bolt_handle", "black", -3.0, 0.0, -2.0, -2.75, 1.9, 0.0)
-    m.hand_bolt("bolt_handle", -2.8, 1.0, -1.0)
 
     # ---------------------------------------------------------------- curved 30-round magazine
     m.bone("magazine", "rifle", (0, -2.6, -5.2))
@@ -104,7 +103,7 @@ def build():
 
     cfg = dict(
         name=ID, hand_l=(-4.6, -12.5), mag_grip=(-10.0, -7.4), mag_drop=9.0, mag_rock=17,
-        charge_hand="right", handle=(-2.8, 1.0, -1.0), bolt_travel=7.0, hold_open=False,
+        charge_hand="right", hand_r=(-6.2, 5.2), handle=(-2.8, 1.0, -1.0), bolt_travel=7.0, hold_open=False,
         fire_len=0.28, cycle=0.10, kick_z=2.3, kick_pitch=3.2, kick_yaw=0.8, flash=1.1,
         reload_len=2.3, charge_len=0.95, release_len=0.0, eject=(-1.0, 1.0, 0.9),
         sight=(3.35, -5.7), butt=19.9,

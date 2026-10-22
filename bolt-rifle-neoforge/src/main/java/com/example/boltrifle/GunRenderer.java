@@ -106,9 +106,15 @@ public class GunRenderer extends GeoItemRenderer<GunItem> {
 		if (bone.getScaleX() == 0.0f && bone.getScaleY() == 0.0f && bone.getScaleZ() == 0.0f) {
 			return;                                       // animation-hidden bone (spare hand, casing, flash...): skip it and its children entirely
 		}
-		if (!isReRender && bone.getName().equals("buttstock") && (this.renderPerspective == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
-				|| this.renderPerspective == ItemDisplayContext.FIRST_PERSON_LEFT_HAND) && ClientEvents.aimProgress(partialTick) > 0.4f) {
-			return;                                       // while aiming the rear stock sits right at the eye: hide it so it never clips into view
+		if (bone.getName().equals("buttstock") && def.stockDrop > 0) {
+			// while aiming in first person the rear stock hinges down behind the receiver (the part behind the eye is never seen), so the comb
+			// falls away below the sight line instead of being sliced by the near plane: stock stays visible, line of sight stays clear
+			boolean fp = this.renderPerspective == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+					|| this.renderPerspective == ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+			float k = fp ? ClientEvents.aimProgress(partialTick) : 0f;
+			double a = def.stockDrop * k;
+			bone.setRotX((float) a);
+			bone.setPosY((float) (def.stockHingeZ * Math.sin(a)));
 		}
 		ItemStack stack = getCurrentItemStack();
 		if (stack != null && bone.getName().startsWith("irons_") && def.optic != null && Attachment.optic(stack) != null) {

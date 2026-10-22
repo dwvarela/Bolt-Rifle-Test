@@ -153,6 +153,7 @@ public class GunItem extends Item implements GeoItem {
 	private static void play(Level level, Entity e, SoundEvent sound, float volume, float pitch) {
 		SoundEvent c = custom(sound);
 		float vol = c != sound ? 3.0f : volume;
+		if (c != sound) pitch = 0.97f + level.random.nextFloat() * 0.06f;        // recorded sounds: no cue pitch-shifting, just a touch of variation
 		level.playSound(null, e.getX(), e.getY(), e.getZ(), c, SoundSource.PLAYERS, vol, Math.max(0.5f, Math.min(2.0f, pitch)));
 	}
 

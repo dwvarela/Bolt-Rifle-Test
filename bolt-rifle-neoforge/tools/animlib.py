@@ -41,15 +41,6 @@ class Anim:
             self.key(bone, "scale", t1, ONE, SMOOTH).key(bone, "scale", t1 + fade, ZERO, SMOOTH)
         return self
 
-    def hand_swap(self, t_to_bolt, t_to_grip, fade=0.0):
-        """Grip hand and bolt hand trade places instantly (STEP keys): a hand is never scaled, so it never visibly shrinks."""
-        e = 0.01                                             # a one-frame jump: nothing is ever visibly scaled
-        for bone, a0, a1 in (("right_hand", ONE, ZERO), ("bolt_hand", ZERO, ONE)):
-            self.key(bone, "scale", 0.0, a0, STEP)
-            self.key(bone, "scale", t_to_bolt - e, a0, STEP).key(bone, "scale", t_to_bolt, a1, STEP)
-            self.key(bone, "scale", t_to_grip - e, a1, STEP).key(bone, "scale", t_to_grip, a0, STEP)
-        return self
-
     @staticmethod
     def _flow(frames, dt=1.0 / 30.0):
         """Runs of consecutive SMOOTH segments are resampled along a monotone cubic through the keys (continuous velocity, no
