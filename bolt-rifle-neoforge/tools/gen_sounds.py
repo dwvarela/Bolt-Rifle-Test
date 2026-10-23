@@ -43,22 +43,24 @@ def soft(x, thr=0.8):
 
 
 S = {}
-S["shot_heavy"] = [cut("Single Gun Shot (2)", 0.0, 3.2, fade_out=0.8), cut("Single Gun Shot (3)", 0.0, 2.8, fade_out=0.6, pitch=0.94)]
-S["shot"] = [cut("Single Gun Shot (3)", 0.0, 2.8, fade_out=0.6), cut("Single Gun Shot (6)", 0.0, 2.2, fade_out=0.5)]
-S["shot_light"] = [cut("Single Gun Shot (5)", 0.0, 1.45, fade_out=0.4), cut("Single Gun Shot (6)", 0.0, 2.2, fade_out=0.5, pitch=1.12)]
-# suppressed: the recorded suppressed shot, exactly 60% of the unsuppressed level (40% quieter), pitched per family
+# ONE recording per event (never a mix of different sources); the two variants are the same clip a hair apart in pitch so repeats don't machine-gun.
+two = lambda fn: [fn(0.985), fn(1.015)]
+S["shot_heavy"] = two(lambda p: cut("Single Gun Shot (2)", 0.0, 3.2, fade_out=0.8, pitch=p))
+S["shot"] = two(lambda p: cut("Single Gun Shot (3)", 0.0, 2.8, fade_out=0.6, pitch=p))
+S["shot_light"] = two(lambda p: cut("Single Gun Shot (5)", 0.0, 1.45, fade_out=0.4, pitch=p))
+# suppressed: the recorded suppressed shot, exactly 60% of the unsuppressed level (40% quieter), same clip for every gun
 sup = lambda p: cut("Suppressed Gun Shot", 0.10, 1.5, fade_out=0.35, pitch=p, peak=0.54)
-S["shot_heavy_supp"] = [sup(0.92), sup(0.88)]
-S["shot_supp"] = [sup(1.0), sup(0.96)]
-S["shot_light_supp"] = [sup(1.1), sup(1.05)]
-S["click"] = [cut("Empty Magazine Trigger Pull Click (2)", 0.09, 0.36, fade_out=0.08), cut("Empty Magazine Trigger Pull Click", 0.02, 0.28, fade_out=0.08)]
-S["click_dry"] = [cut("Empty Magazine Trigger Pull Click", 0.02, 0.24, fade_out=0.07), cut("Empty Magazine Trigger Pull Click (3)", 0.08, 0.30, fade_out=0.08)]
-S["bolt_open"] = [cut("Bolt Action Chambering", 0.33, 0.64, fade_out=0.08), cut("Lever Action Chambering", 0.35, 0.70, fade_out=0.08, pitch=0.95)]
-S["bolt_close"] = [cut("Bolt Action Chambering", 0.66, 1.15, fade_out=0.12), cut("Lever Action Chambering", 0.74, 1.10, fade_out=0.1, pitch=0.95)]
-S["mag_out"] = [cut("Gun Reload (4)", 0.43, 0.85, fade_out=0.1, peak=0.8), cut("Gun Reload (8)", 0.50, 0.85, fade_out=0.1, peak=0.8)]
-S["mag_in"] = [cut("Magazine Insert", 0.36, 0.95, fade_out=0.15, peak=0.85), cut("Gun Reload (3)", 0.52, 1.10, fade_out=0.12, peak=0.85)]
-S["rack"] = [cut("Pistol Slide Racking (3)", 0.55, 1.35, fade_out=0.15, peak=0.85), cut("Pistol Slide Racking (2)", 0.82, 1.35, fade_out=0.12, peak=0.85)]
-S["shell"] = [cut("Bouncing Shell Cases", 0.08, 0.75, fade_out=0.25, peak=0.5), cut("Bouncing Shell Cases (2)", 0.09, 0.75, fade_out=0.25, peak=0.5)]
+S["shot_heavy_supp"] = two(lambda p: sup(0.95 * p))
+S["shot_supp"] = two(sup)
+S["shot_light_supp"] = two(lambda p: sup(1.08 * p))
+S["click"] = two(lambda p: cut("Empty Magazine Trigger Pull Click (2)", 0.09, 0.36, fade_out=0.08, pitch=p))
+S["click_dry"] = two(lambda p: cut("Empty Magazine Trigger Pull Click (2)", 0.09, 0.36, fade_out=0.08, pitch=p))
+S["bolt_open"] = two(lambda p: cut("Bolt Action Chambering", 0.33, 0.64, fade_out=0.08, pitch=p))
+S["bolt_close"] = two(lambda p: cut("Bolt Action Chambering", 0.66, 1.15, fade_out=0.12, pitch=p))
+S["mag_out"] = two(lambda p: cut("Gun Reload (4)", 0.43, 0.85, fade_out=0.1, peak=0.8, pitch=p))
+S["mag_in"] = two(lambda p: cut("Magazine Insert", 0.36, 0.95, fade_out=0.15, peak=0.85, pitch=p))
+S["rack"] = two(lambda p: cut("Pistol Slide Racking (3)", 0.55, 1.35, fade_out=0.15, peak=0.85, pitch=p))
+S["shell"] = two(lambda p: cut("Bouncing Shell Cases", 0.08, 0.75, fade_out=0.25, peak=0.5, pitch=p))
 
 events = {}
 for name, variants in S.items():

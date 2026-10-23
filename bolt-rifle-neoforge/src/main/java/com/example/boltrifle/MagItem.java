@@ -73,8 +73,8 @@ public class MagItem extends Item {
 			if (one != stack) {
 				giveOrDrop(player, one);
 			}
-			level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.LEVER_CLICK,
-					SoundSource.PLAYERS, 0.8f, 1.5f);
+			level.playSound(null, player.getX(), player.getY(), player.getZ(), BoltRifleMod.SND.get("click").get(),
+					SoundSource.PLAYERS, 2.0f, 1.0f);
 			player.getCooldowns().addCooldown(this, 8);
 			return InteractionResultHolder.sidedSuccess(stack, false);
 		}
@@ -118,8 +118,8 @@ public class MagItem extends Item {
 		if (one != stack) {
 			giveOrDrop(player, one);
 		}
-		level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CROSSBOW_LOADING_MIDDLE.value(),
-				SoundSource.PLAYERS, 0.7f, 1.6f);
+		level.playSound(null, player.getX(), player.getY(), player.getZ(), BoltRifleMod.SND.get("click").get(),
+				SoundSource.PLAYERS, 2.0f, 1.0f);
 		player.getCooldowns().addCooldown(this, 8);
 		return InteractionResultHolder.sidedSuccess(stack, false);
 	}

@@ -111,8 +111,11 @@ def mag_swap(a, c, D, end_hand):
         a.rot("magazine", t(F_INSERT), v(-rock, 0, 0)).rot("magazine", t(F_SEAT), ZERO, SNAP)
     a.rot("magazine", D, ZERO)
     # weight shift and cant while the support hand is busy
-    a.pos("rifle", 0.0, ZERO).pos("rifle", t(0.14), v(0, -0.4, 0.3)).pos("rifle", t(0.9), v(0, -0.4, 0.3))
-    a.rot("rifle", 0.0, ZERO).rot("rifle", t(0.18), v(0.8, 0, -6.0)).rot("rifle", t(0.88), v(0.8, 0, -6.0))
+    # the gun is lifted into view for the swap (otherwise the magazine well and both hands sit below the bottom edge of the screen and the
+    # magazine seems to vanish): raise = px that bring the magazine well to the lower middle of the first-person view
+    rz = c.get("lift_px", 11.0)
+    a.pos("rifle", 0.0, ZERO).pos("rifle", t(0.14), v(0, rz - 0.4, 0.3)).pos("rifle", t(0.9), v(0, rz - 0.4, 0.3)).pos("rifle", D, ZERO)
+    a.rot("rifle", 0.0, ZERO).rot("rifle", t(0.18), v(0.8, 0, -6.0)).rot("rifle", t(0.88), v(0.8, 0, -6.0)).rot("rifle", D, ZERO)
     return d
 
 

@@ -175,8 +175,9 @@ def reload_mag(a):
         a.pos("magazine", t, v)
     a.pos("magazine", 1.76, [0, 0.2, 0], SNAP).pos("magazine", 1.84, ZERO).pos("magazine", 2.7, ZERO)
     # rifle: rolls toward the support hand, tugs when the mag comes out, bumps when the new one seats, slaps down, settles
-    for t, v in ((0.0, ZERO), (0.30, [0.4, -0.7, 1.2]), (1.70, [0.4, -0.7, 1.2]), (1.76, [0.4, -0.7, 1.6]), (1.84, [0.4, -0.75, 1.2]),
-                 (1.95, [0.4, -1.0, 1.2]), (2.06, [0.4, -0.7, 1.2]), (2.7, ZERO)):
+    RZ = 5.7                                              # lifted into view for the swap (mag well + hands inside the frame)
+    for t, v in ((0.0, ZERO), (0.30, [0.4, RZ - 0.7, 1.2]), (1.70, [0.4, RZ - 0.7, 1.2]), (1.76, [0.4, RZ - 0.7, 1.6]), (1.84, [0.4, RZ - 0.75, 1.2]),
+                 (1.95, [0.4, RZ - 1.0, 1.2]), (2.06, [0.4, RZ - 0.7, 1.2]), (2.7, ZERO)):
         a.pos("rifle", t, v)
     for t, v in ((0.0, ZERO), (0.30, [-6.0, 3.0, -14.0]), (0.40, [-6.2, 3.0, -14.2]), (0.64, [-7.0, 3.4, -15.0]), (1.0, [-6.5, 3.2, -14.5]),
                  (1.68, [-5.5, 3.0, -13.5]), (1.76, [-4.0, 2.8, -13.0]), (1.84, [-6.0, 3.0, -14.0]), (1.95, [-6.8, 3.0, -14.5]),

@@ -67,7 +67,7 @@ public final class Guns {
 
 	private static void hold(GunDef d, double butt, double s) {
 		s *= SCALE;
-		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s, -0.05 + 0.5 * s, 0.50 - butt * s / 16, 0, 0, 0);   // held closer to the shooter (CoD/BF style)
+		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s, -0.06 + 0.5 * s, 0.77 - butt * s / 16, 0, 0, 0);   // held close to the shooter, CoD/BF style
 		d.third = new GunDef.Xf(0.36 * s / 0.36, 0, 0, 0, 90, 0, 0);
 	}
 
