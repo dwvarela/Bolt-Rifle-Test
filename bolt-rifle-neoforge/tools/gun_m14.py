@@ -13,8 +13,22 @@ SY, SZ = 1.95, 4.4          # rear aperture centre (iron sights)
 RAIL_TOP, RAIL_Z = 1.38, -9.0   # optic mount on the top rail
 
 
+def hands(m):
+    """The glove-reference hands (same builder as the M700): support hand cupping the handguard from below, firing hand round the pistol
+    grip with the index finger on the trigger."""
+    import gun_m700 as g7
+    g = mid("glove")
+    L = m.mesh("left_hand", "rifle", (0, -3.8, -14.5), tris=1800)
+    g7.glove(L, (0.7, -3.6, -12.4), (-0.2, 0.0, -0.98), (-0.45, 0.89, 0.0), (1, 0.3, 0), g, (22, 32, 28),
+             [(1.3, 0.9, 0.2), (2.0, 2.0, 0.7), (2.0, 3.1, 1.4)], (3.5, -7.0, -2.0))
+    R = m.mesh("right_hand", "rifle", (0, -6.0, 9.2), tris=1800)
+    g7.glove(R, (-1.6, -5.2, 11.6), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (85, 70, 50),
+             [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -9.5, 22.0),
+             index_pts=[(-1.55, -4.3, 9.8), (-1.45, -3.8, 8.3), (-1.2, -3.5, 7.0), (-0.9, -3.3, 6.0), (-0.7, -3.2, 5.4)])
+
+
 def build():
-    m = MModel(ID, lo=(-3.2, -9.6, -38.0), hi=(3.2, 3.2, 24.8), h=0.10, seed=31, tx=9)
+    m = MModel(ID, lo=(-4.2, -10.6, -38.0), hi=(4.8, 3.2, 26.0), h=float(os.environ.get("H", "0.10")), seed=31, tx=9)
     def real_hole(c, size):
         z, y = c
         if min(size) < 0.25 or max(size) / min(size) > 3.2 and z > 12:   # sub-voxel slivers / thin gaps would fragment
@@ -110,8 +124,7 @@ def build():
     m.bar("chamber_round", "brass", 0, 0, -6.1, -3.4, 0.42)
     m.bar("chamber_round", "steel", 0, 0, -7.0, -6.1, 0.3)
     m.muzzle_flash(-36.8, length=5.5, width=3.6)
-    m.hand_left(-4.0, -14.5)
-    m.hand_right(-6.0, 8.8, -3.6)
+    hands(m)
 
     cfg = dict(
         name=ID, hand_l=(-4.0, -14.5), mag_grip=(-6.8, -0.95), mag_drop=9.0, mag_rock=10,
