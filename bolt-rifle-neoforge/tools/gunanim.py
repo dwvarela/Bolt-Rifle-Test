@@ -12,6 +12,12 @@ F_REACH, F_RELEASE, F_PULL, F_OUT, F_POUCH, F_APPROACH, F_INSERT, F_SEAT, F_TUG,
     0.14, 0.27, 0.40, 0.47, 0.58, 0.70, 0.80, 0.86, 0.91, 1.0
 
 
+def ease_sine(s):
+    import math
+    s = min(max(s, 0.0), 1.0)
+    return 0.5 - 0.5 * math.cos(math.pi * s)
+
+
 def v(*a):
     return list(a)
 
@@ -82,14 +88,14 @@ def mag_swap(a, c, D, end_hand):
     sub = lambda p, q: [p[i] - q[i] for i in range(3)]
     sc = lambda p, k: [p[i] * k for i in range(3)]
     out = add(add(d, pull), add(sc(u, 3.5), v(0.6, 0, 1.0)))
-    pouch = v(c.get("pouch_x", 3.0), d[1] + pull[1] - 7, d[2] + 3)
+    pouch = v(c.get("pouch_x", 3.0), d[1] + pull[1] - 30, d[2] + 3)
     if "pouch_off" in c:
-        pouch = add(d, c["pouch_off"])
+        pouch = add(d, [c["pouch_off"][0], c["pouch_off"][1] - 16, c["pouch_off"][2]])
     app = add(d, sc(u, L + 2.5))
     seat0 = add(d, sc(u, 1.2))
     swing = v(rx, d[1] * 0.5, d[2] * 0.5)
     H = [(0.0, ZERO, SMOOTH), (F_REACH * 0.55, swing, SMOOTH), (F_RELEASE - 0.06, add(d, v(0, -1.0 if u[1] < -0.5 else 0.0, 0)), SMOOTH),
-         (F_RELEASE - 0.01, d, SMOOTH), (F_PULL, add(d, pull), SMOOTH), (F_OUT, out, FALL),
+         (F_RELEASE - 0.01, d, SMOOTH), (F_PULL, add(d, pull), SMOOTH), (F_OUT, out, SMOOTH),
          (F_POUCH, pouch, SMOOTH), (F_APPROACH, app, SMOOTH), (F_INSERT, seat0, SMOOTH),
          (F_SEAT, sub(d, sc(u, 0.3)), SNAP), (F_TUG, sub(d, sc(u, -0.5)), SMOOTH)]
     for f, vec, e in H:
@@ -102,21 +108,27 @@ def mag_swap(a, c, D, end_hand):
     # old magazine: drawn out with the hand, then DROPPED / flipped away - it falls (tumbling) fully out of the bottom of the view.  While it is
     # far out of view the same bone is moved to the belt, and the hand brings it back up as the new magazine (never toggled in view).
     t_drop = t(F_PULL)
-    t_gone = t_drop + 0.42
-    t_tele = max(t_gone + 0.05, t(F_POUCH))
-    fall = add(pull, v(c.get("drop_x", 1.5), -70.0, c.get("drop_z", 4.0)))
+    DUR = 0.52
+    t_tele = max(t_drop + DUR + 0.04, t(F_POUCH))
+    vx, vy, vz, grav = -14.0, -60.0, -8.0, 900.0                       # flicked clear of the hand (right / forward), then gravity
     a.pos("magazine", 0.0, ZERO).pos("magazine", t(F_RELEASE), ZERO)
-    a.pos("magazine", t_drop, pull, SMOOTH).pos("magazine", t_gone, fall, FALL)
-    a.pos("magazine", t_tele - 0.001, fall, STEP)
-    pouch_rel = sub(pouch, d)
-    a.pos("magazine", t_tele, pouch_rel, STEP)
+    a.pos("magazine", t_drop, pull, SMOOTH)
+    n = int(round(DUR * 30))
+    for i in range(1, n + 1):
+        tau = DUR * i / n
+        p = [pull[0] + vx * tau * 0.6, pull[1] + vy * tau - 0.5 * grav * tau * tau, pull[2] + vz * tau * 0.6 + c.get("drop_z", 0.0)]
+        a.pos("magazine", t_drop + tau, p, STEP)
+        r = ease_sine(tau / DUR)
+        a.rot("magazine", t_drop + tau, v(-540.0 * r, 25.0 * r, 160.0 * r), STEP)
+    last = [pull[0] + vx * DUR * 0.6, pull[1] + vy * DUR - 0.5 * grav * DUR * DUR, pull[2] + vz * DUR * 0.6]
+    a.pos("magazine", t_tele - 0.001, last, STEP)
+    a.rot("magazine", t_tele - 0.001, v(-540.0, 25.0, 160.0), STEP).rot("magazine", t_tele, ZERO, STEP)
+    a.pos("magazine", t_tele, sub(pouch, d), STEP)
     a.pos("magazine", t(F_APPROACH), sub(app, d))
     a.pos("magazine", t(F_INSERT), sub(seat0, d)).pos("magazine", t(F_SEAT), sc(u, -0.3), SNAP)
     a.pos("magazine", t(F_TUG), ZERO).pos("magazine", D, ZERO)
     rock = c.get("mag_rock", 0)
     a.rot("magazine", 0.0, ZERO).rot("magazine", t(F_RELEASE), ZERO).rot("magazine", t_drop, ZERO, SMOOTH)
-    a.rot("magazine", t_gone, v(-540.0, 25.0, 160.0), FALL)             # flips end over end as it falls
-    a.rot("magazine", t_tele - 0.001, v(-540.0, 25.0, 160.0), STEP).rot("magazine", t_tele, ZERO, STEP)
     if rock:                                         # front catch first, then rock the back in
         a.rot("magazine", t(F_APPROACH), v(-rock, 0, 0))
         a.rot("magazine", t(F_INSERT), v(-rock, 0, 0)).rot("magazine", t(F_SEAT), ZERO, SNAP)

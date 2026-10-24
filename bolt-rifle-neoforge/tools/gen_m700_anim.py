@@ -160,8 +160,8 @@ def reload_mag(a):
     down and carries it away out of the bottom of the view; it comes back up with the fresh magazine (the magazine bone simply leaves and
     returns with the hand - it is never hidden), rocks it in, slaps the floor plate, and everything settles."""
     hand = [(0.0, [0, 0, 0]), (0.30, [0.8, -1.0, 9.5]), (0.34, [0, -0.9, 9.5]), (0.40, [0, -1.2, 9.5]), (0.64, [0, -7.0, 9.5]),
-            (0.80, [2.0, -10.5, 8.0]), (1.00, [3.8, -15.0, 6.5]), (1.06, [4.2, -16.0, 6.3]), (1.30, [2.4, -13.5, 8.5]),
-            (1.52, [0.8, -6.5, 9.5]), (1.68, [0, -1.0, 9.5]), (1.76, [0, -0.5, 9.5]), (1.84, [0, -1.2, 9.5]), (1.95, [0, -0.4, 9.5]),
+            (0.80, [2.0, -16.0, 8.0]), (1.00, [3.8, -30.0, 6.5]), (1.06, [4.2, -32.0, 6.3]), (1.30, [2.4, -28.0, 8.5]),
+            (1.52, [0.8, -9.5, 9.5]), (1.68, [0, -1.0, 9.5]), (1.76, [0, -0.5, 9.5]), (1.84, [0, -1.2, 9.5]), (1.95, [0, -0.4, 9.5]),
             (2.06, [0, -1.2, 9.5]), (2.30, [1.0, -1.8, 7.6]), (2.5, [1.0, -1.0, 3.0]), (2.7, [0, 0, 0])]
     for t, v in hand:
         a.pos("left_hand", t, v)
@@ -173,9 +173,15 @@ def reload_mag(a):
     off = lambda v: [v[0], v[1] + 0.9, v[2] - 9.6]          # hand -> magazine offset while held
     hd = dict(hand)
     a.pos("magazine", 0.0, ZERO).pos("magazine", 0.32, ZERO).pos("magazine", 0.40, [0, -0.3, 0]).pos("magazine", 0.52, [0.2, -3.2, 0])
-    a.pos("magazine", 1.0, [3.5, -75.0, -1.0], FALL).pos("magazine", 1.279, [3.5, -75.0, -1.0], STEP)
-    a.rot("magazine", 0.0, ZERO).rot("magazine", 0.52, ZERO).rot("magazine", 1.0, [-540, 25, 160], FALL)
-    a.rot("magazine", 1.279, [-540, 25, 160], STEP).rot("magazine", 1.28, ZERO, STEP)
+    n = 16                                              # flicked clear to the right / forward of the hand, then gravity (hand is moving away left/down)
+    for i in range(1, n + 1):
+        tau = 0.5 * i / n
+        p = [0.2 - 14.0 * tau * 0.6, -3.2 - 50.0 * tau - 350.0 * tau * tau, -4.0 * tau]
+        a.pos("magazine", 0.52 + tau, p, STEP)
+        r = 0.5 - 0.5 * math.cos(math.pi * i / n)
+        a.rot("magazine", 0.52 + tau, [-540 * r, 25 * r, 160 * r], STEP)
+    a.rot("magazine", 0.0, ZERO).rot("magazine", 0.52, ZERO)
+    a.pos("magazine", 1.279, p, STEP).rot("magazine", 1.279, [-540, 25, 160], STEP).rot("magazine", 1.28, ZERO, STEP)
     a.pos("magazine", 1.28, off(hd[1.30]), STEP)
     for t, v in hand:
         if 1.30 <= t <= 1.68:
