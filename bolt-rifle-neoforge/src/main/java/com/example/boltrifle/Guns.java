@@ -63,11 +63,11 @@ public final class Guns {
 
 	/** Held at the hip/shoulder: the bore stays at the same spot on screen whatever the model scale; butt = rear of the gun (px). */
 	/** Global draw scale (all guns +10% over the previous 0.9). */
-	private static final double SCALE = 0.99;
+	private static final double SCALE = 1.089;
 
 	private static void hold(GunDef d, double butt, double s) {
 		s *= SCALE;
-		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s, -0.06 + 0.5 * s, 0.77 - butt * s / 16, 0, 0, 0);   // held close to the shooter, CoD/BF style
+		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s, -0.06 + 0.5 * s, 0.95 - butt * s / 16, 0, 0, 0);   // held close to the shooter, CoD/BF style
 		d.third = new GunDef.Xf(0.36 * s / 0.36, 0, 0, 0, 90, 0, 0);
 	}
 
@@ -265,7 +265,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.1;
 		d.boom = 0.65f; d.boomPitch = 1.45f;
 		d.aimSpeed = 0.24f;
-		d.hip = new GunDef.Xf(0.43 * SCALE, -0.285 - 0.5 * 0.043, 0.375 - 0.5 * 0.043, 0.13, 0, 0, 0);
+		d.hip = new GunDef.Xf(0.43 * SCALE, -0.285 - 0.5 * 0.043, 0.375 - 0.5 * 0.043, 0.25, 0, 0, 0);
 		d.third = new GunDef.Xf(0.43 * SCALE, 0, 0, 0, 90, 0, 0);
 		aim(d, 1.62, 3.8, 0.30, 0.10);
 		mount(d, 63, null, -6.6);

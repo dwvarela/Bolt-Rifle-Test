@@ -168,11 +168,18 @@ def reload_mag(a):
     for t, v in ((0.0, [0, 0, 0]), (0.30, [0, 0, 0]), (0.64, [-5, 0, 4]), (1.0, [-18, 0, 10]), (1.30, [-14, 0, 8]), (1.68, [-4, 0, 2]),
                  (1.8, [0, 0, 0]), (2.3, [0, 0, 0]), (2.7, [0, 0, 0])):
         a.rot("left_hand", t, v)
-    # the magazine rides in the hand (offset hand->magazine is fixed while it is held: 0, +0.9, -9.6)
-    held = [(t, [v[0], v[1] + 0.9, v[2] - 9.6]) for t, v in hand if 0.64 <= t <= 1.68]
-    a.pos("magazine", 0.0, ZERO).pos("magazine", 0.32, ZERO).pos("magazine", 0.40, [0, -0.3, 0])
-    for t, v in held:
-        a.pos("magazine", t, v)
+    # the old magazine is drawn out (0.40 -> 0.64), then DROPPED: it tumbles and falls fully out of the bottom of the view.  While it is far
+    # below the view the same bone is moved to the belt (1.28, nothing is on screen) and the hand carries it back up as the new magazine.
+    off = lambda v: [v[0], v[1] + 0.9, v[2] - 9.6]          # hand -> magazine offset while held
+    hd = dict(hand)
+    a.pos("magazine", 0.0, ZERO).pos("magazine", 0.32, ZERO).pos("magazine", 0.40, [0, -0.3, 0]).pos("magazine", 0.52, [0.2, -3.2, 0])
+    a.pos("magazine", 1.0, [3.5, -75.0, -1.0], FALL).pos("magazine", 1.279, [3.5, -75.0, -1.0], STEP)
+    a.rot("magazine", 0.0, ZERO).rot("magazine", 0.52, ZERO).rot("magazine", 1.0, [-540, 25, 160], FALL)
+    a.rot("magazine", 1.279, [-540, 25, 160], STEP).rot("magazine", 1.28, ZERO, STEP)
+    a.pos("magazine", 1.28, off(hd[1.30]), STEP)
+    for t, v in hand:
+        if 1.30 <= t <= 1.68:
+            a.pos("magazine", t, off(v))
     a.pos("magazine", 1.76, [0, 0.2, 0], SNAP).pos("magazine", 1.84, ZERO).pos("magazine", 2.7, ZERO)
     # rifle: rolls toward the support hand, tugs when the mag comes out, bumps when the new one seats, slaps down, settles
     RZ = 5.7                                              # lifted into view for the swap (mag well + hands inside the frame)

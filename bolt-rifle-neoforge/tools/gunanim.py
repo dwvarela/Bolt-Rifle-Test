@@ -99,15 +99,26 @@ def mag_swap(a, c, D, end_hand):
     a.pos("left_hand", t(0.995), end_hand, SMOOTH)
     # old magazine: with the hand until it is pulled clear, then gone
     # the magazine rides in the support hand all the way down out of view and back up (never hidden / shown)
+    # old magazine: drawn out with the hand, then DROPPED / flipped away - it falls (tumbling) fully out of the bottom of the view.  While it is
+    # far out of view the same bone is moved to the belt, and the hand brings it back up as the new magazine (never toggled in view).
+    t_drop = t(F_PULL)
+    t_gone = t_drop + 0.42
+    t_tele = max(t_gone + 0.05, t(F_POUCH))
+    fall = add(pull, v(c.get("drop_x", 1.5), -70.0, c.get("drop_z", 4.0)))
     a.pos("magazine", 0.0, ZERO).pos("magazine", t(F_RELEASE), ZERO)
-    a.pos("magazine", t(F_PULL), pull, FALL).pos("magazine", t(F_OUT), sub(out, d), FALL)
-    a.pos("magazine", t(F_POUCH), sub(pouch, d)).pos("magazine", t(F_APPROACH), sub(app, d))
+    a.pos("magazine", t_drop, pull, SMOOTH).pos("magazine", t_gone, fall, FALL)
+    a.pos("magazine", t_tele - 0.001, fall, STEP)
+    pouch_rel = sub(pouch, d)
+    a.pos("magazine", t_tele, pouch_rel, STEP)
+    a.pos("magazine", t(F_APPROACH), sub(app, d))
     a.pos("magazine", t(F_INSERT), sub(seat0, d)).pos("magazine", t(F_SEAT), sc(u, -0.3), SNAP)
     a.pos("magazine", t(F_TUG), ZERO).pos("magazine", D, ZERO)
     rock = c.get("mag_rock", 0)
-    a.rot("magazine", 0.0, ZERO).rot("magazine", t(F_RELEASE), ZERO)
+    a.rot("magazine", 0.0, ZERO).rot("magazine", t(F_RELEASE), ZERO).rot("magazine", t_drop, ZERO, SMOOTH)
+    a.rot("magazine", t_gone, v(-540.0, 25.0, 160.0), FALL)             # flips end over end as it falls
+    a.rot("magazine", t_tele - 0.001, v(-540.0, 25.0, 160.0), STEP).rot("magazine", t_tele, ZERO, STEP)
     if rock:                                         # front catch first, then rock the back in
-        a.rot("magazine", t(F_POUCH), v(-rock * 0.5, 0, 0)).rot("magazine", t(F_APPROACH), v(-rock, 0, 0))
+        a.rot("magazine", t(F_APPROACH), v(-rock, 0, 0))
         a.rot("magazine", t(F_INSERT), v(-rock, 0, 0)).rot("magazine", t(F_SEAT), ZERO, SNAP)
     a.rot("magazine", D, ZERO)
     # weight shift and cant while the support hand is busy
