@@ -53,7 +53,7 @@ def sleeve(h, a, b, r_glove, r_sleeve, glove_len=0.35):
     h.add(Cyl(c1 - w * 0.1, b, r_sleeve, r_sleeve * 1.06, rr=0.15), mat=mid("olive"), k=0.1)
 
 
-def glove(h, wrist, v, n, tdir, mat, curls, thumb_pts, sleeve_to, scale=1.0, index_curls=None, index_pts=None):
+def glove(h, wrist, v, n, tdir, mat, curls, thumb_pts, sleeve_to, scale=1.0, index_curls=None, index_pts=None, flen=1.0):
     """A thin leather-style glove after the reference photos: flat palm slab with a thenar pad, four tapering fingers that touch side by
     side (no gaps, no ball joints), a thumb that grows out of the thenar, a snug cuff and a sleeve.  Frame: v wrist->fingers, n out of the
     palm, thumb on the +u side.  All sizes are one rigid hand (nothing is ever scaled while animating)."""
@@ -86,6 +86,7 @@ def glove(h, wrist, v, n, tdir, mat, curls, thumb_pts, sleeve_to, scale=1.0, ind
         pts = [np.array([fu, fv, 0.05])]
         ang = 0.0
         for c, L in zip(cu, lens):
+            L = L * flen
             ang += np.radians(c)
             d = np.array([0.0, np.cos(ang), np.sin(ang)])
             pts.append(pts[-1] + d * L * 0.93)
@@ -119,8 +120,9 @@ def hands(m):
           [(1.3, 0.9, 0.2), (2.0, 2.0, 0.7), (2.0, 3.1, 1.4)], (3.5, -9.0, 1.0))
     # firing hand on the grip: palm on the right side, fingers round the front of the grip, index on the trigger
     R = m.mesh("right_hand", "rifle", (0, -4.3, 8.6), tris=1800)
-    glove(R, (-1.45, -2.3, 13.4), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (85, 70, 50),
-          [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -6.5, 24.4), index_pts=[(-1.45, -1.9, 10.6), (-1.4, -2.25, 8.7), (-1.15, -2.7, 7.4), (-0.85, -3.05, 6.3), (-0.65, -3.3, 5.5)])
+    glove(R, (-1.45, -2.3, 13.4), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (80, 55, 40),
+          [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -6.5, 24.4), flen=1.1,
+          index_pts=[(-1.45, -1.9, 10.6), (-1.4, -2.25, 8.7), (-1.0, -2.7, 7.6), (-0.6, -2.95, 6.6), (-0.3, -3.0, 5.95)])
 
 
 def build():
@@ -195,6 +197,12 @@ def build():
     mg = m.mesh("magazine", "rifle", (0, -2.0, 0.5), tris=500)
     mg.add(box(-0.85, 0.85, -2.45, -1.0, -1.7, 3.3, r=0.08), mat=mid("black"))
     mg.add(box(-0.9, 0.9, -2.6, -2.4, -1.8, 3.4, r=0.05), mat=blu)       # floor plate
+    brs, stm = mid("brass"), mid("steel")
+    for x, z0 in ((-0.32, -0.3), (0.32, 0.45), (-0.32, 1.2)):             # the rounds stacked in the magazine (zig-zag), bullets forward
+        y = -0.95 if z0 < 1.0 else -0.95
+        mg.add(Cyl((x, y, z0), (x, y, z0 + 1.7), 0.25, rr=0.05), mat=brs)
+        mg.add(Cyl((x, y, z0 - 0.95), (x, y, z0), 0.2, 0.2, rr=0.05), mat=stm)
+    mg.add(box(-0.7, 0.7, -1.25, -0.95, -1.5, 3.1, r=0.05), mat=mid("black"))   # follower / feed lips
     # ------------------------------------------------------------------ iron sights on the rail (hidden by the renderer while an optic is mounted)
     # rear ghost-ring sight at the very back of the rail, blade front sight at the very front (Optics-2 reference set)
     cy = 2.75

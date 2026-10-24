@@ -63,9 +63,10 @@ for t in ts:
     im = Image.fromarray(img); d = ImageDraw.Draw(im)
     d.line((W / 2 - 8, Hh / 2, W / 2 + 8, Hh / 2), fill=(255, 0, 0)); d.line((W / 2, Hh / 2 - 8, W / 2, Hh / 2 + 8), fill=(255, 0, 0))
     d.text((6, 4), f"{mode} t={t:.2f}", fill=(0, 0, 0))
-    frames.append(im.resize((480, 270)))
+    frames.append(im.resize((480, 270)) if not os.environ.get("FULL") else im)
 cols = min(len(frames), 3); rows = (len(frames) + cols - 1) // cols
-sheet = Image.new("RGB", (480 * cols, 270 * rows))
+FW, FH = (960, 540) if os.environ.get("FULL") else (480, 270)
+sheet = Image.new("RGB", (FW * cols, FH * rows))
 for i, fr in enumerate(frames):
-    sheet.paste(fr, ((i % cols) * 480, (i // cols) * 270))
+    sheet.paste(fr, ((i % cols) * FW, (i // cols) * FH))
 sheet.save(OUTF); print("saved", OUTF)

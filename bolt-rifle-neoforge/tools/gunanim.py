@@ -176,7 +176,104 @@ def feed(a, c, tA, tB):
     a.pos("chamber_round", tB, ZERO, SNAP).pos("chamber_round", tB + 0.05, ZERO)
 
 
+def _rotz(deg):
+    """JSON-space rotation GeckoLib applies for a z rotation key (x is mirrored)."""
+    import math
+    import numpy as np
+    cs, sn = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+    S = np.diag([-1.0, 1, 1])
+    return S @ np.array([[cs, -sn, 0], [sn, cs, 0], [0, 0, 1]]) @ S
+
+
+def charge_right_roll(a, c, t0, tr, start_open=False):
+    """Right hand reaches the handle, ROLLS palm-down so the curled fingers close round the handle (the handle passes through the fist), pulls
+    the bolt back and lets it go, then returns to the grip.  The same single hand mesh the whole time (hard rule)."""
+    import numpy as np
+    W, vv, nn = (np.array(x, float) for x in c["hand_frame"])
+    vv = vv / np.linalg.norm(vv)
+    piv = np.array(c["hand_piv"], float)
+    uu = np.cross(vv, nn)
+    if uu[1] < 0:
+        uu = -uu
+    roll = 90.0
+    for r in (90.0, -90.0):
+        if (_rotz(r) @ nn)[1] < 0:
+            roll = r
+            break
+    R = _rotz(roll)
+    uc = 1.0 if (R @ uu)[0] > 0 else -1.0
+    uc *= c.get("charge_u", 1.0)
+    c0 = W + 3.7 * vv + 1.2 * nn + uc * uu
+    Hg = np.array(c["handle_grip"], float)
+
+    def hold(dz, roll_f=1.0):
+        Rr = _rotz(roll * roll_f)
+        return [round(float(x), 3) for x in (Hg + np.array([0, 0, dz]) - piv - Rr @ (c0 - piv))]
+
+    def rotk(f):
+        return [0, 0, round(roll * f, 3)]
+
+    ease = lambda x: ease_sine(x)
+    T_reach, T_grab = 0.26, 0.08
+    tg = t0 + T_reach                         # hand on the handle
+    pull = tr + (0.8 if start_open else 0.0)
+    t_pull0 = tg + T_grab
+    t_pull1 = t_pull0 + 0.20
+    t_hold = t_pull1 + 0.05
+    t_rel = t_hold + 0.10                     # bolt flies forward
+    t_free = t_rel + 0.06
+    t_home = t_free + 0.26
+    arc = [-1.0, 1.4, 1.0]
+    start_dz = tr if start_open else 0.0
+    N = int(round((t_home - t0) * 30))
+    from animlib import STEP
+    if start_open:
+        a.pos("bolt", t0, v(0, 0, tr), STEP)
+    for i in range(N + 1):
+        t = t0 + (t_home - t0) * i / N
+        if t <= tg:                                   # reach (ease), rolling on the way
+            s = ease((t - t0) / T_reach)
+            p0, p1 = [0, 0, 0], hold(start_dz)
+            import math
+            bump = math.sin(math.pi * s)
+            pos = [p0[k] + (p1[k] - p0[k]) * s + arc[k] * bump for k in range(3)]
+            rot = rotk(ease(min(1.0, s * 1.25)))
+            bz = start_dz
+        elif t <= t_pull0:
+            pos, rot, bz = hold(start_dz), rotk(1.0), start_dz
+        elif t <= t_pull1:                            # pull back
+            s = ease((t - t_pull0) / (t_pull1 - t_pull0))
+            bz = start_dz + (pull - start_dz) * s if start_open else tr * s
+            pos, rot = hold(bz), rotk(1.0)
+        elif t <= t_hold:
+            bz = pull if start_open else tr
+            pos, rot = hold(bz), rotk(1.0)
+        elif t <= t_rel:                              # let it fly forward, hand follows for a moment
+            s = min(1.0, (t - t_hold) / (t_rel - t_hold))
+            bz = (pull if start_open else tr) * (1 - s * s)
+            pos, rot = hold(bz), rotk(1.0)
+        elif t <= t_free:
+            bz = 0.0
+            pos, rot = hold(0.0), rotk(1.0)
+        else:                                         # hand lets go and goes back to the grip
+            s = ease((t - t_free) / (t_home - t_free))
+            import math
+            bump = math.sin(math.pi * s)
+            p0 = hold(0.0)
+            pos = [p0[k] * (1 - s) + arc[k] * bump for k in range(3)]
+            rot = rotk(1 - ease(min(1.0, s * 1.4)))
+            bz = 0.0
+        a.key("right_hand", "position", t, [round(x, 3) for x in pos], STEP)
+        a.key("right_hand", "rotation", t, rot, STEP)
+        if t0 <= t <= t_free:
+            a.key("bolt", "position", t, [0, 0, round(bz, 3)], STEP)
+    feed(a, c, (tg + 0.12) if start_open else (t_pull0 + 0.05), t_rel + 0.04)
+    return t_home
+
+
 def charge_right(a, c, t0, tr, start_open=False):
+    if c.get("charge_roll"):
+        return charge_right_roll(a, c, t0, tr, start_open)
     """The (one) right hand lets go of the grip, travels to the handle, works it and travels back (HARD RULE: no extra hand)."""
     hy, hz = c["hand_r"]
     hx, hyy, hzz = c["handle"]

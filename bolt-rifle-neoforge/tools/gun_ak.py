@@ -1,11 +1,27 @@
 """AK-47 (Type 3, wood furniture): slim stamped receiver, curved magazine, ladder rear sight."""
-from gunlib import Model
+import os
+from meshbake import MModel, mid
+from sdf import *
+import gun_m700 as g7
 
 ID = "ak47"
 
 
+def hands(m):
+    """Glove hands (same builder as the M700/M14): support hand cupping the handguard, firing hand on the pistol grip, three fingers round
+    the grip and the index finger on the trigger."""
+    g = mid("glove")
+    L = m.mesh("left_hand", "rifle", (0, -3.3, -12.4), tris=1800)
+    g7.glove(L, (0.46, -2.2, -9.9), (-0.2, 0.0, -0.98), (-0.45, 0.89, 0.0), (1, 0.3, 0), g, (22, 32, 28),
+             [(1.3, 0.9, 0.2), (2.0, 2.0, 0.7), (2.0, 3.1, 1.4)], (3.5, -9.0, -3.0))
+    R = m.mesh("right_hand", "rifle", (0, -5.0, 5.0), tris=1800)
+    g7.glove(R, (-1.5, -5.0, 7.5), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (80, 55, 40),
+             [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -9.5, 17.0), flen=1.1,
+             index_pts=[(-1.45, -4.0, 6.0), (-1.4, -3.7, 4.4), (-1.0, -3.45, 3.0), (-0.6, -3.35, 2.4), (-0.2, -3.3, 2.1)])
+
+
 def build():
-    m = Model(ID, seed=11)
+    m = MModel(ID, lo=(-5.0, -11.5, -17.0), hi=(5.0, 3.0, 17.0), h=float(os.environ.get("H", "0.10")), seed=11, tx=9)
     m.bone("wood", "rifle", (0, 0, 0))
     m.bone("barrel", "rifle", (0, 0, 0))
     m.bone("receiver", "rifle", (0, 0, 0))
@@ -93,19 +109,22 @@ def build():
     m.bone("magazine", "rifle", (0, -2.6, -5.2))
     ey, ez, ang = m.chain("magazine", "black", -0.92, 0.92, -2.5, -3.8, 1.45, 3.6, 12, 54, thick_taper=0.0)
     m.cube("magazine", "steel", -1.0, ey - 0.2, ez - 2.0, 1.0, ey + 0.1, ez + 2.0, rot=[-ang, 0, 0], pivot=[0, ey, ez])
-    m.cube("magazine", "brass", -0.5, -2.65, -5.3, 0.5, -2.45, -2.2)             # top round
+    m.cube("magazine", "brass", -0.85, -2.7, -5.0, -0.05, -2.3, -2.5)            # top rounds (zig-zag), bullets forward
+    m.cube("magazine", "steel", -0.8, -2.65, -6.0, -0.1, -2.35, -5.0)
+    m.cube("magazine", "brass", 0.05, -2.7, -4.6, 0.85, -2.3, -2.1)
+    m.cube("magazine", "steel", 0.1, -2.65, -5.6, 0.8, -2.35, -4.6)
     m.cube("magazine", "steel", -0.96, -3.0, -6.2, 0.96, -2.6, -5.7)              # front lug
 
     m.muzzle_flash(-27.9)
     m.casing(-1.0, 0.9, -1.0)
-    m.hand_left(-4.6, -12.5)
-    m.hand_right(-6.2, 5.2, -3.6)
+    hands(m)
 
     cfg = dict(
-        name=ID, hand_l=(-4.6, -12.5), mag_grip=(-10.0, -7.4), mag_drop=9.0, mag_rock=17,
-        charge_hand="right", hand_r=(-6.2, 5.2), handle=(-2.8, 1.0, -1.0), bolt_travel=7.0, hold_open=False,
+        name=ID, hand_l=(-3.3, -12.4), mag_grip=(-18.2, -10.8), grip_x=-0.3, mag_drop=9.0, mag_rock=17, lift_px=9.0,
+        charge_hand="right", hand_r=(-5.0, 7.0), handle=(-2.8, 1.0, -1.0), bolt_travel=7.0, charge_roll=True,
+        hand_frame=((-1.5, -5.0, 7.5), (0.0, -0.28, -0.96), (1, 0, 0)), hand_piv=(0, -5.0, 5.0), handle_grip=(-1.9, 1.0, -1.0), hold_open=False,
         fire_len=0.28, cycle=0.10, kick_z=2.3, kick_pitch=3.2, kick_yaw=0.8, flash=1.1,
-        reload_len=2.3, charge_len=0.95, release_len=0.0, eject=(-1.0, 1.0, 0.9),
+        reload_len=2.3, charge_len=1.1, release_len=0.0, eject=(-1.0, 1.0, 0.9),
         sight=(3.35, -5.7), butt=19.9,
     )
     return m, cfg

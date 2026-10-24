@@ -45,11 +45,11 @@ public final class Guns {
 				c(t * 0.40, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
 				c(t * 0.80, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f)));
 		java.util.List<Cue> chamber = new java.util.ArrayList<>(mag);
-		double back = kind.equals("left") ? 0.34 : 0.29, fwd = kind.equals("left") ? 0.46 : 0.50;
+		double back = kind.equals("left") ? 0.34 : kind.equals("roll") ? 0.38 : 0.29, fwd = kind.equals("left") ? 0.46 : kind.equals("roll") ? 0.72 : 0.50;
 		chamber.add(c(t + back * 20, SoundEvents.IRON_TRAPDOOR_OPEN, 0.9f, 1.0f));
 		chamber.add(c(t + fwd * 20, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.0f));
 		java.util.List<Cue> release = new java.util.ArrayList<>(mag);
-		double rel = handleRelease ? 0.37 : 0.24;
+		double rel = kind.equals("roll") ? 0.72 : handleRelease ? 0.37 : 0.24;
 		release.add(c(t + rel * 20, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.0f));
 		return new Cue[][]{
 				{},
@@ -66,8 +66,13 @@ public final class Guns {
 	private static final double SCALE = 1.089;
 
 	private static void hold(GunDef d, double butt, double s) {
+		hold(d, butt, s, 0.0, 0.0);
+	}
+
+	/** dy raises the held gun (blocks), dz brings it back towards the player. */
+	private static void hold(GunDef d, double butt, double s, double dy, double dz) {
 		s *= SCALE;
-		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s, -0.06 + 0.5 * s, 0.95 - butt * s / 16, 0, 0, 0);   // held close to the shooter, CoD/BF style
+		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s, -0.06 + 0.5 * s + dy, 0.95 - butt * s / 16 + dz, 0, 0, 0);   // held close to the shooter, CoD/BF style
 		d.third = new GunDef.Xf(0.36 * s / 0.36, 0, 0, 0, 90, 0, 0);
 	}
 
@@ -103,7 +108,7 @@ public final class Guns {
 		d.spreadAds = 0.10f;
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
-		hold(d, 22.4, 0.911);                          // 20% larger again (0.759 -> 0.911)
+		hold(d, 22.4, 0.911, 0.0, -0.14);                          // 20% larger again (0.759 -> 0.911)
 		aim(d, 2.75, 4.1, 0.5465, 0.10);
 		d.stockHingeZ = 7.2; d.stockDrop = 0.25;                 // rail-mounted ghost-ring rear sight / blade front sight
 		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
@@ -152,7 +157,7 @@ public final class Guns {
 		d.durability = 1700;
 		d.auto = true; d.selector = true;
 		d.interval = 2.0;                      // 600 rpm
-		d.reloadTicks = 46; d.reloadChamberTicks = 65;
+		d.reloadTicks = 46; d.reloadChamberTicks = 68;
 		d.spreadHip = 3.6f; d.spreadAds = 0.35f;
 		d.recoilPitch = 1.15f; d.recoilYaw = 0.45f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.2;
@@ -160,7 +165,7 @@ public final class Guns {
 		hold(d, 19.9, 0.4);
 		aim(d, 3.0, -5.7, 0.30, 0.12);
 		mount(d, 55, new double[]{3.2, 3.0}, -28.1);
-		d.cues = rifleCues(2.3, "right", true);
+		d.cues = rifleCues(2.3, "roll", true);
 		return d;
 	}
 
@@ -168,16 +173,16 @@ public final class Guns {
 		GunDef d = new GunDef("m14ebr", "M14 EBR", Chamber.C762_NATO, MagType.M14_20, Cartridge.NATO_762);
 		d.durability = 1600;
 		d.interval = 3.0;
-		d.reloadTicks = 46; d.reloadChamberTicks = 65; d.reloadReleaseTicks = 60;
+		d.reloadTicks = 46; d.reloadChamberTicks = 68; d.reloadReleaseTicks = 68;
 		d.holdOpen = true;
 		d.spreadHip = 3.0f; d.spreadAds = 0.12f;
 		d.recoilPitch = 2.1f; d.recoilYaw = 0.5f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;       // iron sights; optics come from attachments
-		hold(d, 23.6, 0.6);                            // M14 +20%
+		hold(d, 23.6, 0.6, 0.035, 0.0);               // M14 +20%, raised a touch to sit level with the M700
 		aim(d, 1.95, 4.4, 0.36, 0.09);
 		d.stockHingeZ = 12.4; d.stockDrop = 0.30;
 		mount(d, 54, new double[]{1.38, -9.0}, -36.8);
-		d.cues = rifleCues(2.3, "right", true);
+		d.cues = rifleCues(2.3, "roll", true);
 		return d;
 	}
 

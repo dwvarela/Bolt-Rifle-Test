@@ -22,9 +22,9 @@ def hands(m):
     g7.glove(L, (0.7, -3.6, -12.4), (-0.2, 0.0, -0.98), (-0.45, 0.89, 0.0), (1, 0.3, 0), g, (22, 32, 28),
              [(1.3, 0.9, 0.2), (2.0, 2.0, 0.7), (2.0, 3.1, 1.4)], (3.5, -7.0, -2.0))
     R = m.mesh("right_hand", "rifle", (0, -6.0, 9.2), tris=1800)
-    g7.glove(R, (-1.6, -5.2, 11.6), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (85, 70, 50),
-             [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -9.5, 22.0),
-             index_pts=[(-1.55, -4.3, 9.8), (-1.45, -3.8, 8.3), (-1.2, -3.5, 7.0), (-0.9, -3.3, 6.0), (-0.7, -3.2, 5.4)])
+    g7.glove(R, (-1.6, -5.2, 11.6), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), g, (80, 55, 40),
+             [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -9.5, 22.0), flen=1.1,
+             index_pts=[(-1.55, -4.3, 9.8), (-1.45, -3.8, 8.3), (-1.1, -3.55, 7.0), (-0.65, -3.45, 5.9), (-0.2, -3.4, 4.9)])
 
 
 def build():
@@ -107,14 +107,17 @@ def build():
     # ------------------------------------------------------------------ 20-round magazine (own bone so it can drop)
     mg = m.mesh("magazine", "rifle", (0, -3.0, -0.95), tris=1400)
     mg.add(Clip(Ext(sil, "zy", -0.93, 0.93, r=0.12), z0=-3.2, z1=1.1, y0=-8.3, y1=-2.95), mat=mid("steel"))
+    for x, z0 in ((-0.34, -1.2), (0.34, -0.3)):                                  # the top two rounds (zig-zag), bullets forward
+        mg.add(Cyl((x, -2.7, z0), (x, -2.7, z0 + 1.9), 0.3, rr=0.05), mat=mid("brass"))
+        mg.add(Cyl((x, -2.7, z0 - 1.5), (x, -2.7, z0), 0.25, 0.25, rr=0.05), mat=mid("steel"))
     mg.paint(box(-1.2, 1.2, -6.2, -5.9, -3.2, 1.1), "black")
     mg.paint(box(-1.2, 1.2, -4.5, -4.3, -3.2, 1.1), "black")
 
     # ------------------------------------------------------------------ bolt, operating rod and its handle (all smooth parts, no slapped-on cubes)
     stlm, blk = mid("steel"), mid("black")
     bo = m.mesh("bolt", "rifle", (0, 0, 0), tris=700)
-    bo.add(box(-0.8, 0.8, 0.05, 1.15, -2.9, 1.5, r=0.12), mat=stlm)                       # bolt body riding in the receiver
-    bo.add(box(-0.55, 0.55, 0.7, 1.3, -1.4, 0.4, r=0.08), mat=stlm)                      # raised lug on top of the bolt (ejection window side)
+    bo.add(box(-0.8, 0.8, 0.05, 1.3, -2.9, 1.5, r=0.12), mat=mid("stainless"))                       # bolt body riding in the receiver
+    bo.add(box(-0.6, 0.6, 0.7, 1.7, -2.3, -0.9, r=0.08), mat=mid("stainless"))                      # raised lug on top of the bolt (ejection window side)
     bo.add(box(-1.45, -0.9, -0.2, 0.55, -4.2, -0.6, r=0.14), mat=stlm)                    # carrier arm through the receiver slot to the rod
     bo.add(Cyl((-1.55, -0.2, -22.0), (-1.55, -0.2, -4.2), 0.33, rr=0.3), mat=stlm)        # operating rod running up under the gas cylinder
     bo.add(box(-1.95, -1.15, -0.55, 0.15, -6.5, -4.2, r=0.14), mat=stlm)                  # rod head / spring-guide block
@@ -129,11 +132,11 @@ def build():
     hands(m)
 
     cfg = dict(
-        name=ID, hand_l=(-4.0, -14.5), mag_grip=(-6.8, -0.95), mag_drop=9.0, mag_rock=10,
+        name=ID, hand_l=(-4.0, -14.5), mag_grip=(-9.2, -0.9), grip_x=-0.2, mag_drop=9.0, mag_rock=10,
         charge_hand="right", hand_r=(-6.0, 8.8), handle=(-2.7, 0.3, -1.0), bolt_travel=3.0, hold_open=True,
-        release_mode="handle",
+        release_mode="handle", charge_roll=True, hand_frame=((-1.6, -5.2, 11.6), (0.0, -0.28, -0.96), (1, 0, 0)), hand_piv=(0, -6.0, 9.2), handle_grip=(-1.6, 0.2, -1.25),
         fire_len=0.32, cycle=0.12, kick_z=2.8, kick_pitch=4.0, kick_yaw=0.8, flash=1.25,
-        lift_px=3.0, reload_len=2.3, charge_len=0.95, release_len=0.7, eject=(-0.9, 1.4, 0.8), round=(4.5, -2.0),
+        lift_px=3.0, reload_len=2.3, charge_len=1.1, release_len=1.1, eject=(-0.9, 1.4, 0.8), round=(4.5, -2.0),
         sight=(SY, SZ), butt=23.6,
     )
     return m, cfg

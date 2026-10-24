@@ -32,7 +32,7 @@ if np.dot(U_G, [0, 1, 0]) < 0:
     U_G = -U_G
 K75 = rotz(LIFT) @ (KNOB - np.array([0, 0, 0])) + np.zeros(3)
 # hand rigidly holds the knob (handle raised): knob sits inside the curled fingers (4.0 along the hand, 1.1 off the palm, 0.5 across)
-W_LIFT = K75 - 4.0 * V_G - 1.1 * N_G - 0.5 * U_G
+W_LIFT = K75 - 3.9 * V_G - 1.5 * N_G + 0.4 * U_G
 T_LIFT = W_LIFT - W_GRIP
 
 
