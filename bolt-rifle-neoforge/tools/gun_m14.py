@@ -76,6 +76,8 @@ def build():
     rc = m.mesh("receiver", "rifle", (0, 0, 0), tris=1400)
     gm = mid("gunmetal")
     side(rc, gm, 1.1, 0.3, -3.7, 6.7, -3.0, 1.02)
+    rc.sub(box(-1.15, 1.0, 0.05, 1.2, -3.2, 2.0))                                # open top-right ejection window (the bolt shows in it)
+    rc.sub(box(-1.15, -0.5, 0.05, 1.2, 2.0, 6.4))                                  # rear slot: the bolt rides back under the sight base
     rc.add(box(-0.95, 0.95, 0.9, 1.5, 2.0, 5.9, r=0.1), mat=gm)                   # sight base
     rc.add(Cyl((0.0, 1.55, 4.35), (0.0, 1.55, 4.35), 0.0), mat=gm) if False else None
     rc.add(box(-0.3, 0.3, 1.45, SY - 0.4, 4.1, 4.7, r=0.06), mat=gm)                # slim stem up to the ring
@@ -111,8 +113,8 @@ def build():
     # ------------------------------------------------------------------ bolt, operating rod and its handle (all smooth parts, no slapped-on cubes)
     stlm, blk = mid("steel"), mid("black")
     bo = m.mesh("bolt", "rifle", (0, 0, 0), tris=700)
-    bo.add(box(-0.8, 0.8, 0.05, 0.78, -2.9, 1.5, r=0.12), mat=stlm)                       # bolt body riding in the receiver
-    bo.add(box(-0.55, 0.55, 0.7, 0.9, -1.4, 0.4, r=0.08), mat=stlm)                      # raised lug on top of the bolt (ejection window side)
+    bo.add(box(-0.8, 0.8, 0.05, 1.15, -2.9, 1.5, r=0.12), mat=stlm)                       # bolt body riding in the receiver
+    bo.add(box(-0.55, 0.55, 0.7, 1.3, -1.4, 0.4, r=0.08), mat=stlm)                      # raised lug on top of the bolt (ejection window side)
     bo.add(box(-1.45, -0.9, -0.2, 0.55, -4.2, -0.6, r=0.14), mat=stlm)                    # carrier arm through the receiver slot to the rod
     bo.add(Cyl((-1.55, -0.2, -22.0), (-1.55, -0.2, -4.2), 0.33, rr=0.3), mat=stlm)        # operating rod running up under the gas cylinder
     bo.add(box(-1.95, -1.15, -0.55, 0.15, -6.5, -4.2, r=0.14), mat=stlm)                  # rod head / spring-guide block
@@ -128,10 +130,10 @@ def build():
 
     cfg = dict(
         name=ID, hand_l=(-4.0, -14.5), mag_grip=(-6.8, -0.95), mag_drop=9.0, mag_rock=10,
-        charge_hand="right", hand_r=(-6.0, 8.8), handle=(-2.7, 0.3, -1.0), bolt_travel=6.5, hold_open=True,
+        charge_hand="right", hand_r=(-6.0, 8.8), handle=(-2.7, 0.3, -1.0), bolt_travel=3.0, hold_open=True,
         release_mode="handle",
         fire_len=0.32, cycle=0.12, kick_z=2.8, kick_pitch=4.0, kick_yaw=0.8, flash=1.25,
-        lift_px=8.6, reload_len=2.3, charge_len=0.95, release_len=0.7, eject=(-0.9, 1.4, 0.8), round=(4.5, -2.0),
+        lift_px=3.0, reload_len=2.3, charge_len=0.95, release_len=0.7, eject=(-0.9, 1.4, 0.8), round=(4.5, -2.0),
         sight=(SY, SZ), butt=23.6,
     )
     return m, cfg
