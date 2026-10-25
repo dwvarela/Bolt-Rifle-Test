@@ -63,16 +63,24 @@ public final class Guns {
 
 	/** Held at the hip/shoulder: the bore stays at the same spot on screen whatever the model scale; butt = rear of the gun (px). */
 	/** Global draw scale (all guns +10% over the previous 0.9). */
-	private static final double SCALE = 1.089;
+	private static final double SCALE = 1.1979;   // 0.99 -> 1.089 -> 1.1979 (+10% each time)
 
 	private static void hold(GunDef d, double butt, double s) {
-		hold(d, butt, s, 0.0, 0.0);
+		hold(d, butt, s, 0.0, 0.0, 0.0);
 	}
 
-	/** dy raises the held gun (blocks), dz brings it back towards the player. */
-	private static void hold(GunDef d, double butt, double s, double dy, double dz) {
+	/**
+	 * dx moves the held gun sideways (negative = towards the screen centre), dy raises it, dz brings it TOWARDS the player when positive
+	 * (the camera looks down -z; bigger z = nearer).  All in blocks.  tools/audit_pos.py measures the result.
+	 */
+	private static void hold(GunDef d, double butt, double s, double dx, double dy, double dz) {
+		hold(d, butt, s, dx, dy, dz, 0.0, 0.0, 0.0);
+	}
+
+	/** Same, plus a tilt (degrees, renderer order Y, X, Z about the model origin) that swings the rear stock out of the frame. */
+	private static void hold(GunDef d, double butt, double s, double dx, double dy, double dz, double rx, double ry, double rz) {
 		s *= SCALE;
-		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s, -0.06 + 0.5 * s + dy, 0.95 - butt * s / 16 + dz, 0, 0, 0);   // held close to the shooter, CoD/BF style
+		d.hip = new GunDef.Xf(s, -0.40 + 0.5 * s + dx, -0.06 + 0.5 * s + dy, 0.95 - butt * s / 16 + dz, rx, ry, rz);   // held close to the shooter, CoD/BF style
 		d.third = new GunDef.Xf(0.36 * s / 0.36, 0, 0, 0, 90, 0, 0);
 	}
 
@@ -108,7 +116,7 @@ public final class Guns {
 		d.spreadAds = 0.10f;
 		d.recoilPitch = 2.2f;
 		d.recoilYaw = 0.7f;
-		hold(d, 22.4, 0.911, 0.0, -0.14);                          // 20% larger again (0.759 -> 0.911)
+		hold(d, 22.4, 0.911, -0.15, -0.17, -0.38, 6.0, 21.0, 5.4);      // M700: pulled in so the rear stock is out of view, grip + hand + action fully in view (audit_pos.py)                          // 20% larger again (0.759 -> 0.911)
 		aim(d, 2.75, 4.1, 0.5465, 0.10);
 		d.stockHingeZ = 7.2; d.stockDrop = 0.25;                 // rail-mounted ghost-ring rear sight / blade front sight
 		mount(d, 51, new double[]{1.78, -0.2}, -33.7);
@@ -145,7 +153,7 @@ public final class Guns {
 		d.recoilPitch = 1.9f; d.recoilYaw = 0.55f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.25;
 		d.boom = 0.95f; d.boomPitch = 1.05f;
-		hold(d, 20.6, 0.4);
+		hold(d, 20.6, 0.4, -0.14, 0.34, -0.36);   // fitted by tools/audit_pos.py: grip hand at the same screen spot as the M700/M14
 		aim(d, 3.0, -6.9, 0.30, 0.12);
 		mount(d, 52, new double[]{3.1, 1.0}, -32.0);
 		d.cues = rifleCues(2.2, "right", true);
@@ -162,7 +170,7 @@ public final class Guns {
 		d.recoilPitch = 1.15f; d.recoilYaw = 0.45f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.2;
 		d.boom = 0.95f; d.boomPitch = 1.05f;
-		hold(d, 19.9, 0.4);
+		hold(d, 19.9, 0.4, -0.27, 0.4, -0.06);   // fitted by tools/audit_pos.py: grip hand at the same screen spot as the M700/M14
 		aim(d, 3.0, -5.7, 0.30, 0.12);
 		mount(d, 55, new double[]{3.2, 3.0}, -28.1);
 		d.cues = rifleCues(2.3, "roll", true);
@@ -178,7 +186,7 @@ public final class Guns {
 		d.spreadHip = 3.0f; d.spreadAds = 0.12f;
 		d.recoilPitch = 2.1f; d.recoilYaw = 0.5f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;       // iron sights; optics come from attachments
-		hold(d, 23.6, 0.6, 0.035, 0.0);               // M14 +20%, raised a touch to sit level with the M700
+		hold(d, 23.6, 0.6, -0.05, 0.14, -0.32, 3.4, 14.9, 5.4);       // M14: grip hand level with the M700's, sits a little higher (audit_pos.py)               // M14 +20%, raised a touch to sit level with the M700
 		aim(d, 1.95, 4.4, 0.36, 0.09);
 		d.stockHingeZ = 12.4; d.stockDrop = 0.30;
 		mount(d, 54, new double[]{1.38, -9.0}, -36.8);
@@ -197,7 +205,7 @@ public final class Guns {
 		d.recoilPitch = 0.85f; d.recoilYaw = 0.3f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.boom = 0.85f; d.boomPitch = 1.1f;
-		hold(d, 20.0, 0.46);
+		hold(d, 20.0, 0.46, -0.13, 0.305, -0.36);   // fitted by tools/audit_pos.py: grip hand at the same screen spot as the M700/M14
 		aim(d, 4.12, 4.7, 0.30, 0.12);
 		mount(d, 52, new double[]{2.3, 0.0}, -26.9);
 		d.cues = rifleCues(2.0, "left", false);
@@ -214,7 +222,7 @@ public final class Guns {
 		d.recoilPitch = 0.9f; d.recoilYaw = 0.3f;
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.2;
 		d.boom = 0.85f; d.boomPitch = 1.1f;
-		hold(d, 29.1, 0.40);
+		hold(d, 29.1, 0.40, -0.135, 0.343, -0.12);   // fitted by tools/audit_pos.py: grip hand at the same screen spot as the M700/M14
 		aim(d, 3.3, 7.0, 0.30, 0.12);
 		mount(d, 60, new double[]{2.0, -1.0}, -29.6);
 		d.cues = rifleCues(2.0, "left", false);
@@ -233,7 +241,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.25;
 		d.boom = 0.7f; d.boomPitch = 1.35f;
 		d.aimSpeed = 0.2f;
-		hold(d, 18.1, 0.5);
+		hold(d, 18.1, 0.5, -0.13, 0.264, -0.36);   // fitted by tools/audit_pos.py: grip hand at the same screen spot as the M700/M14
 		aim(d, 4.5, -0.5, 0.30, 0.12);
 		mount(d, 62, new double[]{3.5, 1.0}, -15.5);
 		d.cues = rifleCues(1.9, "left", false);
@@ -252,7 +260,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.boom = 0.7f; d.boomPitch = 1.3f;
 		d.aimSpeed = 0.2f;
-		hold(d, 15.35, 0.5);
+		hold(d, 15.35, 0.5, -0.127, 0.24, -0.24);   // fitted by tools/audit_pos.py: grip hand at the same screen spot as the M700/M14
 		aim(d, 6.3, -6.3, 0.30, 0.12);
 		mount(d, 63, new double[]{4.2, -7.5}, -16.0);
 		d.cues = rifleCues(2.4, "left", false);
@@ -270,7 +278,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.1;
 		d.boom = 0.65f; d.boomPitch = 1.45f;
 		d.aimSpeed = 0.24f;
-		d.hip = new GunDef.Xf(0.43 * SCALE, -0.285 - 0.5 * 0.043, 0.375 - 0.5 * 0.043, 0.25, 0, 0, 0);
+		d.hip = new GunDef.Xf(0.43 * SCALE, -0.332, 0.407, -0.10, 0, 0, 0);   // fitted by tools/audit_pos.py: both hands in frame, same grip spot as the rifles
 		d.third = new GunDef.Xf(0.43 * SCALE, 0, 0, 0, 90, 0, 0);
 		aim(d, 1.62, 3.8, 0.30, 0.10);
 		mount(d, 63, null, -6.6);

@@ -27,6 +27,8 @@ if BUTT:
         if bone == "buttstock" and name == "position": return np.array([0, bz * math.sin(math.radians(bd)), 0])
         return _c2(bone, name, t, default)
 H = np.array([0.56, -0.52, -0.72])
+import fp_cov as _C
+_RV = _C._R(*[float(x) for x in os.environ.get('RV', '0,0,0').split(',')])
 W, Hh = 960, 540
 f = (Hh / 2) / math.tan(math.radians(35))
 ts = [float(x) for x in times.split(",")]
@@ -35,7 +37,7 @@ for t in ts:
     img = np.full((Hh, W, 3), (120, 160, 200), np.uint8)
     zb = np.full((Hh, W), 1e9)
     for pw, uv in tris_at(t):
-        c = np.stack([-pw[:, 0] / 16, pw[:, 1] / 16 + 0.01, pw[:, 2] / 16], 1) * S + H + T
+        c = (_RV @ (np.stack([-pw[:, 0] / 16, pw[:, 1] / 16 + 0.01, pw[:, 2] / 16], 1) * S).T).T + H + T
         if (c[:, 2] > -0.05).any():
             continue
         sx = W / 2 + f * c[:, 0] / -c[:, 2]

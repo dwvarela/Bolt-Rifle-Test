@@ -16,6 +16,9 @@ import java.util.Map;
  */
 public final class ClientConfig {
 	public static final ModConfigSpec SPEC;
+	/** Config file name. It carries a fingerprint of every default position/scale below, so any change to the built-in
+	 *  values automatically starts a fresh file (an old file would otherwise keep overriding the new defaults forever). */
+	public static final String FILE;
 
 	public static final ModConfigSpec.DoubleValue ZOOM_SENSITIVITY_EXPONENT;
 	public static final ModConfigSpec.DoubleValue RECOIL_SCALE;
@@ -77,6 +80,16 @@ public final class ClientConfig {
 		RECOIL_SCALE = b.comment("Multiplies camera recoil for every gun. 0 = none.")
 				.defineInRange("recoilScale", 1.0, 0.0, 5.0);
 		b.pop();
+		StringBuilder fp = new StringBuilder();
+		for (GunDef d : Guns.ALL) {
+			fp.append(d.id);
+			for (GunDef.Xf x : new GunDef.Xf[]{d.hip, d.ads, d.third}) {
+				fp.append('|').append(x.scale()).append(',').append(x.x()).append(',').append(x.y()).append(',').append(x.z())
+						.append(',').append(x.rx()).append(',').append(x.ry()).append(',').append(x.rz());
+			}
+			fp.append(';');
+		}
+		FILE = "boltrifle-client-" + Integer.toHexString(fp.toString().hashCode()) + ".toml";
 		SPEC = b.build();
 	}
 
