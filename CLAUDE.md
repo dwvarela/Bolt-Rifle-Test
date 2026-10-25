@@ -15,3 +15,7 @@
 * Reference jar (Point Blank) is reference-only: never copy its assets, code or models.
 * Work in parts, commit + push after each part, verify CI, give the preview link, keep messages short.
 * Sounds: use the user's own recordings in `Gun Sound Effects.zip` (see `tools/gen_sounds.py`), not synthesis.
+
+## HARD RULE: always say when something cannot be viewed (set by the user, permanent)
+* Every time a reference (video, link, file, image, in-game behaviour) cannot be viewed or tested, say so plainly in that same message, before working from it,
+  and say what is being used instead. Never imply a video/link/file was watched, matched or tested when it was not. Claude cannot watch videos or run the game.
