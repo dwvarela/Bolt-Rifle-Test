@@ -155,12 +155,20 @@ a.pos("rifle", 1.6, ZERO).rot("rifle", 1.6, ZERO)
 anims.append(a)
 
 
+def np_lerp(keys, t):
+    for (t0, v0), (t1, v1) in zip(keys, keys[1:]):
+        if t0 <= t <= t1:
+            k = (t - t0) / (t1 - t0)
+            return [x + (y - x) * k for x, y in zip(v0, v1)]
+    return keys[-1][1]
+
+
 def reload_mag(a):
     """Magazine swap 0 -> 2.7 s.  The support hand slides back under the magazine, presses the release (click), draws the magazine
     down and carries it away out of the bottom of the view; it comes back up with the fresh magazine (the magazine bone simply leaves and
     returns with the hand - it is never hidden), rocks it in, slaps the floor plate, and everything settles."""
-    hand = [(0.0, [0, 0, 0]), (0.30, [0.8, -1.0, 9.5]), (0.34, [0, -0.9, 9.5]), (0.40, [0, -1.2, 9.5]), (0.64, [0, -7.0, 9.5]),
-            (0.80, [2.0, -16.0, 8.0]), (1.00, [3.8, -30.0, 6.5]), (1.06, [4.2, -32.0, 6.3]), (1.30, [2.4, -28.0, 8.5]),
+    hand = [(0.0, [0, 0, 0]), (0.30, [0.8, -1.0, 9.5]), (0.34, [0, -0.9, 9.5]), (0.40, [0, -1.2, 9.5]), (0.62, [0, -5.2, 9.5]), (0.76, [0, -6.2, 9.5]),
+            (0.90, [-5.5, -10.5, 8.5]), (1.02, [0.5, -22.0, 7.2]), (1.08, [3.8, -31.0, 6.5]), (1.12, [4.2, -32.0, 6.3]), (1.30, [2.4, -28.0, 8.5]),
             (1.52, [0.8, -9.5, 9.5]), (1.68, [0, -1.0, 9.5]), (1.76, [0, -0.5, 9.5]), (1.84, [0, -1.2, 9.5]), (1.95, [0, -0.4, 9.5]),
             (2.06, [0, -1.2, 9.5]), (2.30, [1.0, -1.8, 7.6]), (2.5, [1.0, -1.0, 3.0]), (2.7, [0, 0, 0])]
     for t, v in hand:
@@ -172,16 +180,21 @@ def reload_mag(a):
     # below the view the same bone is moved to the belt (1.28, nothing is on screen) and the hand carries it back up as the new magazine.
     off = lambda v: [v[0], v[1] + 0.9, v[2] - 9.6]          # hand -> magazine offset while held
     hd = dict(hand)
-    a.pos("magazine", 0.0, ZERO).pos("magazine", 0.32, ZERO).pos("magazine", 0.40, [0, -0.3, 0]).pos("magazine", 0.52, [0.2, -3.2, 0])
-    n = 16                                              # flicked clear to the right / forward of the hand, then gravity (hand is moving away left/down)
+    # drawn out of the well WITH the hand (0.40 -> 0.76, held visibly beside the grip), released at 0.76 (the hand slides away to the left),
+    # then it falls under gravity with a slow tumble through the lower part of the view and out of the bottom.
+    a.pos("magazine", 0.0, ZERO).pos("magazine", 0.32, ZERO).pos("magazine", 0.40, [0, -0.3, 0])
+    for t in (0.50, 0.62, 0.70, 0.76):
+        a.pos("magazine", t, off(hd[t]) if t in hd else off(np_lerp(hand, t)))
+    a.rot("magazine", 0.0, ZERO).rot("magazine", 0.76, ZERO)
+    p0 = off(hd[0.76])
+    n, T = 16, 0.50
     for i in range(1, n + 1):
-        tau = 0.5 * i / n
-        p = [0.2 - 14.0 * tau * 0.6, -3.2 - 50.0 * tau - 350.0 * tau * tau, -4.0 * tau]
-        a.pos("magazine", 0.52 + tau, p, STEP)
+        tau = T * i / n
+        p = [p0[0] - 9.0 * tau, p0[1] - 6.0 * tau - 150.0 * tau * tau, p0[2] + 2.0 * tau]
+        a.pos("magazine", 0.76 + tau, p, STEP)
         r = 0.5 - 0.5 * math.cos(math.pi * i / n)
-        a.rot("magazine", 0.52 + tau, [-540 * r, 25 * r, 160 * r], STEP)
-    a.rot("magazine", 0.0, ZERO).rot("magazine", 0.52, ZERO)
-    a.pos("magazine", 1.279, p, STEP).rot("magazine", 1.279, [-540, 25, 160], STEP).rot("magazine", 1.28, ZERO, STEP)
+        a.rot("magazine", 0.76 + tau, [-300 * r, 20 * r, 90 * r], STEP)
+    a.pos("magazine", 1.279, p, STEP).rot("magazine", 1.279, [-300, 20, 90], STEP).rot("magazine", 1.28, ZERO, STEP)
     a.pos("magazine", 1.28, off(hd[1.30]), STEP)
     for t, v in hand:
         if 1.30 <= t <= 1.68:

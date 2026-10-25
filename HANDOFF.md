@@ -21,7 +21,7 @@ The user tests in game; the agent cannot. Always say honestly that things are un
 DONE+pushed: sounds, hard-rule rebuild, stock hinge, magazine tumble, gloves, M14 op-rod handle/top ejection, rounds in mags, 3-finger grips + trigger finger,
 rolled charging hand (M14/AK), AK glove hands, **Part 1 (commit 3903f29): M700/M14 hold pose + SCALE 1.1979 + config fingerprint + raster audits (all 10 pass, jar verified)**.
 TODO in order:
- 2. M700 magazine drop: smooth visible fall/throw out of view (now it "vanishes into the hand"). `tools/gen_m700_anim.py reload_mag` (teleport at 1.279/1.28, RZ=3.0).
+ 2. DONE (see git log): M700 magazine drop reworked in gen_m700_anim.reload_mag (held visibly 0.40-0.76, released, tumbles out of bottom by ~1.1s).
  3. M14: (a) bolt must HOLD OPEN when the magazine is empty after firing (check Java hold-open logic: GunItem/GunDef `holdOpen`, `fire_last` anim selection, reload_release flow, cfg hold_open=True in gun_m14.py);
     (b) 3 grip fingers higher/more natural; (c) no hand clipping into gun during rechamber after empty reload; (d) refine reload toward the reference video.
  4. Later: AK-47 part 2 (rebuild model from photos), GUI icons stale, rebuild SKS/M4A1/Mini-14/MP7/Glock19 from photos, re-fit their hold poses with the raster metric.
