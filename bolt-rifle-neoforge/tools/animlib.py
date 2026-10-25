@@ -86,7 +86,7 @@ def write(res_dir, model_name, prefix, anims, geo_path=None):
     out = {"format_version": "1.8.0", "animations": {prefix + a.name: a.to_json() for a in anims}}
     # identical twins ("_b") so back-to-back shots can alternate and each one restarts the animation
     for a in anims:
-        if a.name in ("fire", "dryfire"):
+        if a.name in ("fire", "dryfire", "dryfire_open"):
             out["animations"][prefix + a.name + "_b"] = a.to_json()
     d = os.path.join(res_dir, "assets/boltrifle/animations/item")
     os.makedirs(d, exist_ok=True)

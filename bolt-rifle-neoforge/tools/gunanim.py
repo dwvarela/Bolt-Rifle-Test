@@ -65,10 +65,27 @@ def dry(c):
     return a
 
 
+def dry_open(c):
+    a = dry(c)
+    a.name = "dryfire_open"
+    tr = c["bolt_travel"]
+    a.pos("bolt", 0.0, v(0, 0, tr), STEP).pos("bolt", 0.3, v(0, 0, tr), STEP)
+    return a
+
+
 def idle(c):
     a = Anim("idle", 4.0, loop=True, hidden=hidden_bones(c))
     a.pos("rifle", 0.0, ZERO).pos("rifle", 2.0, v(0, 0.08, 0.05)).pos("rifle", 4.0, ZERO)
     a.rot("rifle", 0.0, ZERO).rot("rifle", 1.0, v(0.25, 0, 0.3)).rot("rifle", 3.0, v(-0.25, 0, -0.3)).rot("rifle", 4.0, ZERO)
+    return a
+
+
+def idle_open(c):
+    """Bolt locked back on an empty magazine: same breathing as idle, bolt held at full travel (exactly the last pose of fire_last)."""
+    a = idle(c)
+    a.name = "idle_open"
+    tr = c["bolt_travel"]
+    a.pos("bolt", 0.0, v(0, 0, tr), STEP).pos("bolt", 4.0, v(0, 0, tr), STEP)
     return a
 
 
@@ -355,6 +372,8 @@ def build(c, res, model_name):
     anims = [idle(c), dry(c), fire(c, False)]
     if c.get("hold_open"):
         anims.append(fire(c, True))
+        anims.append(idle_open(c))
+        anims.append(dry_open(c))
     anims.append(reload(c, "reload"))
     anims.append(reload(c, "reload_chamber"))
     if c.get("hold_open"):

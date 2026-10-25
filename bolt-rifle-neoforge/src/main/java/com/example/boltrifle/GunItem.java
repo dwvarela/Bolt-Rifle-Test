@@ -57,7 +57,7 @@ public class GunItem extends Item implements GeoItem {
 	private static final String CONTROLLER = "main";
 
 	public final GunDef def;
-	private final RawAnimation idle, fireAnim, fireAnimB, fireLastAnim, dryAnim, dryAnimB, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
+	private final RawAnimation idle, idleOpen, fireAnim, fireAnimB, fireLastAnim, dryAnim, dryAnimB, dryOpenAnim, dryOpenAnimB, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
 	public GunItem(Properties properties, GunDef def) {
@@ -65,12 +65,15 @@ public class GunItem extends Item implements GeoItem {
 		this.def = def;
 		String p = "animation." + def.id + ".";
 		this.idle = RawAnimation.begin().thenLoop(p + "idle");
+		this.idleOpen = RawAnimation.begin().thenLoop(p + "idle_open");
 		this.fireAnim = RawAnimation.begin().thenPlay(p + "fire");
 		this.fireAnimB = RawAnimation.begin().thenPlay(p + "fire_b");
 		this.fireLastAnim = RawAnimation.begin().thenPlayAndHold(p + "fire_last");
 		this.reloadReleaseAnim = RawAnimation.begin().thenPlay(p + "reload_release");
 		this.dryAnim = RawAnimation.begin().thenPlay(p + "dryfire");
 		this.dryAnimB = RawAnimation.begin().thenPlay(p + "dryfire_b");
+		this.dryOpenAnim = RawAnimation.begin().thenPlay(p + "dryfire_open");
+		this.dryOpenAnimB = RawAnimation.begin().thenPlay(p + "dryfire_open_b");
 		this.reloadAnim = RawAnimation.begin().thenPlay(p + "reload");
 		this.reloadChamberAnim = RawAnimation.begin().thenPlay(p + "reload_chamber");
 		SingletonGeoAnimatable.registerSyncedAnimatable(this);
@@ -278,7 +281,7 @@ public class GunItem extends Item implements GeoItem {
 		}
 		ServerLevel level = player.serverLevel();
 		if (!isChambered(stack)) {
-			startAction(player, stack, ACTION_DRY, (flip = !flip) ? "dry" : "dry_b", def.dryTicks);
+			startAction(player, stack, ACTION_DRY, def.holdOpen && isBoltOpen(stack) ? ((flip = !flip) ? "dry_open" : "dry_open_b") : ((flip = !flip) ? "dry" : "dry_b"), def.dryTicks);
 			hint(player, Component.literal(getLoaded(stack) > 0 ? "Not chambered"
 					: hasMag(stack) ? "Magazine empty - press R" : "No magazine - press R").withStyle(ChatFormatting.YELLOW));
 			return;
@@ -602,11 +605,18 @@ public class GunItem extends Item implements GeoItem {
 
 	@Override
 	public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-		controllers.add(new AnimationController<GunItem>(this, CONTROLLER, 0, state -> state.setAndContinue(idle))
+		controllers.add(new AnimationController<GunItem>(this, CONTROLLER, 0, state -> {
+			// bolt locked back (empty magazine): keep showing it open whatever else happens (re-draw, animation end)
+			ItemStack st = state.getData(software.bernie.geckolib.constant.DataTickets.ITEMSTACK);
+			boolean open = def.holdOpen && st != null && isBoltOpen(st);
+			return state.setAndContinue(open ? idleOpen : idle);
+		})
 				.triggerableAnim("fire", fireAnim)
 				.triggerableAnim("fire_b", fireAnimB)
 				.triggerableAnim("dry", dryAnim)
 				.triggerableAnim("dry_b", dryAnimB)
+				.triggerableAnim("dry_open", dryOpenAnim)
+				.triggerableAnim("dry_open_b", dryOpenAnimB)
 				.triggerableAnim("fire_last", fireLastAnim)
 				.triggerableAnim("reload_release", reloadReleaseAnim)
 				.triggerableAnim("reload", reloadAnim)
