@@ -6,6 +6,7 @@ license = "MIT"
 modId = "boltrifle"
 version = "2.0.0"
 displayName = "Bolt Action Rifle"
+credits = "AK-47 model based on the low-poly AK-47 by GoldbergR on Sketchfab (https://sketchfab.com/GoldbergR), used under its licence terms."
 description = '''
 An animated M700-style bolt-action rifle: scoped aiming, 5-round magazine, full reload and chambering animations, craftable ammunition. Requires GeckoLib.
 '''

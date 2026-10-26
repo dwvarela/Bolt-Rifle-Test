@@ -61,3 +61,7 @@ gun_ak.py now builds stock/grip/handguards as SDF meshes (longer stock, raked gr
 The full bake (`/tmp/bake_ak.sh` = `python3 gen_guns.py ../src/main/resources ak47`) was running; until its resources are committed the repo's ak47 geo/texture/animation are still the OLD model.
 After the bake: refit the AK hold() in Guns.java (butt changed 19.9 -> 22.6; match the grip hand to the M700's, tools/fit_raster4.py / audit_pos.py), run audit10.py, commit resources, push, check CI.
 Note: pose_render.py draws cubes in one flat colour (fixed UV) and ignores cube rotations - only SDF meshes look textured there.
+
+## Credits (required)
+AK-47 geometry is derived from GoldbergR's Sketchfab model (https://sketchfab.com/GoldbergR) - see CREDITS.md and `credits` in neoforge.mods.toml. Never remove it.
+GLB reader/renderer used to inspect it: tools/glb_view.py (source file is the user's attachment ak-47_low-poly.glb; ask the user to re-attach it).
