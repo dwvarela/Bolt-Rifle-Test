@@ -156,11 +156,12 @@ for gid in ("ak47", "sks", "m4a1", "mini14", "mp7", "p90", "glock19"):
         xf = (0.43 * scale, float(g.group(1)), float(g.group(2)), float(g.group(3)))
     r = p["right_hand"]
     core = r[r[:, 2] < r[:, 2].max() - 3.6] if gid != "glock19" else r[r[:, 2] < 6]
-    rv = A.project(core, xf)[2].mean()
+    rvt = tuple(tab[gid][5:]) if gid in tab else (0, 0, 0)
+    rv = A.project(core, xf, rvt)[2].mean()
     lh_ = p["left_hand"]
-    lv = A.project(lh_[lh_[:, 2] < 6] if gid == "glock19" else lh_, xf)[2].mean()
-    cen = A.project(core.mean(0)[None], xf)
-    mzp = A.project(np.array([[0, 0, np.concatenate([q for k, q in p.items() if k not in ("muzzle_flash", "casing", "chamber_round", "magazine", "left_hand", "right_hand")])[:, 2].min()]]), xf)
+    lv = A.project(lh_[lh_[:, 2] < 6] if gid == "glock19" else lh_, xf, rvt)[2].mean()
+    cen = A.project(core.mean(0)[None], xf, rvt)
+    mzp = A.project(np.array([[0, 0, np.concatenate([q for k, q in p.items() if k not in ("muzzle_flash", "casing", "chamber_round", "magazine", "left_hand", "right_hand")])[:, 2].min()]]), xf, rvt)
     ok_g = rv >= 0.99 and lv >= 0.9 and bool(mzp[2][0])
     ok9 &= ok_g
     rows.append("%s s=%.3f RH %.2f LH %.2f hand@(%d,%d) muzzle %s" % (gid, xf[0], rv, lv, cen[0][0], cen[1][0], "in" if mzp[2][0] else "OUT"))
@@ -182,7 +183,7 @@ if JAR:
     z = zipfile.ZipFile(JAR)
     gc = z.read("com/example/boltrifle/Guns.class")
     cf = z.read("com/example/boltrifle/ClientConfig.class")
-    need = [WANT_SCALE, 0.911, -0.15, -0.17, -0.38, 6.0, 21.0, 5.4, -0.05, 0.14, -0.32]
+    need = [WANT_SCALE, 0.911, -0.15, -0.17, -0.38, 6.0, 21.0, 5.4, -0.05, 0.14, -0.32, 0.1, 0.15, -0.5]
     missing = [v for v in need if struct.pack(">d", v) not in gc]
     ok10 &= (not missing) and b"boltrifle-client-" in cf and b"hashCode" in cf
     msg10.append("jar: Guns.class constants missing %s; ClientConfig fingerprint present %s" % (missing, b"boltrifle-client-" in cf))
