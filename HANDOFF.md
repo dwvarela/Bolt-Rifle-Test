@@ -55,3 +55,9 @@ Per-gun files: tools/gun_<name>.py (geometry + cfg dict: mag_grip, hand_frame, h
 ### Git/CI
 Commit footer: `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. Push to `v3-realistic`; `gh run list --repo dwvarela/Bolt-Rifle-Test`.
 User-provided inputs NOT in repo: Fire_Arm_References.zip, Gun_Sound_Effects.zip, the Point Blank jar (reference only). Ask the user to re-attach if needed.
+
+## WIP (AK-47 part 2, uncommitted resources)
+gun_ak.py now builds stock/grip/handguards as SDF meshes (longer stock, raked grip, butt=22.6) and handle_grip=(-3.5,2.6,-0.2) (found with tools/search_handle2.py + clip_check.py).
+The full bake (`/tmp/bake_ak.sh` = `python3 gen_guns.py ../src/main/resources ak47`) was running; until its resources are committed the repo's ak47 geo/texture/animation are still the OLD model.
+After the bake: refit the AK hold() in Guns.java (butt changed 19.9 -> 22.6; match the grip hand to the M700's, tools/fit_raster4.py / audit_pos.py), run audit10.py, commit resources, push, check CI.
+Note: pose_render.py draws cubes in one flat colour (fixed UV) and ignores cube rotations - only SDF meshes look textured there.
