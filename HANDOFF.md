@@ -71,5 +71,5 @@ GLB reader/renderer used to inspect it: tools/glb_view.py (source file is the us
   by `tools/gun_glock19.py` (frame/slide/magazine from the GLB; gloves, flash, casing are ours). Hip transform `0.52*SCALE, (-0.34, 0.49, 0.0)`, sights (0.93, 3.5) fitted from
   first-person renders only. NOT tested in game. `audit10.py` audit 9 now reads the glock hip from Guns.java.
 * Reference zip contents live in `bolt-rifle-neoforge/tools/ref/models/` (git-ignored: re-supply the zip to regenerate).
-* M4A1: `tools/gun_m4.py build()` now imports `M4A1_Cube.glb` (preview only; resources NOT regenerated yet; charging handle floats above the rear receiver - fix before baking).
+* M4A1: rebuilt from `M4A1_Cube.glb` (resources baked, charging handle fixed, sight (4.1,3.5)); hold still the old fit, not tilted. Untested in game.
 * Still to do: attachments from `Attachments/*.glb`, refit M4A1 hold, M14 video-based reload refinement (needs user timestamps).

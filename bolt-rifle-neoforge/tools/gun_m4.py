@@ -169,10 +169,10 @@ def build():
         else:
             glbsdf.add_part(body, V, p["F"], 0, matfn=region)
     m.cube("magazine", "brass", -0.5, -1.15, -4.3, 0.5, -0.9, -1.4)                 # top round
-    m.bone("charge", "rifle", (0, 1.7, 6.5))
-    m.cube("charge", "black", -0.8, 1.45, 6.5, 0.8, 2.0, 9.2)
-    m.rbox("charge", "gunmetal", -1.5, 1.5, 8.3, 1.5, 2.2, 9.5, c=0.2)               # T-handle
-    m.cube("charge", "gunmetal", -1.5, 1.5, 8.2, -0.8, 2.3, 9.6)
+    m.bone("charge", "rifle", (0, 0.3, 6.5))
+    m.cube("charge", "black", -0.6, -0.3, 6.0, 0.6, 0.5, 9.0)
+    m.rbox("charge", "gunmetal", -1.5, 0.4, 8.3, 1.5, 1.2, 9.5, c=0.2)               # T-handle
+    m.cube("charge", "gunmetal", -1.5, 0.3, 8.2, -0.8, 1.4, 9.6)
     m.bone("bolt", "rifle", (0, 0, 0))
     m.cube("bolt", "stainless", -0.99, 0.4, -2.6, -0.9, 1.4, 1.6)
     m.muzzle_flash(-27.0, length=5.0)
@@ -187,10 +187,10 @@ def build():
              index_pts=[(-1.45, -4.0, 6.0), (-1.4, -3.7, 4.4), (-1.0, -3.45, 3.0), (-0.6, -3.35, 2.4), (-0.2, -3.3, 2.1)])
     cfg = dict(
         name="m4a1", hand_l=(-2.9, -12.0), mag_grip=(-9.0, -4.6), mag_drop=8.5, mag_rock=9,
-        charge_hand="left", charge_bone="charge", handle=(0, 1.8, 8.0), bolt_travel=4.0,
+        charge_hand="left", charge_bone="charge", handle=(0, 0.9, 8.8), bolt_travel=4.0,
         hold_open=True, release_mode="press", catch=(-3.0, 0.0), catch_x=3.0,
         fire_len=0.24, cycle=0.075, kick_z=1.7, kick_pitch=2.0, kick_yaw=0.45, flash=1.0,
         reload_len=2.0, charge_len=0.95, release_len=0.6, eject=(-1.0, 1.0, 0.8),
-        sight=(4.12, 4.7), butt=20.0,
+        sight=(4.1, 3.5), butt=20.0,
     )
     return m, cfg

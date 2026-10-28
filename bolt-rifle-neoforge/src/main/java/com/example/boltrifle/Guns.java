@@ -206,7 +206,7 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.3;
 		d.boom = 0.85f; d.boomPitch = 1.1f;
 		hold(d, 20.0, 0.46, -0.13, 0.305, -0.36);   // fitted by tools/audit_pos.py: grip hand at the same screen spot as the M700/M14
-		aim(d, 4.12, 4.7, 0.30, 0.12);
+		aim(d, 4.1, 3.5, 0.30, 0.12);
 		mount(d, 52, new double[]{2.3, 0.0}, -26.9);
 		d.cues = rifleCues(2.0, "left", false);
 		return d;
