@@ -1,6 +1,7 @@
 import struct, json, math, sys, numpy as np
 from PIL import Image
-p="/mnt/user-data/attachments/f7704eef-62d6-5370-832a-86ddeef93d7b/be7dcb82-ak-47_low-poly.glb"
+import os
+p=os.environ.get("GLB","/mnt/user-data/attachments/f7704eef-62d6-5370-832a-86ddeef93d7b/be7dcb82-ak-47_low-poly.glb")
 d=open(p,"rb").read(); off=12; js=None; bn=b""
 while off<len(d):
     n,t=struct.unpack_from("<II",d,off); c=d[off+8:off+8+n]; off+=8+n

@@ -64,7 +64,7 @@ def surface_points(V, F, step):
     return np.concatenate(out)
 
 
-def add_part(vol, V, F, mat):
+def add_part(vol, V, F, mat, matfn=None):
     """Write the signed distance of one closed-ish part into the shared grid volume `vol` (meshbake Vol)."""
     h = vol.h
     pts = surface_points(V, F, h * 0.4)
@@ -83,5 +83,9 @@ def add_part(vol, V, F, mat):
     sl = tuple(slice(int(a), int(b)) for a, b in zip(i0, i1))
     cur = vol.d[sl]
     take = sd < cur
-    vol.m[sl][take] = mat
+    if matfn is None:
+        vol.m[sl][take] = mat
+    else:
+        X, Y, Z = np.meshgrid(*ax, indexing="ij")
+        mm = vol.m[sl]; mm[take] = np.asarray(matfn(X, Y, Z))[take]; vol.m[sl] = mm
     vol.d[sl] = np.minimum(cur, sd)

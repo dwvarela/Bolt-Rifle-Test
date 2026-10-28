@@ -133,5 +133,64 @@ def build_ar(ident, mini14):
     return m, cfg
 
 
+import os
+GLB_M4 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ref", "models", "Fire Arm", "M4A1_Cube.glb")   # GoldbergR (Sketchfab), see CREDITS.md
+S4, Z04, Y04 = 25.938, 4.9427, 0.217                      # GLB units -> model px (muzzle tip z=-26.8, bore y=0)
+
+
 def build():
-    return build_ar("m4a1", False)
+    """M4A1 from the 'Cube' reference model (hull, grip, magazine, ejection cover); moving parts, flash and gloves are ours."""
+    import numpy as np
+    import glbsdf
+    from meshbake import MModel, mid
+    import gun_m700 as g7
+    m = MModel("m4a1", lo=(-4.5, -12.0, -30.0), hi=(4.5, 6.0, 23.0), h=float(os.environ.get("H", "0.10")), seed=41, tx=9)
+    parts, _ = glbsdf.load_parts(GLB_M4)
+    body = m.mesh("body", "rifle", (0, 0, 0), tris=7000)
+    mag = m.mesh("magazine", "rifle", (0, -5.2, -3.4), tris=2200)
+
+    def region(X, Y, Z):                                        # materials by region of the one big hull
+        mt = np.full(X.shape, mid("gunmetal"))
+        mt[Z > 7.2] = mid("poly")                                # buffer tube + stock
+        mt[(Y < -0.9) & (Z > -4.5)] = mid("poly")                # lower receiver
+        mt[Z < -6.0] = mid("black")                              # handguard
+        mt[(Z < -20.0)] = mid("steel")                           # barrel
+        mt[(Z < -22.5) & (Z > -26.9)] = mid("black")             # flash hider
+        return mt
+
+    for p in parts:
+        V = np.stack([p["V"][:, 0] * S4, (p["V"][:, 1] - Y04) * S4, Z04 - p["V"][:, 2] * S4], 1)
+        if p["mat"] == 1:
+            glbsdf.add_part(mag, V, p["F"], mid("poly"))
+        elif p["mat"] == 0:
+            glbsdf.add_part(body, V, p["F"], mid("poly"))
+        elif p["mat"] == 3:
+            glbsdf.add_part(body, V, p["F"], mid("gunmetal"))
+        else:
+            glbsdf.add_part(body, V, p["F"], 0, matfn=region)
+    m.cube("magazine", "brass", -0.5, -1.15, -4.3, 0.5, -0.9, -1.4)                 # top round
+    m.bone("charge", "rifle", (0, 1.7, 6.5))
+    m.cube("charge", "black", -0.8, 1.45, 6.5, 0.8, 2.0, 9.2)
+    m.rbox("charge", "gunmetal", -1.5, 1.5, 8.3, 1.5, 2.2, 9.5, c=0.2)               # T-handle
+    m.cube("charge", "gunmetal", -1.5, 1.5, 8.2, -0.8, 2.3, 9.6)
+    m.bone("bolt", "rifle", (0, 0, 0))
+    m.cube("bolt", "stainless", -0.99, 0.4, -2.6, -0.9, 1.4, 1.6)
+    m.muzzle_flash(-27.0, length=5.0)
+    m.casing(-1.0, 1.0, 0.0)
+    gl = mid("glove")
+    L = m.mesh("left_hand", "rifle", (0, -2.9, -12.0), tris=1800)
+    g7.glove(L, (0.46, -1.8, -9.5), (-0.2, 0.0, -0.98), (-0.45, 0.89, 0.0), (1, 0.3, 0), gl, (22, 32, 28),
+             [(1.3, 0.9, 0.2), (2.0, 2.0, 0.7), (2.0, 3.1, 1.4)], (3.5, -8.6, -2.6))
+    R = m.mesh("right_hand", "rifle", (0, -6.4, 4.5), tris=1800)
+    g7.glove(R, (-1.5, -5.0, 7.5), (0.0, -0.28, -0.96), (1, 0, 0), (0, 1, 0), gl, (80, 55, 40),
+             [(1.25, 0.8, 0.3), (1.9, 1.9, 0.9), (1.9, 3.0, 1.7)], (-3.5, -9.5, 17.0), flen=1.1,
+             index_pts=[(-1.45, -4.0, 6.0), (-1.4, -3.7, 4.4), (-1.0, -3.45, 3.0), (-0.6, -3.35, 2.4), (-0.2, -3.3, 2.1)])
+    cfg = dict(
+        name="m4a1", hand_l=(-2.9, -12.0), mag_grip=(-9.0, -4.6), mag_drop=8.5, mag_rock=9,
+        charge_hand="left", charge_bone="charge", handle=(0, 1.8, 8.0), bolt_travel=4.0,
+        hold_open=True, release_mode="press", catch=(-3.0, 0.0), catch_x=3.0,
+        fire_len=0.24, cycle=0.075, kick_z=1.7, kick_pitch=2.0, kick_yaw=0.45, flash=1.0,
+        reload_len=2.0, charge_len=0.95, release_len=0.6, eject=(-1.0, 1.0, 0.8),
+        sight=(4.12, 4.7), butt=20.0,
+    )
+    return m, cfg

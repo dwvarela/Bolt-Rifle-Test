@@ -152,8 +152,8 @@ for gid in ("ak47", "sks", "m4a1", "mini14", "mp7", "p90", "glock19"):
     if gid in tab:
         xf = A.hip_xf(scale, *tab[gid][:5], "now")
     else:                                                           # glock19 has its own hand-written hip transform
-        g = re.search(r'GunDef.Xf\(0.43 \* SCALE, ([-0-9.]+), ([-0-9.]+), ([-0-9.]+),', java)
-        xf = (0.43 * scale, float(g.group(1)), float(g.group(2)), float(g.group(3)))
+        g = re.search(r'd\.hip = new GunDef.Xf\(([0-9.]+) \* SCALE, ([-0-9.]+), ([-0-9.]+), ([-0-9.]+),', java[java.index('GunDef glock19()'):])
+        xf = (float(g.group(1)) * scale, float(g.group(2)), float(g.group(3)), float(g.group(4)))
     r = p["right_hand"]
     core = r[r[:, 2] < r[:, 2].max() - 3.6] if gid != "glock19" else r[r[:, 2] < 6]
     rvt = tuple(tab[gid][5:]) if gid in tab else (0, 0, 0)

@@ -268,7 +268,7 @@ public final class Guns {
 	}
 
 	private static GunDef glock19() {
-		GunDef d = new GunDef("glock19", "Glock 19 Gen 5", Chamber.C9, MagType.GLOCK19_15, Cartridge.P_9X19);
+		GunDef d = new GunDef("glock19", "Glock 17", Chamber.C9, MagType.GLOCK19_15, Cartridge.P_9X19);
 		d.durability = 1200;
 		d.interval = 2.0;                      // as fast as you can pull the trigger
 		d.reloadTicks = 34; d.reloadChamberTicks = 52; d.reloadReleaseTicks = 44;
@@ -278,10 +278,10 @@ public final class Guns {
 		d.zoomDefault = d.zoomMin = d.zoomMax = 1.1;
 		d.boom = 0.65f; d.boomPitch = 1.45f;
 		d.aimSpeed = 0.24f;
-		d.hip = new GunDef.Xf(0.43 * SCALE, -0.332, 0.407, -0.10, 0, 0, 0);   // fitted by tools/audit_pos.py: both hands in frame, same grip spot as the rifles
+		d.hip = new GunDef.Xf(0.52 * SCALE, -0.34, 0.49, 0.0, 0, 0, 0);       // Glock 17 rebuilt from the reference model; fitted from first-person renders (not tested in game)
 		d.third = new GunDef.Xf(0.43 * SCALE, 0, 0, 0, 90, 0, 0);
-		aim(d, 1.62, 3.8, 0.30, 0.10);
-		mount(d, 63, null, -6.6);
+		aim(d, 0.93, 3.5, 0.30, 0.10);
+		mount(d, 63, null, -6.2);
 		d.cues = rifleCues(1.7, "left", false);
 		return d;
 	}

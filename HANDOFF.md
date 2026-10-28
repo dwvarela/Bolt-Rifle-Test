@@ -65,3 +65,11 @@ Note: pose_render.py draws cubes in one flat colour (fixed UV) and ignores cube 
 ## Credits (required)
 AK-47 geometry is derived from GoldbergR's Sketchfab model (https://sketchfab.com/GoldbergR) - see CREDITS.md and `credits` in neoforge.mods.toml. Never remove it.
 GLB reader/renderer used to inspect it: tools/glb_view.py (source file is the user's attachment ak-47_low-poly.glb; ask the user to re-attach it).
+
+## Update: Glock 17 + reference zip (Fire_Arm_Reference_Models.zip)
+* Glock 19 replaced by the Glock 17: display name "Glock 17", internal id still `glock19` (so recipes/items keep working). Model built from `G17_Cube.glb`
+  by `tools/gun_glock19.py` (frame/slide/magazine from the GLB; gloves, flash, casing are ours). Hip transform `0.52*SCALE, (-0.34, 0.49, 0.0)`, sights (0.93, 3.5) fitted from
+  first-person renders only. NOT tested in game. `audit10.py` audit 9 now reads the glock hip from Guns.java.
+* Reference zip contents live in `bolt-rifle-neoforge/tools/ref/models/` (git-ignored: re-supply the zip to regenerate).
+* M4A1: `tools/gun_m4.py build()` now imports `M4A1_Cube.glb` (preview only; resources NOT regenerated yet; charging handle floats above the rear receiver - fix before baking).
+* Still to do: attachments from `Attachments/*.glb`, refit M4A1 hold, M14 video-based reload refinement (needs user timestamps).
