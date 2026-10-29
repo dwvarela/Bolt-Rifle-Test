@@ -281,7 +281,7 @@ public final class Guns {
 		d.hip = new GunDef.Xf(0.52 * SCALE, -0.34, 0.49, 0.0, 0, 0, 0);       // Glock 17 rebuilt from the reference model; fitted from first-person renders (not tested in game)
 		d.third = new GunDef.Xf(0.43 * SCALE, 0, 0, 0, 90, 0, 0);
 		aim(d, 0.93, 3.5, 0.30, 0.10);
-		mount(d, 63, null, -6.2);
+		mount(d, 63, new double[]{0.95, -1.1}, -6.2);   // optic rides above the slide travel (no rail; frame-mounted look)
 		d.cues = rifleCues(1.7, "left", false);
 		return d;
 	}
