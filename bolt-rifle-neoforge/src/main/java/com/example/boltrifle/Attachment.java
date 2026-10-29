@@ -7,10 +7,10 @@ import net.minecraft.world.item.ItemStack;
  * gun by {@link GunDef#pxPerM}). Optics sit on the gun's rail ({@link GunDef#optic}); muzzle devices screw onto the barrel end.
  */
 public enum Attachment {
-	RED_DOT("red_dot", "Red Dot Sight", Slot.OPTIC, 4.42, 11.7, 1.2, 1.2, 1.2, Reticle.DOT, false, 1f, 1f, 1f, false),
-	HOLO("holo", "Holographic Sight", Slot.OPTIC, 3.7, 11.0, 1.25, 1.25, 1.25, Reticle.RING, false, 1f, 1f, 1f, false),
-	ACOG("acog", "ACOG 4x32 Scope", Slot.OPTIC, 3.3, 17.0, 4.0, 4.0, 4.0, Reticle.CHEVRON, true, 1f, 1f, 1f, false),
-	SCOPE("scope", "1-6x Variable Scope", Slot.OPTIC, 4.0, 25.0, 3.0, 1.5, 6.0, Reticle.DUPLEX, true, 1f, 1f, 1f, false),
+	RED_DOT("red_dot", "Red Dot Sight", Slot.OPTIC, 4.05, 11.7, 1.2, 1.2, 1.2, Reticle.DOT, false, 1f, 1f, 1f, false),
+	HOLO("holo", "Holographic Sight", Slot.OPTIC, 5.10, 11.0, 1.25, 1.25, 1.25, Reticle.RING, false, 1f, 1f, 1f, false),
+	ACOG("acog", "ACOG 4x32 Scope", Slot.OPTIC, 4.70, 17.0, 4.0, 4.0, 4.0, Reticle.CHEVRON, true, 1f, 1f, 1f, false),
+	SCOPE("scope", "1-6x Variable Scope", Slot.OPTIC, 4.33, 25.0, 3.0, 1.5, 6.0, Reticle.DUPLEX, true, 1f, 1f, 1f, false),
 	FLASH_HIDER("flash_hider", "Flash Hider", Slot.MUZZLE, 0, 9.0, 0, 0, 0, Reticle.NONE, false, 0.95f, 0.9f, 1f, true),
 	BRAKE("muzzle_brake", "Muzzle Brake", Slot.MUZZLE, 0, 8.0, 0, 0, 0, Reticle.NONE, false, 0.72f, 1.3f, 1f, false),
 	SUPPRESSOR("suppressor", "Suppressor", Slot.MUZZLE, 0, 20.0, 0, 0, 0, Reticle.NONE, false, 0.88f, 0.22f, 0.94f, true);

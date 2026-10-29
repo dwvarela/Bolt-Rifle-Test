@@ -158,6 +158,85 @@ def suppressor():
 
 BUILD = dict(red_dot=red_dot, holo=holo, acog=acog, scope=scope, flash_hider=flash_hider, muzzle_brake=brake, suppressor=suppressor)
 
+# ------------------------------------------------------------------------------------------------ reference-model versions (GLB pack)
+import os
+import numpy as np
+import struct, json
+REFDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ref", "models", "Attachments")
+GLB_ATT = dict(red_dot=("Romeo_8T_Red_Dot_Low-Poly.glb", 9.0, "optic"), holo=("EOTech_HWS_XPS2_Sight_Low-Poly.glb", 11.0, "optic"),
+               acog=("Trijicon_ACOG_3.glb", 17.0, "optic"), scope=("SIG_Sauer_TANGO6T_1-6x24mm_Scope_Low-Poly.glb", 25.0, "optic"),
+               suppressor=("Gemtech_Tundra_Suppressor_Low-Poly.glb", 20.0, "muzzle"))
+
+
+def _glb_materials(path):
+    d = open(path, "rb").read()
+    n, _ = struct.unpack_from("<II", d, 12)
+    return json.loads(d[20:20 + n])["materials"]
+
+
+def _mat_for(col):
+    r, g, b = col[:3]
+    lum = (r + g + b) / 3
+    if r - b > 0.12 and r > g:
+        return "tan"
+    return "black" if lum < 0.05 else ("gunmetal" if lum < 0.12 else "steel")
+
+
+def from_glb(key, ident):
+    import glbsdf
+    fn, length, kind = GLB_ATT[key]
+    path = os.path.join(REFDIR, fn)
+    mats = _glb_materials(path)
+    parts, _ = glbsdf.load_parts(path)
+    glass, keep = [], []
+    for p in parts:
+        mt = mats[p["mat"]]
+        col = mt["pbrMetallicRoughness"]["baseColorFactor"]
+        if mt.get("alphaMode") == "BLEND":
+            glass.append(p)
+        elif not (col[0] > 0.5 and col[1] < 0.1):                  # drop the red reticle quads
+            keep.append((p, col))
+    allv = np.concatenate([p["V"] for p, _ in keep])
+    lo, hi = allv.min(0), allv.max(0)
+    S = length / (hi[2] - lo[2])
+    xc = (lo[0] + hi[0]) / 2
+    if kind == "optic" and glass:                                     # the optical axis (glass centre) is the x = 0 line
+        gv = np.concatenate([p["V"] for p in glass if len(p["F"]) > 20] or [p["V"] for p in glass])
+        xc = (gv[:, 0].min() + gv[:, 0].max()) / 2
+    zc = (lo[2] + hi[2]) / 2
+    if kind == "optic":
+        y0 = lo[1]
+        T = lambda V: np.stack([(V[:, 0] - xc) * S, (V[:, 1] - y0) * S, (zc - V[:, 2]) * S], 1)
+    else:
+        yc = (lo[1] + hi[1]) / 2
+        T = lambda V: np.stack([(V[:, 0] - xc) * S, (V[:, 1] - yc) * S, (lo[2] - V[:, 2]) * S], 1)
+    W = T(allv)
+    pad = 0.6
+    m = dim(ident, tuple(np.floor(W.min(0) - pad)), tuple(np.ceil(W.max(0) + pad)), 11, h=0.11 if kind == "optic" else 0.1)
+    b = m.mesh("body", "rifle", (0, 0, 0), tris=3200)
+    for p, col in keep:
+        glbsdf.add_part(b, T(p["V"]), p["F"], mid(_mat_for(col)))
+    info = {}
+    if kind == "optic" and glass:
+        G = T(np.concatenate([p["V"] for p in glass]))
+        gl = np.concatenate([T(p["V"]) for p in glass if len(p["F"]) > 20] or [G])
+        cx, cy = (gl[:, 0].min() + gl[:, 0].max()) / 2, (gl[:, 1].min() + gl[:, 1].max()) / 2
+        hw, hh = (gl[:, 0].max() - gl[:, 0].min()) / 2, (gl[:, 1].max() - gl[:, 1].min()) / 2
+        info = dict(axis=float(cy), x=float(cx), hw=float(hw), hh=float(hh))
+        zl, zh = float(W[:, 2].min() - 1), float(W[:, 2].max() + 1)
+        if key == "holo":
+            b.sub(box(cx - hw * 0.85, cx + hw * 0.85, cy - hh * 0.85, cy + hh * 0.85, zl, zh))
+        elif key == "red_dot":
+            b.sub(cylz(cx, cy, zl, zh, min(hw, hh) * 0.8))
+    print(ident, "length", round(float(W[:, 2].max() - W[:, 2].min()), 2), "height", round(float(W[:, 1].max() - W[:, 1].min()), 2), info)
+    return m
+
+
+for _k, _id in (("red_dot", "att_red_dot"), ("holo", "att_holo"), ("acog", "att_acog"), ("scope", "att_scope"), ("suppressor", "att_suppressor")):
+    if os.path.exists(os.path.join(REFDIR, GLB_ATT[_k][0])):
+        BUILD[_k] = (lambda k=_k, i=_id: from_glb(k, i))
+
+
 if __name__ == "__main__":
     res = sys.argv[1]
     for n in (sys.argv[2:] or list(BUILD)):
