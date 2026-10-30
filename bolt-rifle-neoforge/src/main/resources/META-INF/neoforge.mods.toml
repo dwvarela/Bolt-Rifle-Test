@@ -6,7 +6,7 @@ license = "MIT"
 modId = "boltrifle"
 version = "2.0.0"
 displayName = "Bolt Action Rifle"
-credits = "AK-47 model based on the low-poly AK-47 by GoldbergR on Sketchfab (https://sketchfab.com/GoldbergR), used under its licence terms."
+credits = "Models by GoldbergR on Sketchfab (https://sketchfab.com/GoldbergR), CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), modified for Minecraft: AK-47, M4A1, Glock 17 (G17), Romeo 8T red dot, EOTech HWS XPS2, Trijicon ACOG 3.5x35, SIG Sauer TANGO6T scope, Gemtech Tundra suppressor. The creator does not endorse this mod."
 description = '''
 An animated M700-style bolt-action rifle: scoped aiming, 5-round magazine, full reload and chambering animations, craftable ammunition. Requires GeckoLib.
 '''
