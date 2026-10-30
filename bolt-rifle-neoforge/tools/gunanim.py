@@ -96,6 +96,28 @@ def idle_open(c):
     return a
 
 
+DRAW_LEN = 0.85
+
+
+def draw_keys(a):
+    """Gun brought up from below and the shooter's right, a small overshoot, then it settles at the rest pose.  Only the root bone moves
+    (both hands ride on it), so there are still exactly two hands and nothing is scaled.  Length 0.85 s, inside the 0.57-2.95 s envelope of the
+    Point Blank dossier (02; reference only)."""
+    T = DRAW_LEN
+    a.pos("rifle", 0.0, v(2.0, -15.0, 3.0)).pos("rifle", 0.50 * T, v(-0.2, 1.0, -0.8)).pos("rifle", 0.78 * T, v(0, -0.25, 0.2)).pos("rifle", T, ZERO)
+    a.rot("rifle", 0.0, v(32.0, 10.0, -12.0)).rot("rifle", 0.50 * T, v(-3.0, -1.0, 1.2)).rot("rifle", 0.78 * T, v(0.8, 0, -0.3)).rot("rifle", T, ZERO)
+    return a
+
+
+def draw(c, opened=False):
+    a = Anim("draw_open" if opened else "draw", DRAW_LEN, hidden=hidden_bones(c))
+    draw_keys(a)
+    if opened:                                        # bolt locked back (empty magazine): stays at full travel through the draw
+        tr = c["bolt_travel"]
+        a.pos("bolt", 0.0, v(0, 0, tr), STEP).pos("bolt", DRAW_LEN, v(0, 0, tr), STEP)
+    return a
+
+
 def mag_swap(a, c, D, end_hand):
     """Magazine change over D seconds. `end_hand` is the support-hand offset to finish on (rest = ZERO).
     The hand swings out to the gun's left side (route_x) so it never passes through the receiver."""
@@ -377,8 +399,9 @@ def reload(c, kind):
 
 
 def build(c, res, model_name):
-    anims = [idle(c), dry(c), fire(c, False)]
+    anims = [idle(c), dry(c), fire(c, False), draw(c)]
     if c.get("hold_open"):
+        anims.append(draw(c, True))
         anims.append(fire(c, True))
         anims.append(idle_open(c))
         anims.append(dry_open(c))

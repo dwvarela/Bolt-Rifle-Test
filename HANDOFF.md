@@ -77,3 +77,4 @@ GLB reader/renderer used to inspect it: tools/glb_view.py (source file is the us
 * Glock 17 now accepts optics: mount {0.95,-1.1} (above slide travel, optics do not follow the slide). Untested in game.
 * Credits expanded (CREDITS.md + mods.toml) to cover every GoldbergR model in use, per CC BY 4.0 (name, link, licence, 'modified', no endorsement). Keep adding a line for each new GLB-derived model.
 * Reload swap timing: gunanim.TIMING ("pb" default, "legacy" for M14 via cfg swap=legacy); Java rifleCues(...legacy) mirrors RELEASE .20 / PULL .30 / INSERT .68. M700 has its own generator (unchanged). Based on Point Blank dossier cue positions (reference only). Untested in game.
+* Draw animation (0.85 s) for every gun (draw / draw_open); GunItem predicate plays it when first-person rendering resumes after >250 ms gap (select / world join), then loops idle. No gameplay lock during draw. Untested in game.

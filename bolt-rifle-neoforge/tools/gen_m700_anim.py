@@ -140,6 +140,12 @@ a.pos("rifle", 0.0, ZERO).pos("rifle", 2.0, [0, 0.05, 0.03]).pos("rifle", 4.0, Z
 a.rot("rifle", 0.0, ZERO).rot("rifle", 1.0, [0.12, 0, 0.15]).rot("rifle", 3.0, [-0.12, 0, -0.15]).rot("rifle", 4.0, ZERO)
 anims.append(a)
 
+# ---- draw (shared timing with the other guns, tools/gunanim.py) ----
+import gunanim
+a = Anim("draw", gunanim.DRAW_LEN, hidden=HIDDEN)
+gunanim.draw_keys(a)
+anims.append(a)
+
 # ---- dry fire ----
 a = Anim("dryfire", 0.3, hidden=HIDDEN)
 a.pos("rifle", 0.0, ZERO).pos("rifle", 0.04, [0, 0, 0.45], SNAP).pos("rifle", 0.26, ZERO)

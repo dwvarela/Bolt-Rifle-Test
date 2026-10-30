@@ -57,7 +57,10 @@ public class GunItem extends Item implements GeoItem {
 	private static final String CONTROLLER = "main";
 
 	public final GunDef def;
-	private final RawAnimation idle, idleOpen, fireAnim, fireAnimB, fireLastAnim, dryAnim, dryAnimB, dryOpenAnim, dryOpenAnimB, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
+	private static final long DRAW_MS = 850;      // tools/gunanim.py DRAW_LEN
+	private long lastFirstPersonFrame = 0, drawUntil = 0;
+	private boolean drawOpen = false;
+	private final RawAnimation drawIdle, drawIdleOpen, idle, idleOpen, fireAnim, fireAnimB, fireLastAnim, dryAnim, dryAnimB, dryOpenAnim, dryOpenAnimB, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
 	public GunItem(Properties properties, GunDef def) {
@@ -66,6 +69,8 @@ public class GunItem extends Item implements GeoItem {
 		String p = "animation." + def.id + ".";
 		this.idle = RawAnimation.begin().thenLoop(p + "idle");
 		this.idleOpen = RawAnimation.begin().thenLoop(p + "idle_open");
+		this.drawIdle = RawAnimation.begin().thenPlay(p + "draw").thenLoop(p + "idle");
+		this.drawIdleOpen = RawAnimation.begin().thenPlay(p + "draw_open").thenLoop(p + "idle_open");
 		this.fireAnim = RawAnimation.begin().thenPlay(p + "fire");
 		this.fireAnimB = RawAnimation.begin().thenPlay(p + "fire_b");
 		this.fireLastAnim = RawAnimation.begin().thenPlayAndHold(p + "fire_last");
@@ -609,6 +614,19 @@ public class GunItem extends Item implements GeoItem {
 			// bolt locked back (empty magazine): keep showing it open whatever else happens (re-draw, animation end)
 			ItemStack st = state.getData(software.bernie.geckolib.constant.DataTickets.ITEMSTACK);
 			boolean open = def.holdOpen && st != null && isBoltOpen(st);
+			// draw: the first-person gun was not rendered for a moment (just selected / world joined) -> play the draw, then idle
+			var persp = state.getData(software.bernie.geckolib.constant.DataTickets.ITEM_RENDER_PERSPECTIVE);
+			if (persp == net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_RIGHT_HAND || persp == net.minecraft.world.item.ItemDisplayContext.FIRST_PERSON_LEFT_HAND) {
+				long now = System.currentTimeMillis();
+				if (now - lastFirstPersonFrame > 250) {
+					drawUntil = now + DRAW_MS;
+					drawOpen = open;
+				}
+				lastFirstPersonFrame = now;
+				if (now < drawUntil) {
+					return state.setAndContinue(drawOpen ? drawIdleOpen : drawIdle);
+				}
+			}
 			return state.setAndContinue(open ? idleOpen : idle);
 		})
 				.triggerableAnim("fire", fireAnim)
