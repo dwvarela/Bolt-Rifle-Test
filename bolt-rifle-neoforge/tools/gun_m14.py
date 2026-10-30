@@ -133,10 +133,13 @@ def build():
 
     cfg = dict(
         name=ID, hand_l=(-4.0, -14.5), mag_grip=(-9.2, -0.9), grip_x=-0.2, mag_drop=9.0, mag_rock=10,
-        charge_hand="right", hand_r=(-6.0, 8.8), handle=(-2.7, 0.3, -1.0), bolt_travel=3.0, swap="legacy", hold_open=True,
+        charge_hand="right", hand_r=(-6.0, 8.8), handle=(-2.7, 0.3, -1.0), bolt_travel=3.0, hold_open=True,
         release_mode="handle", charge_roll=True, hand_frame=((-1.6, -2.9, 11.6), (0.0, -0.28, -0.96), (1, 0, 0)), hand_piv=(0, -6.0, 9.2), handle_grip=(-3.2, 1.8, -0.45),
         fire_len=0.32, cycle=0.12, kick_z=2.8, kick_pitch=4.0, kick_yaw=0.8, flash=1.25,
-        lift_px=3.0, reload_len=2.3, charge_len=1.1, release_len=1.1, eject=(-0.9, 1.4, 0.8), round=(4.5, -2.0),
+        lift_px=3.0, reload_len=3.4, charge_len=0.85, release_len=0.85,
+        # reload timed to the user's written timeline of the reference video (the video itself could not be viewed): seconds
+        swap_abs=(0.35, 0.80, 1.00, 1.20, 1.40, 2.50, 2.75, 3.20, 3.28, 3.40, 3.33), drop_vx=14.0, pouch_off=(3.0, -8.0, 3.0), swap_rot=(-10.0, 0.0, -20.0),
+        rifle_t=(0.20, 0.55, 3.20, 3.50, 4.0), charge_lead=0.22, charge_t=(0.26, 0.04, 0.20, 0.03, 0.06, 0.05, 0.40), eject=(-0.9, 1.4, 0.8), round=(4.5, -2.0),
         sight=(SY, SZ), butt=23.6,
     )
     return m, cfg

@@ -67,6 +67,28 @@ public final class Guns {
 		};
 	}
 
+	/** M14 cues at the video-timeline moments (tools/gun_m14.py): mag release 0.8 s, mag out 1.0 s, new mag in 2.75 s and seated 3.2 s, handle back 3.5 s, released 3.79 s. */
+	private static Cue[][] m14Cues() {
+		java.util.List<Cue> mag = new java.util.ArrayList<>(java.util.List.of(
+				c(16, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
+				c(20, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+				c(55, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f),
+				c(64, SoundEvents.LEVER_CLICK, 0.8f, 0.9f)));
+		java.util.List<Cue> chamber = new java.util.ArrayList<>(mag);
+		chamber.add(c(70, SoundEvents.IRON_TRAPDOOR_OPEN, 0.9f, 1.0f));
+		chamber.add(c(76, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.0f));
+		java.util.List<Cue> release = new java.util.ArrayList<>(mag);
+		release.add(c(76, SoundEvents.IRON_TRAPDOOR_CLOSE, 0.9f, 1.0f));
+		return new Cue[][]{
+				{},
+				{new Cue(6, SoundEvents.AMETHYST_BLOCK_HIT, 0.35f, 2.0f)},
+				mag.toArray(new Cue[0]),
+				chamber.toArray(new Cue[0]),
+				{new Cue(0, SoundEvents.LEVER_CLICK, 0.9f, 0.7f)},
+				release.toArray(new Cue[0])
+		};
+	}
+
 	/** Held at the hip/shoulder: the bore stays at the same spot on screen whatever the model scale; butt = rear of the gun (px). */
 	/** Global draw scale (all guns +10% over the previous 0.9). */
 	private static final double SCALE = 1.1979;   // 0.99 -> 1.089 -> 1.1979 (+10% each time)
@@ -187,7 +209,7 @@ public final class Guns {
 		GunDef d = new GunDef("m14ebr", "M14 EBR", Chamber.C762_NATO, MagType.M14_20, Cartridge.NATO_762);
 		d.durability = 1600;
 		d.interval = 3.0;
-		d.reloadTicks = 46; d.reloadChamberTicks = 68; d.reloadReleaseTicks = 68;
+		d.reloadTicks = 68; d.reloadChamberTicks = 85; d.reloadReleaseTicks = 85;      // reload timed to the user's written video timeline (3.4 s / 4.25 s)
 		d.holdOpen = true;
 		d.spreadHip = 3.0f; d.spreadAds = 0.12f;
 		d.recoilPitch = 2.1f; d.recoilYaw = 0.5f;
@@ -196,7 +218,7 @@ public final class Guns {
 		aim(d, 1.95, 4.4, 0.36, 0.09);
 		d.stockHingeZ = 12.4; d.stockDrop = 0.30;
 		mount(d, 54, new double[]{1.38, -9.0}, -36.8);
-		d.cues = rifleCues(2.3, "roll", true, true);
+		d.cues = m14Cues();
 		return d;
 	}
 

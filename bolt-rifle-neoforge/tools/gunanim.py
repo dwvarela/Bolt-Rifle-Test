@@ -141,10 +141,11 @@ def draw(c, opened=False):
     return a
 
 
-def mag_swap(a, c, D, end_hand):
+def mag_swap(a, c, D, end_hand, rifle_t=None):
     """Magazine change over D seconds. `end_hand` is the support-hand offset to finish on (rest = ZERO).
     The hand swings out to the gun's left side (route_x) so it never passes through the receiver."""
-    F_REACH, F_RELEASE, F_PULL, F_OUT, F_POUCH, F_APPROACH, F_INSERT, F_SEAT, F_TUG, F_END, F_BACK = TIMING[c.get("swap", "pb")]
+    F_REACH, F_RELEASE, F_PULL, F_OUT, F_POUCH, F_APPROACH, F_INSERT, F_SEAT, F_TUG, F_END, F_BACK = (
+        tuple(x / D for x in c["swap_abs"]) if "swap_abs" in c else TIMING[c.get("swap", "pb")])
     t = lambda f: round(D * f, 3)
     hy, hz = c["hand_l"]
     gy, gz = c["mag_grip"]
@@ -180,7 +181,7 @@ def mag_swap(a, c, D, end_hand):
     t_drop = t(F_PULL)
     DUR = 0.52
     t_tele = max(t_drop + DUR + 0.04, t(F_POUCH))
-    vx, vy, vz, grav = -14.0, -60.0, -8.0, 900.0                       # flicked clear of the hand (right / forward), then gravity
+    vx, vy, vz, grav = c.get("drop_vx", -14.0), -60.0, -8.0, 900.0                       # flicked clear of the hand (right / forward), then gravity
     a.pos("magazine", 0.0, ZERO).pos("magazine", t(F_RELEASE), ZERO)
     a.pos("magazine", t_drop, pull, SMOOTH)
     n = int(round(DUR * 30))
@@ -207,6 +208,13 @@ def mag_swap(a, c, D, end_hand):
     # the gun is lifted into view for the swap (otherwise the magazine well and both hands sit below the bottom edge of the screen and the
     # magazine seems to vanish): raise = px that bring the magazine well to the lower middle of the first-person view
     rz = c.get("lift_px", 11.0)
+    if rifle_t:                                     # video-timed (M14): up and canted, held, partly upright for the charge, then back down
+        u0, u1, h1, mid, end = rifle_t
+        P = [0.0, rz - 0.4, 0.3]
+        R = list(c.get("swap_rot", (0.8, 0.0, -6.0)))
+        a.pos("rifle", 0.0, ZERO).pos("rifle", u0, ZERO).pos("rifle", u1, P).pos("rifle", h1, P).pos("rifle", mid, [x * 0.4 for x in P]).pos("rifle", end, ZERO)
+        a.rot("rifle", 0.0, ZERO).rot("rifle", u0, ZERO).rot("rifle", u1, R).rot("rifle", h1, R).rot("rifle", mid, [x * 0.4 for x in R]).rot("rifle", end, ZERO)
+        return d
     a.pos("rifle", 0.0, ZERO).pos("rifle", t(0.14), v(0, rz - 0.4, 0.3)).pos("rifle", t(0.9), v(0, rz - 0.4, 0.3)).pos("rifle", D, ZERO)
     a.rot("rifle", 0.0, ZERO).rot("rifle", t(0.18), v(0.8, 0, -6.0)).rot("rifle", t(0.88), v(0.8, 0, -6.0)).rot("rifle", D, ZERO)
     return d
@@ -284,15 +292,15 @@ def charge_right_roll(a, c, t0, tr, start_open=False):
         return [0, 0, round(roll * f, 3)]
 
     ease = lambda x: ease_sine(x)
-    T_reach, T_grab = 0.26, 0.08
+    T_reach, T_grab, T_pull, T_hold, T_rel, T_free, T_home = c.get("charge_t", (0.26, 0.08, 0.20, 0.05, 0.10, 0.06, 0.26))
     tg = t0 + T_reach                         # hand on the handle
     pull = tr + (0.8 if start_open else 0.0)
     t_pull0 = tg + T_grab
-    t_pull1 = t_pull0 + 0.20
-    t_hold = t_pull1 + 0.05
-    t_rel = t_hold + 0.10                     # bolt flies forward
-    t_free = t_rel + 0.06
-    t_home = t_free + 0.26
+    t_pull1 = t_pull0 + T_pull
+    t_hold = t_pull1 + T_hold
+    t_rel = t_hold + T_rel                    # bolt flies forward
+    t_free = t_rel + T_free
+    t_home = t_free + T_home
     arc = [-1.0, 1.4, 1.0]
     start_dz = tr if start_open else 0.0
     N = int(round((t_home - t0) * 30))
@@ -381,8 +389,13 @@ def reload(c, kind):
         T = D + c["release_len"]
     a = Anim(kind, round(T, 3), hidden=hidden_bones(c))
     tr = c["bolt_travel"]
+    rt = c.get("rifle_t")
+    if rt and kind == "reload":
+        rt = (rt[0], rt[1], D - 0.6, D - 0.3, D)
+    swap = lambda: mag_swap(a, c, D, ZERO, rt)
+    lead = c.get("charge_lead", 0.0)
     if kind == "reload":
-        mag_swap(a, c, D, ZERO)
+        swap()
         return a
     def drop_return(D):                       # the hand goes on from the magazine instead of back to the forend
         pos = a.bones["left_hand"]["position"]
@@ -394,18 +407,18 @@ def reload(c, kind):
 
     if kind == "reload_chamber":
         if c["charge_hand"] == "left":
-            mag_swap(a, c, D, ZERO)
+            swap()
             charge_left(a, c, D, tr, start=drop_return(D))
         else:
-            mag_swap(a, c, D, ZERO)
-            charge_right(a, c, D + 0.02, tr)
+            swap()
+            charge_right(a, c, D + 0.02 - lead, tr)
     else:
         a.pos("bolt", 0.0, v(0, 0, tr)).pos("bolt", D, v(0, 0, tr))
         if c["release_mode"] == "handle":
-            mag_swap(a, c, D, ZERO)
-            charge_right(a, c, D + 0.02, tr, start_open=True)
+            swap()
+            charge_right(a, c, D + 0.02 - lead, tr, start_open=True)
         else:                                   # press the bolt catch
-            mag_swap(a, c, D, ZERO)
+            swap()
             hy, hz = c["hand_l"]
             cy, cz = c["catch"]
             rx = c.get("route_x", 3.4)
