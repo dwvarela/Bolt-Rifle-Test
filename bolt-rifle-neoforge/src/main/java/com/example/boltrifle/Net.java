@@ -47,6 +47,17 @@ public final class Net {
 		}
 	}
 
+	public record InspectPayload() implements CustomPacketPayload {
+		public static final Type<InspectPayload> TYPE =
+				new Type<>(ResourceLocation.fromNamespaceAndPath(BoltRifleMod.MOD_ID, "inspect"));
+		public static final StreamCodec<ByteBuf, InspectPayload> CODEC = StreamCodec.unit(new InspectPayload());
+
+		@Override
+		public Type<? extends CustomPacketPayload> type() {
+			return TYPE;
+		}
+	}
+
 	public record AttachPayload() implements CustomPacketPayload {
 		public static final Type<AttachPayload> TYPE =
 				new Type<>(ResourceLocation.fromNamespaceAndPath(BoltRifleMod.MOD_ID, "attach"));
@@ -70,6 +81,12 @@ public final class Net {
 				ctx.enqueueWork(() -> {
 					if (ctx.player() instanceof ServerPlayer sp) {
 						GunItem.handleReload(sp);
+					}
+				}));
+		registrar.playToServer(InspectPayload.TYPE, InspectPayload.CODEC, (payload, ctx) ->
+				ctx.enqueueWork(() -> {
+					if (ctx.player() instanceof ServerPlayer sp) {
+						GunItem.handleInspect(sp);
 					}
 				}));
 		registrar.playToServer(AttachPayload.TYPE, AttachPayload.CODEC, (payload, ctx) ->

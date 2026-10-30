@@ -146,6 +146,10 @@ a = Anim("draw", gunanim.DRAW_LEN, hidden=HIDDEN)
 gunanim.draw_keys(a)
 anims.append(a)
 
+a = Anim("inspect", gunanim.INSPECT_LEN, hidden=HIDDEN)
+gunanim.inspect_keys(a)
+anims.append(a)
+
 # ---- dry fire ----
 a = Anim("dryfire", 0.3, hidden=HIDDEN)
 a.pos("rifle", 0.0, ZERO).pos("rifle", 0.04, [0, 0, 0.45], SNAP).pos("rifle", 0.26, ZERO)

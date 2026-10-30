@@ -43,6 +43,8 @@ public final class ClientEvents {
 	private static Double savedSensitivity;
 	public static final KeyMapping ATTACH_KEY =
 			new KeyMapping("key.boltrifle.attach", InputConstants.KEY_B, "key.categories.boltrifle");
+	public static final KeyMapping INSPECT_KEY =
+			new KeyMapping("key.boltrifle.inspect", InputConstants.KEY_Y, "key.categories.boltrifle");
 	public static final KeyMapping MODE_KEY =
 			new KeyMapping("key.boltrifle.mode", InputConstants.KEY_V, "key.categories.boltrifle");
 
@@ -100,6 +102,7 @@ public final class ClientEvents {
 			event.register(RELOAD_KEY);
 			event.register(MODE_KEY);
 			event.register(ATTACH_KEY);
+			event.register(INSPECT_KEY);
 		}
 
 		@SubscribeEvent
@@ -150,6 +153,11 @@ public final class ClientEvents {
 			while (MODE_KEY.consumeClick()) {
 				if (holding) {
 					PacketDistributor.sendToServer(new Net.TogglePayload());
+				}
+			}
+			while (INSPECT_KEY.consumeClick()) {
+				if (holding && aim < 0.2f) {
+					PacketDistributor.sendToServer(new Net.InspectPayload());
 				}
 			}
 			while (ATTACH_KEY.consumeClick()) {

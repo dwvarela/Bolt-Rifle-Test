@@ -57,10 +57,10 @@ public class GunItem extends Item implements GeoItem {
 	private static final String CONTROLLER = "main";
 
 	public final GunDef def;
-	private static final long DRAW_MS = 850;      // tools/gunanim.py DRAW_LEN
+	private static final long DRAW_MS = 600;      // tools/gunanim.py DRAW_LEN
 	private long lastFirstPersonFrame = 0, drawUntil = 0;
 	private boolean drawOpen = false;
-	private final RawAnimation drawIdle, drawIdleOpen, idle, idleOpen, fireAnim, fireAnimB, fireLastAnim, dryAnim, dryAnimB, dryOpenAnim, dryOpenAnimB, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
+	private final RawAnimation inspectAnim, inspectOpenAnim, drawIdle, drawIdleOpen, idle, idleOpen, fireAnim, fireAnimB, fireLastAnim, dryAnim, dryAnimB, dryOpenAnim, dryOpenAnimB, reloadAnim, reloadChamberAnim, reloadReleaseAnim;
 	private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
 	public GunItem(Properties properties, GunDef def) {
@@ -69,6 +69,8 @@ public class GunItem extends Item implements GeoItem {
 		String p = "animation." + def.id + ".";
 		this.idle = RawAnimation.begin().thenLoop(p + "idle");
 		this.idleOpen = RawAnimation.begin().thenLoop(p + "idle_open");
+		this.inspectAnim = RawAnimation.begin().thenPlay(p + "inspect");
+		this.inspectOpenAnim = RawAnimation.begin().thenPlay(p + "inspect_open");
 		this.drawIdle = RawAnimation.begin().thenPlay(p + "draw").thenLoop(p + "idle");
 		this.drawIdleOpen = RawAnimation.begin().thenPlay(p + "draw_open").thenLoop(p + "idle_open");
 		this.fireAnim = RawAnimation.begin().thenPlay(p + "fire");
@@ -175,6 +177,15 @@ public class GunItem extends Item implements GeoItem {
 		ItemStack stack = player.getMainHandItem();
 		if (stack.getItem() instanceof GunItem gun) {
 			gun.fire(player, stack, aiming);
+		}
+	}
+
+	/** Inspect key: purely visual (no action state), so firing, reloading or switching simply replaces the animation. */
+	public static void handleInspect(ServerPlayer player) {
+		ItemStack stack = player.getMainHandItem();
+		if (stack.getItem() instanceof GunItem gun && getAction(stack) == ACTION_NONE) {
+			boolean open = gun.def.holdOpen && isBoltOpen(stack);
+			gun.triggerAnim(player, GeoItem.getOrAssignId(stack, player.serverLevel()), CONTROLLER, open ? "inspect_open" : "inspect");
 		}
 	}
 
@@ -629,6 +640,8 @@ public class GunItem extends Item implements GeoItem {
 			}
 			return state.setAndContinue(open ? idleOpen : idle);
 		})
+				.triggerableAnim("inspect", inspectAnim)
+				.triggerableAnim("inspect_open", inspectOpenAnim)
 				.triggerableAnim("fire", fireAnim)
 				.triggerableAnim("fire_b", fireAnimB)
 				.triggerableAnim("dry", dryAnim)

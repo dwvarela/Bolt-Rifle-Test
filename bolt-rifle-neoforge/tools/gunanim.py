@@ -96,16 +96,39 @@ def idle_open(c):
     return a
 
 
-DRAW_LEN = 0.85
+DRAW_LEN = 0.60
+INSPECT_LEN = 4.0
 
 
 def draw_keys(a):
     """Gun brought up from below and the shooter's right, a small overshoot, then it settles at the rest pose.  Only the root bone moves
-    (both hands ride on it), so there are still exactly two hands and nothing is scaled.  Length 0.85 s, inside the 0.57-2.95 s envelope of the
+    (both hands ride on it), so there are still exactly two hands and nothing is scaled.  Length 0.60 s, inside the 0.57-2.95 s envelope of the
     Point Blank dossier (02; reference only)."""
     T = DRAW_LEN
-    a.pos("rifle", 0.0, v(2.0, -15.0, 3.0)).pos("rifle", 0.50 * T, v(-0.2, 1.0, -0.8)).pos("rifle", 0.78 * T, v(0, -0.25, 0.2)).pos("rifle", T, ZERO)
-    a.rot("rifle", 0.0, v(32.0, 10.0, -12.0)).rot("rifle", 0.50 * T, v(-3.0, -1.0, 1.2)).rot("rifle", 0.78 * T, v(0.8, 0, -0.3)).rot("rifle", T, ZERO)
+    # gentle: the game's own re-equip already lifts the gun from below the screen, so this only adds a "bring it to the ready" motion
+    a.pos("rifle", 0.0, v(0.8, -4.5, 1.5)).pos("rifle", 0.50 * T, v(-0.1, 0.5, -0.5)).pos("rifle", 0.78 * T, v(0, -0.15, 0.1)).pos("rifle", T, ZERO)
+    a.rot("rifle", 0.0, v(12.0, 4.0, -5.0)).rot("rifle", 0.50 * T, v(-2.0, -0.6, 0.8)).rot("rifle", 0.78 * T, v(0.5, 0, -0.2)).rot("rifle", T, ZERO)
+    return a
+
+
+def inspect_keys(a):
+    """Showpiece: the gun is brought toward the camera and turned one way, then the other, then settles.  Root bone only (hands ride on it)."""
+    P = [(0.0, (0, 0, 0), (0, 0, 0)), (0.6, (-1.5, 1.5, 2.5), (-6, 28, -14)), (1.6, (-1.6, 1.7, 2.6), (-8, 33, -17)),
+         (2.2, (0.5, 1.5, 2.5), (-4, -26, 12)), (3.1, (0.6, 1.6, 2.6), (-5, -31, 15)), (3.6, (0, 0.5, 0.5), (-1, 0, 0)), (INSPECT_LEN, (0, 0, 0), (0, 0, 0))]
+    for t, pp, rr in P:
+        a.pos("rifle", t, v(*pp)).rot("rifle", t, v(*rr))
+    return a
+
+
+def inspect(c, opened=False):
+    a = Anim("inspect_open" if opened else "inspect", INSPECT_LEN, hidden=hidden_bones(c))
+    inspect_keys(a)
+    tr = c["bolt_travel"]
+    if opened:
+        a.pos("bolt", 0.0, v(0, 0, tr), STEP).pos("bolt", INSPECT_LEN, v(0, 0, tr), STEP)
+    else:                                              # press-check: the bolt is eased back a little and let go
+        a.pos("bolt", 0.0, ZERO).pos("bolt", 2.4, ZERO).pos("bolt", 2.7, v(0, 0, tr * 0.4)).pos("bolt", 3.0, v(0, 0, tr * 0.4)).pos("bolt", 3.12, ZERO, SNAP)
+        a.pos("bolt", INSPECT_LEN, ZERO)
     return a
 
 
@@ -399,9 +422,10 @@ def reload(c, kind):
 
 
 def build(c, res, model_name):
-    anims = [idle(c), dry(c), fire(c, False), draw(c)]
+    anims = [idle(c), dry(c), fire(c, False), draw(c), inspect(c)]
     if c.get("hold_open"):
         anims.append(draw(c, True))
+        anims.append(inspect(c, True))
         anims.append(fire(c, True))
         anims.append(idle_open(c))
         anims.append(dry_open(c))

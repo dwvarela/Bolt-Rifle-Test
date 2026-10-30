@@ -32,6 +32,7 @@
   "item.boltrifle.grenade": "M67 Fragmentation Grenade",
   "entity.boltrifle.grenade": "Grenade",
   "key.boltrifle.attach": "Fit / remove attachment",
+  "key.boltrifle.inspect": "Inspect weapon",
   "item.boltrifle.red_dot": "Red Dot Sight",
   "item.boltrifle.holo": "Holographic Sight",
   "item.boltrifle.acog": "ACOG 4x32 Scope",
