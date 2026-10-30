@@ -39,11 +39,17 @@ public final class Guns {
 	 * @param kind "right" = right-hand handle, "left" = left-hand charging handle
 	 */
 	private static Cue[][] rifleCues(double d, String kind, boolean handleRelease) {
+		return rifleCues(d, kind, handleRelease, false);
+	}
+
+	/** legacy = the original magazine-swap timing (M14 only); otherwise the earlier "pb" timing of tools/gunanim.py TIMING (release, pull, insert). */
+	private static Cue[][] rifleCues(double d, String kind, boolean handleRelease, boolean legacy) {
 		double t = d * 20;
+		double fClick = legacy ? 0.27 : 0.20, fOut = legacy ? 0.40 : 0.30, fIn = legacy ? 0.80 : 0.68;
 		java.util.List<Cue> mag = new java.util.ArrayList<>(java.util.List.of(
-				c(t * 0.27, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
-				c(t * 0.40, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
-				c(t * 0.80, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f)));
+				c(t * fClick, SoundEvents.LEVER_CLICK, 0.8f, 1.4f),
+				c(t * fOut, SoundEvents.CROSSBOW_LOADING_START.value(), 0.8f, 1.2f),
+				c(t * fIn, SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), 0.9f, 1.1f)));
 		java.util.List<Cue> chamber = new java.util.ArrayList<>(mag);
 		double back = kind.equals("left") ? 0.34 : kind.equals("roll") ? 0.38 : 0.29, fwd = kind.equals("left") ? 0.46 : kind.equals("roll") ? 0.72 : 0.50;
 		chamber.add(c(t + back * 20, SoundEvents.IRON_TRAPDOOR_OPEN, 0.9f, 1.0f));
@@ -190,7 +196,7 @@ public final class Guns {
 		aim(d, 1.95, 4.4, 0.36, 0.09);
 		d.stockHingeZ = 12.4; d.stockDrop = 0.30;
 		mount(d, 54, new double[]{1.38, -9.0}, -36.8);
-		d.cues = rifleCues(2.3, "roll", true);
+		d.cues = rifleCues(2.3, "roll", true, true);
 		return d;
 	}
 

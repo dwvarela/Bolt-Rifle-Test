@@ -8,8 +8,15 @@ fractions of the magazine-swap duration so the Java sound cues (Guns.java) can u
 """
 from animlib import Anim, write, SMOOTH, SNAP, FALL, STEP, ZERO, ONE
 
-F_REACH, F_RELEASE, F_PULL, F_OUT, F_POUCH, F_APPROACH, F_INSERT, F_SEAT, F_TUG, F_END = \
-    0.14, 0.27, 0.40, 0.47, 0.58, 0.70, 0.80, 0.86, 0.91, 1.0
+# Magazine-swap phase fractions of the reload length.  "legacy" = the original timing (kept for the M14, whose reload awaits video-based
+# refinement); "pb" = moved earlier so the mag-out/mag-in land nearer the benchmarks in the Point Blank dossier (28: mag-out 8-11 %, mag-in
+# 33-39 % of a median 2.5 s reload; ours cannot go that early because the old magazine has to fall out of view first) and the last quarter is a
+# settle.  Java `rifleCues` mirrors RELEASE / PULL / INSERT.
+TIMING = {
+    "legacy": (0.14, 0.27, 0.40, 0.47, 0.58, 0.70, 0.80, 0.86, 0.91, 1.0, 0.95),
+    "pb": (0.08, 0.20, 0.30, 0.36, 0.46, 0.58, 0.68, 0.74, 0.80, 1.0, 0.90),
+}
+F_REACH, F_RELEASE, F_PULL, F_OUT, F_POUCH, F_APPROACH, F_INSERT, F_SEAT, F_TUG, F_END, F_BACK = TIMING["pb"]
 
 
 def ease_sine(s):
@@ -92,6 +99,7 @@ def idle_open(c):
 def mag_swap(a, c, D, end_hand):
     """Magazine change over D seconds. `end_hand` is the support-hand offset to finish on (rest = ZERO).
     The hand swings out to the gun's left side (route_x) so it never passes through the receiver."""
+    F_REACH, F_RELEASE, F_PULL, F_OUT, F_POUCH, F_APPROACH, F_INSERT, F_SEAT, F_TUG, F_END, F_BACK = TIMING[c.get("swap", "pb")]
     t = lambda f: round(D * f, 3)
     hy, hz = c["hand_l"]
     gy, gz = c["mag_grip"]
@@ -118,7 +126,7 @@ def mag_swap(a, c, D, end_hand):
     for f, vec, e in H:
         a.pos("left_hand", t(f), vec, e)
     back = v(rx, d[1] * 0.5, d[2] * 0.5)
-    a.pos("left_hand", t(0.95), back, SMOOTH)
+    a.pos("left_hand", t(F_BACK), back, SMOOTH)
     a.pos("left_hand", t(0.995), end_hand, SMOOTH)
     # old magazine: with the hand until it is pulled clear, then gone
     # the magazine rides in the support hand all the way down out of view and back up (never hidden / shown)
